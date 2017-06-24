@@ -6,7 +6,7 @@ var isDebug = false;
 
 project.currentStyle = {
 	strokeColor: 'red',
-	fillColor: 'white',
+//	fillColor: 'white',
 	strokeWidth: strokeWidth
 };
 
@@ -14,13 +14,16 @@ var stationA = new Point(100, 200);
 var stationB = new Point(100, 300);
 var stationC = new Point(100, 400);
 var stationD = new Point(400, 600);
+var stationE = new Point(500, 400);
 addLine(stationA, stationB);
 addLine(stationB, stationC);
 addLine(stationC, stationD);
+addLine(stationD, stationE);
 addStation(stationA);
 addStation(stationB);
 addStation(stationC);
 addStation(stationD);
+addStation(stationE);
 
 
 function createPath() {
@@ -73,6 +76,7 @@ function addStation(point) {
     var station = new Path.Circle(point, stationRadius);
     station.strokeColor = strokeColor;
     station.strokeWidth = strokeWidth;
+    station.fillColor = 'white';
     station.fullySelected = isDebug;
 }
 
