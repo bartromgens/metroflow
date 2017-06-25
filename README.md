@@ -1,6 +1,6 @@
 # metroflow
 
-A javascript library to create metro (subway) map style flowcharts on a HTML canvas. 
+A javascript library to create metro (subway) map style flowcharts on an HTML canvas. 
 
 ## Development
 
