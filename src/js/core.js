@@ -1,6 +1,5 @@
 require("paper");
 
-var isDebug = false;
 var strokeWidth = 6;
 var stationRadius = 1.3*strokeWidth;
 var strokeColor = 'red';
@@ -75,36 +74,41 @@ var Segment = {
     draw: function() {
         console.log('addLine');
         var minStraight = 50;
-        var begin = this.start; //+ new Point(0, stationRadius);
-        var end = this.end; //- new Point(0, stationRadius);
+        var begin = this.start;
+        var end = this.end;
         console.log('begin', begin);
         console.log('end', end);
         var path = this.createPath();
         var stationVector = end-begin;
-        var maxDistance = Math.min(stationVector.x, stationVector.y) - minStraight;
-        var straightBegin = (stationVector.y - maxDistance);
-        var straightEnd = (stationVector.x - maxDistance);
+        var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
+        var straightBegin = Math.abs(stationVector.y) - maxDistance;
+        var straightEnd = Math.abs(stationVector.x) - maxDistance;
+        console.log('stationVector.y', stationVector.y);
         console.log('maxDistance', maxDistance);
         console.log('straightBegin', straightBegin);
         console.log('straightEnd', straightEnd);
         straightBegin = Math.max(straightBegin, minStraight);
         straightEnd = Math.max(straightEnd, minStraight);
         var center = (stationVector)/2.0 + begin;
-        var arcBegin = begin + new Point(0, straightBegin);
-        var arcEnd = end - new Point(straightEnd, 0);
+        var arcBegin = begin + new Point(0, straightBegin)*Math.sign(stationVector.y);
+        var arcEnd = end - new Point(straightEnd, 0)*Math.sign(stationVector.x);
         var debugPointRadius = 4;
-        var centerCircle = new Path.Circle(center, debugPointRadius);
-        centerCircle.strokeWidth = 1;
-        centerCircle.strokeColor = 'blue';
-        centerCircle.fillColor = 'blue';
         path.add(begin);
-        if (stationVector.x > minStraight) {
+        if (Math.abs(stationVector.x) > minStraight && Math.abs(stationVector.y) > minStraight) {
             path.add(arcBegin);
             path.add(arcEnd);
+        }
+        if (isDebug) {
+            var centerCircle = new Path.Circle(center, debugPointRadius);
+            centerCircle.strokeWidth = 1;
+            centerCircle.strokeColor = 'blue';
+            centerCircle.fillColor = 'blue';
             var arcBeginCircle = new Path.Circle(arcBegin, debugPointRadius);
             arcBeginCircle.style = centerCircle.style;
+            arcBeginCircle.fillColor = 'black';
             var arcEndCircle = new Path.Circle(arcEnd, debugPointRadius);
             arcEndCircle.style = centerCircle.style;
+            arcEndCircle.fillColor = 'green';
         }
         path.add(end);
         return path;
