@@ -6,6 +6,7 @@ var ExtractTextPlugin = require("extract-text-webpack-plugin");
 module.exports = {
     context: __dirname,
     entry: {
+        core: "./src/js/core.js",
         paperexample: "./src/js/paperexample.js",
         css: ["./src/css/custom.css"]
     },
@@ -25,10 +26,22 @@ module.exports = {
                     use: "css-loader"
                 })
             }
-        ]
+        ],
+//        loaders: [
+//             // babel loader, testing for files that have a .js extension
+//             // (except for files in our node_modules folder!).
+//             {
+//                test: /\.js$/,
+//                exclude: /node_modules/,
+//                loader: "babel",
+//                query: {
+//                   compact: false // because I want readable output
+//                }
+//             }
+//         ]
     },
     externals: {
-        paper: "paper.js"
+        paper: "paper"
     },
     plugins: [
         new ManifestPlugin(),

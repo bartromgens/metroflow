@@ -1,8 +1,13 @@
+require("paper");
+var core = require("./core.js");
 
-var strokeWidth = 8;
+var strokeWidth = 6;
 var stationRadius = 1.3*strokeWidth;
 var strokeColor = 'red';
 var isDebug = false;
+
+core.StationStyle.strokeWidth = strokeWidth;
+core.StationStyle.stationRadius = stationRadius;
 
 project.currentStyle = {
 	strokeColor: 'red',
@@ -19,11 +24,11 @@ addLine(stationA, stationB);
 addLine(stationB, stationC);
 addLine(stationC, stationD);
 addLine(stationD, stationE);
-addStation(stationA);
-addStation(stationB);
-addStation(stationC);
-addStation(stationD);
-addStation(stationE);
+var stationA = core.createStation(stationA);
+var stationB = core.createStation(stationB);
+var stationC = core.createStation(stationC);
+var stationD = core.createStation(stationD);
+var stationE = core.createStation(stationE);
 
 
 function createPath() {
@@ -71,12 +76,3 @@ function addLine(stationA, stationB) {
     path.add(end);
     return path;
 }
-
-function addStation(point) {
-    var station = new Path.Circle(point, stationRadius);
-    station.strokeColor = strokeColor;
-    station.strokeWidth = strokeWidth;
-    station.fillColor = 'white';
-    station.fullySelected = isDebug;
-}
-

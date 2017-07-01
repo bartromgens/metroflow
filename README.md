@@ -11,7 +11,7 @@ A javascript library to create metro (subway) map style flowcharts on an HTML ca
 Install webpack and some plugins and loaders,
 ```bash
 $ sudo npm install webpack -g
-$ npm install --save-dev webpack path webpack-manifest-plugin webpack-cleanup-plugin extract-text-webpack-plugin css-loader style-loader
+$ npm install --save-dev webpack path webpack-manifest-plugin webpack-cleanup-plugin extract-text-webpack-plugin css-loader style-loader babel-loader
 ```
 
 Webpack config is found in `webpack.config.js`.
