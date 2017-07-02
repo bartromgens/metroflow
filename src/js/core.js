@@ -4,7 +4,7 @@ var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
 var strokeColor = "red";
 var fillColor = "white"
-var isDebug = true;
+var isDebug = false;
 
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {

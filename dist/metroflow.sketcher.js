@@ -1,1 +1,375 @@
-var MetroFlow=MetroFlow||{};MetroFlow.sketcher=function(t){function e(n){if(o[n])return o[n].exports;var i=o[n]={i:n,l:!1,exports:{}};return t[n].call(i.exports,i,i.exports,e),i.l=!0,i.exports}var o={};return e.m=t,e.c=o,e.d=function(t,o,n){e.o(t,o)||Object.defineProperty(t,o,{configurable:!1,enumerable:!0,get:n})},e.n=function(t){var o=t&&t.__esModule?function(){return t.default}:function(){return t};return e.d(o,"a",o),o},e.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},e.p="",e(e.s=2)}([function(t,e){t.exports=paper},function(t,e,o){function n(t){return Object.create(a).Station(t)}function i(){return Object.create(l)}function s(t,e){return Object.create(c).Segment(t,e)}o(0);var r={strokeColor:"black",strokeWidth:4,fillColor:"white",stationRadius:8,selectionColor:"green",fullySelected:!0},a={Station:function(t){return console.log("new station for point",t),this.position=t,this},isSelected:!1,toggleSelect:function(){this.isSelected?this.unselect():this.select()},select:function(){this.isSelected=!0,this.circle.strokeColor=r.selectionColor},unselect:function(){this.isSelected=!1,this.circle.strokeColor=r.strokeColor},draw:function(){this.circle=new Path.Circle(this.position,r.stationRadius),this.circle.strokeColor=r.strokeColor,this.circle.strokeWidth=r.strokeWidth,this.circle.fillColor=r.fillColor,this.circle.fullySelected=r.isDebug}},l={stations:[],segments:[],draw:function(){console.log("draw track"),this.createSegments(),project.clear();for(var t in this.segments){var e=null;t>0&&(e=this.segments[t-1]),this.segments[t].draw(e)}for(var t in this.stations)this.stations[t].draw()},createSegments:function(){this.segments=[];for(var t=1;t<this.stations.length;++t){var e=this.stations[t-1],o=this.stations[t],n=s(e.position,o.position);this.segments.push(n)}},findStation:function(t){for(var e in this.stations){var o=this.stations[e].circle.id;if(console.log(o),this.stations[e].circle.id===t)return this.stations[e]}return null}},c={Segment:function(t,e){return this.begin=t,this.end=e,this},direction:function(){return this.end-this.begin},createPath:function(){var t=new Path;return t.strokeColor="red",t.strokeWidth=8,t.strokeCap="round",t.strokeJoin="round",t.fullySelected=!0,t},draw:function(t){var e=this.end-this.begin,o=Math.min(Math.abs(e.x),Math.abs(e.y))-40,n=Math.abs(e.y)-o,i=Math.abs(e.x)-o;n=Math.max(n,40),i=Math.max(i,40);var s=new Point(0,n)*Math.sign(e.y),r=new Point(i,0)*Math.sign(e.x);if(t&&Math.abs(t.direction().x)>Math.abs(t.direction().y)&&(s=new Point(i,0)*Math.sign(e.x),r=new Point(0,n)*Math.sign(e.y)),Math.abs(e.x)>60&&Math.abs(e.y)>60){var a=this.end-r,l=this.begin+s,c=l-10*s.normalize()*2,h=l-10*s.normalize(),d=l+10*(a-l).normalize(),u=l+10*(a-l).normalize()*2,g=h+(d-h)/2,f=g+(l-g)/1.7,m=this.createPath();m.add(this.begin),m.add(c);var p=a-10*(a-l).normalize()*2,v=a-10*(a-l).normalize(),b=a+10*r.normalize(),w=a+10*r.normalize()*2,M=b+(v-b)/2,y=M+(a-M)/1.7,k=this.createPath();k.add(c),k.add(h),k.add(f),k.add(d),k.add(u),k.smooth();var S=this.createPath();S.add(u),S.add(p);var C=this.createPath();C.add(p),C.add(v),C.add(y),C.add(b),C.add(w),C.smooth();var x=this.createPath();x.add(a+10*r.normalize()*2),x.add(this.end)}else{var P=this.createPath();P.add(this.begin),P.add(this.end),P.smooth()}var z=e/2+this.begin,j=new Path.Circle(z,4);j.strokeWidth=1,j.strokeColor="blue",j.fillColor="blue";var O=new Path.Circle(l,4);O.style=j.style,O.strokeColor="green",O.fillColor="green",new Path.Circle(a,4).style=O.style}};t.exports={StationStyle:r,createStation:n,createSegment:s,createTrack:i}},function(t,e,o){function n(t){var e=project.hitTest(t.point,l);if(e)return console.log("hitresults"),h=e.item,console.log(h.id),c=r.findStation(h.id),console.log("station",c),c&&c.toggleSelect(),void("segment"==e.type&&(console.log("segment"),segment=e.segment));console.log("onMouseDown");var o=new Point(t.point.x,t.point.y);if(r.stations.length>0){var n=r.stations[r.stations.length-1];Math.abs(n.position.x-o.x)<a&&(o.x=n.position.x),Math.abs(n.position.y-o.y)<a&&(o.y=n.position.y)}var i=s.createStation(o);r.stations.push(i),r.draw()}function i(t){console.log("mouseDrag"),console.log("station",c),c&&(c.position+=t.delta,r.draw())}o(0);var s=o(1),r=s.createTrack(),a=60,l={segments:!0,stroke:!0,fill:!0,tolerance:5},c=null,h=null;tool.onMouseDown=n,tool.onMouseDrag=i}]);
+var MetroFlow = MetroFlow || {}; MetroFlow["sketcher"] =
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports) {
+
+module.exports = paper;
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(0);
+
+var strokeWidth = 8;
+var stationRadius = 1*strokeWidth;
+var strokeColor = "red";
+var fillColor = "white"
+var isDebug = false;
+
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+
+var StationStyle = {
+    strokeColor: "black",
+    strokeWidth: strokeWidth/2,
+    fillColor: fillColor,
+    stationRadius: stationRadius,
+    selectionColor: "green",
+    fullySelected: isDebug,
+}
+
+var Station = {
+    Station: function(position) {
+        console.log('new station for point', position);
+        this.position = position;
+        return this;
+    },
+    isSelected: false,
+    toggleSelect: function() {
+        if (this.isSelected) {
+            this.unselect();
+        } else {
+            this.select();
+        }
+    },
+    select: function() {
+        this.isSelected = true;
+        this.circle.strokeColor = StationStyle.selectionColor;
+    },
+    unselect: function() {
+        this.isSelected = false;
+        this.circle.strokeColor = StationStyle.strokeColor;
+    },
+    draw: function() {
+        this.circle = new Path.Circle(this.position, StationStyle.stationRadius);
+        this.circle.strokeColor = StationStyle.strokeColor;
+        this.circle.strokeWidth = StationStyle.strokeWidth;
+        this.circle.fillColor = StationStyle.fillColor;
+        this.circle.fullySelected = StationStyle.isDebug;
+    }
+}
+
+function createStation(point) {
+    var station = Object.create(Station).Station(point);
+    return station;
+}
+
+var Track = {
+    stations: [],
+    segments: [],
+    draw: function() {
+        console.log('draw track');
+        this.createSegments();
+        project.clear();
+        for (var i in this.segments) {
+            var previous = null;
+            if (i > 0) {
+                previous = this.segments[i-1];
+            }
+            this.segments[i].draw(previous);
+        }
+        for (var i in this.stations) {
+            this.stations[i].draw();
+        }
+    },
+    createSegments: function() {
+        this.segments = [];
+        for (var i = 1; i < this.stations.length; ++i) {
+            var previousStation = this.stations[i-1];
+            var station = this.stations[i];
+    	    var segment = createSegment(previousStation.position, station.position);
+	        this.segments.push(segment);
+        }
+    },
+    findStation: function(id) {
+        for (var i in this.stations) {
+            var stationId = this.stations[i].circle.id;
+            console.log(stationId);
+            if (this.stations[i].circle.id === id) {
+                return this.stations[i];
+            }
+        }
+        return null;
+    }
+}
+
+function createTrack() {
+    var track = Object.create(Track);
+    return track;
+}
+
+var Segment = {
+    Segment: function(begin, end) {
+        this.begin = begin;
+        this.end = end;
+        return this;
+    },
+    direction: function() {
+        return this.end - this.begin;
+    },
+    createPath: function() {
+        var path = new Path();
+        path.strokeColor = strokeColor;
+        path.strokeWidth = strokeWidth;
+        path.strokeCap = 'round';
+        path.strokeJoin = 'round';
+        path.fullySelected = isDebug;
+        return path;
+    },
+    draw: function(previous) {
+//        console.log('addLine');
+        var minStraight = 40;
+        var arcRadius = 10.0;
+        var stationVector = this.end - this.begin;
+        var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
+        var straightBegin = Math.abs(stationVector.y) - maxDistance;
+        var straightEnd = Math.abs(stationVector.x) - maxDistance;
+        straightBegin = Math.max(straightBegin, minStraight);
+        straightEnd = Math.max(straightEnd, minStraight);
+        var arcBeginRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
+        var arcEndRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
+        if (previous && Math.abs(previous.direction().x) > Math.abs(previous.direction().y)) {
+            arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
+            arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
+        }
+        var needsArc = Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
+        if (needsArc) {
+            var arcEnd = this.end - arcEndRel;
+            var arcBegin = this.begin + arcBeginRel;
+            var beginPoint0 = arcBegin - arcBeginRel.normalize()*arcRadius*2;
+            var beginPoint1 = arcBegin - arcBeginRel.normalize()*arcRadius;
+            var beginPoint2 = arcBegin + (arcEnd-arcBegin).normalize()*arcRadius;
+            var beginPoint3 = arcBegin + (arcEnd-arcBegin).normalize()*arcRadius*2;
+            var centerArc1 = beginPoint1 + (beginPoint2-beginPoint1)/2;
+            var beginCenter = centerArc1 + (arcBegin-centerArc1)/1.7;
+
+            var pathBegin = this.createPath();
+            pathBegin.add(this.begin);
+            pathBegin.add(beginPoint0);
+
+            var endPoint0 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius*2;
+            var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
+            var endPoint2 = arcEnd + arcEndRel.normalize()*arcRadius;
+            var endPoint3 = arcEnd + arcEndRel.normalize()*arcRadius*2
+            var centerArc2 = endPoint2 + (endPoint1-endPoint2)/2;
+            var endCenter = centerArc2 + (arcEnd-centerArc2)/1.7;
+
+            var pathArc1 = this.createPath();
+            pathArc1.add(beginPoint0);
+            pathArc1.add(beginPoint1);
+            pathArc1.add(beginCenter);
+            pathArc1.add(beginPoint2);
+            pathArc1.add(beginPoint3);
+            pathArc1.smooth();
+
+            var pathMiddle = this.createPath();
+            pathMiddle.add(beginPoint3);
+            pathMiddle.add(endPoint0);
+
+            var pathArc2 = this.createPath();
+            pathArc2.add(endPoint0);
+            pathArc2.add(endPoint1);
+            pathArc2.add(endCenter);
+            pathArc2.add(endPoint2);
+            pathArc2.add(endPoint3);
+            pathArc2.smooth();
+
+            var pathEnd = this.createPath();
+            pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
+            pathEnd.add(this.end);
+        } else {
+            var path = this.createPath();
+            path.add(this.begin);
+            path.add(this.end);
+            path.smooth();
+        }
+
+        if (isDebug) {
+            var debugPointRadius = 4;
+            var center = (stationVector)/2.0 + this.begin;
+            var centerCircle = new Path.Circle(center, debugPointRadius);
+            centerCircle.strokeWidth = 1;
+            centerCircle.strokeColor = 'blue';
+            centerCircle.fillColor = 'blue';
+            var arcBeginCircle = new Path.Circle(arcBegin, debugPointRadius);
+            arcBeginCircle.style = centerCircle.style;
+            arcBeginCircle.strokeColor = 'green';
+            arcBeginCircle.fillColor = 'green';
+            var arcEndCircle = new Path.Circle(arcEnd, debugPointRadius);
+            arcEndCircle.style = arcBeginCircle.style;
+        }
+//        path.fullySelected = true;
+//        return path;
+    },
+}
+
+function createSegment(begin, end) {
+    var segment = Object.create(Segment).Segment(begin, end);
+    return segment;
+}
+
+module.exports = {
+    StationStyle: StationStyle,
+    createStation: createStation,
+    createSegment: createSegment,
+    createTrack: createTrack,
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(0);
+var core = __webpack_require__(1);
+
+//core.StationStyle.strokeWidth = 6;
+//core.StationStyle.stationRadius = 1.3*6;
+
+var track = core.createTrack();
+var snapDistance = 60;
+
+
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    tolerance: 5
+};
+
+var station = null;
+var path = null;
+
+function onMouseDown(event) {
+
+	var hitResult = project.hitTest(event.point, hitOptions);
+
+	if (hitResult) {
+	    console.log('hitresults');
+		path = hitResult.item;
+//        path.fullySelected = true;
+        console.log(path.id);
+        station = track.findStation(path.id);
+        console.log('station', station);
+        if (station) {
+            station.toggleSelect();
+        }
+		if (hitResult.type == 'segment') {
+		    console.log('segment');
+			segment = hitResult.segment;
+        }
+		return;
+	}
+
+    console.log('onMouseDown');
+	var point = new Point(event.point.x, event.point.y);
+	if (track.stations.length > 0) {
+	    var previousStation = track.stations[track.stations.length-1];
+	    if (Math.abs(previousStation.position.x - point.x) < snapDistance) {
+	        point.x = previousStation.position.x;
+	    }
+	    if (Math.abs(previousStation.position.y - point.y) < snapDistance) {
+	        point.y = previousStation.position.y;
+	    }
+	}
+
+	var stationNew = core.createStation(point);
+	track.stations.push(stationNew);
+	track.draw();
+}
+
+function onMouseDrag(event) {
+    console.log('mouseDrag');
+    console.log('station', station);
+	if (station) {
+		station.position += event.delta;
+	    track.draw();
+	}
+}
+
+tool.onMouseDown = onMouseDown;
+tool.onMouseDrag = onMouseDrag;
+
+
+/***/ })
+/******/ ]);
