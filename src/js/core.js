@@ -99,7 +99,6 @@ var Station = {
 
 var StationMinor = {
     draw: function() {
-        console.log('lengthStraight', this.segment.lengthStraight());
         var position = this.segment.calcStationPosition(this);
         this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
         this.path.strokeColor = strokeColor;
@@ -251,6 +250,7 @@ var Segment = {
         this.stationsMinor = [];
         this.id = uuidv4();
         this.paths = [];
+        this.pathsStraight = [];
         this.pathBegin = null;
         this.pathMiddle = null;
         this.pathEnd = null;
@@ -271,14 +271,8 @@ var Segment = {
     },
     lengthStraight: function() {
         var length = 0.0;
-        if (this.pathBegin) {
-            length += this.pathBegin.length;
-        }
-        if (this.pathMiddle) {
-            length += this.pathMiddle.length;
-        }
-        if (this.pathEnd) {
-            length += this.pathEnd.length;
+        for (var i in this.pathsStraight) {
+            length += this.pathsStraight[i].length;
         }
         return length;
     },
@@ -313,50 +307,26 @@ var Segment = {
     },
     calcStationPosition: function(station) {
         var pos = this.stationsMinor.indexOf(station);
-        console.log('pos', pos);
-        var nStations = this.stationsMinor.length + 1 // including main stations at begin and end
-        var totalLength = this.lengthStraight();
-        var distanceBetweenStations = totalLength/nStations;
-//        console.log('distanceBetweenStations', distanceBetweenStations);
-//        console.log('nStations', nStations);
+        var nStations = this.stationsMinor.length + 1 // including main station
+        var distanceBetweenStations = this.lengthStraight()/nStations;
         var distanceStation = distanceBetweenStations * (pos+1);
-//        console.log('distanceStation', distanceStation);
         var currentLength = 0;
-        var lengths = [];
-        var paths = [];
-        if (this.pathBegin) {
-            currentLength += this.pathBegin.length;
-        }
-        lengths.push(currentLength);
-        paths.push(this.pathBegin);
-        if (this.pathMiddle) {
-            currentLength += this.pathMiddle.length;
-        }
-        lengths.push(currentLength);
-        paths.push(this.pathMiddle);
-        if (this.pathEnd) {
-            currentLength += this.pathEnd.length;
-        }
-        lengths.push(currentLength);
-        paths.push(this.pathEnd);
-//        console.log('currentLength', currentLength);
         var path = null;
-        var lengthDone = 0;
-        for (var i in lengths) {
-            if (lengths[i] > distanceStation) {
-                path = paths[i];
+        for (var i in this.pathsStraight) {
+            currentLength += this.pathsStraight[i].length;
+            if (currentLength > distanceStation) {
+                path = this.pathsStraight[i];
                 break;
             }
-            lengthDone += lengths[i];
+            lengthDone = currentLength;
         }
         var middleLine = path.lastSegment.point - path.firstSegment.point;
         var centerPointOnLine = path.firstSegment.point + middleLine.normalize()*(distanceStation-lengthDone);
-        var normalUnitVector = path.getNormalAt(path.length/2.0);
-//        console.log('centerPointOnLine', centerPointOnLine)
-        return {centerPointOnLine: centerPointOnLine, normalUnitVector: normalUnitVector};
+        return {centerPointOnLine: centerPointOnLine, normalUnitVector: path.getNormalAt(path.length/2.0)};
     },
     draw: function(previous) {
         this.paths = [];
+        this.pathsStraight = [];
         var minStraight = 40;
         var arcRadius = 10.0;
         var stationVector = this.end() - this.begin();
@@ -382,9 +352,10 @@ var Segment = {
             var centerArc1 = beginPoint1 + (beginPoint2-beginPoint1)/2;
             var beginCenter = centerArc1 + (arcBegin-centerArc1)/1.7;
 
-            this.pathBegin = this.createPath();
-            this.pathBegin.add(this.begin());
-            this.pathBegin.add(beginPoint0);
+            var pathBegin = this.createPath();
+            this.pathsStraight.push(pathBegin);
+            pathBegin.add(this.begin());
+            pathBegin.add(beginPoint0);
 
             var endPoint0 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius*2;
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
@@ -401,9 +372,10 @@ var Segment = {
             pathArc1.add(beginPoint3);
             pathArc1.smooth();
 
-            this.pathMiddle = this.createPath();
-            this.pathMiddle.add(beginPoint3);
-            this.pathMiddle.add(endPoint0);
+            var pathMiddle = this.createPath();
+            this.pathsStraight.push(pathMiddle);
+            pathMiddle.add(beginPoint3);
+            pathMiddle.add(endPoint0);
 
             var pathArc2 = this.createPath();
             pathArc2.add(endPoint0);
@@ -413,14 +385,16 @@ var Segment = {
             pathArc2.add(endPoint3);
             pathArc2.smooth();
 
-            this.pathEnd = this.createPath();
-            this.pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
-            this.pathEnd.add(this.end());
+            var pathEnd = this.createPath();
+            this.pathsStraight.push(pathEnd);
+            pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
+            pathEnd.add(this.end());
         } else {
-            this.pathMiddle = this.createPath();
-            this.pathMiddle.add(this.begin());
-            this.pathMiddle.add(this.end());
-            this.pathMiddle.smooth();
+            var pathMiddle = this.createPath();
+            this.pathsStraight.push(pathMiddle);
+            pathMiddle.add(this.begin());
+            pathMiddle.add(this.end());
+            pathMiddle.smooth();
         }
 
         if (DisplaySettings.isDebug) {
