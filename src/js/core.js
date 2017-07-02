@@ -99,10 +99,9 @@ var Station = {
 
 var StationMinor = {
     draw: function() {
-        var middleLine = this.segment.pathMiddle.lastSegment.point - this.segment.pathMiddle.firstSegment.point;
-        var centerPointOnLine = this.segment.pathMiddle.firstSegment.point + middleLine/2.0;
-        var tangentVector = this.segment.pathMiddle.getNormalAt(this.segment.pathMiddle.length/2.0);
-        this.path = new Path.Line(centerPointOnLine, centerPointOnLine + tangentVector*minorStationSize);
+        console.log('lengthStraight', this.segment.lengthStraight());
+        var position = this.segment.calcStationPosition(this);
+        this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
         this.path.strokeColor = strokeColor;
         this.path.strokeWidth = strokeWidth;
         this.path.fillColor = StationStyle.fillColor;
@@ -120,6 +119,7 @@ function createStationMinor(position, segment) {
     var observable = Object.create(Observable).Observable();
     station = Object.assign(observable, BaseStation, StationMinor);
     station = station.Station(position);
+    segment.stationsMinor.push(station);
     station.segment = segment;
     return station;
 }
@@ -248,9 +248,12 @@ var Segment = {
     Segment: function(stationA, stationB) {
         this.stationA = stationA;
         this.stationB = stationB;
+        this.stationsMinor = [];
         this.id = uuidv4();
         this.paths = [];
+        this.pathBegin = null;
         this.pathMiddle = null;
+        this.pathEnd = null;
         this.isSelected = false;
         return this;
     },
@@ -265,6 +268,19 @@ var Segment = {
     },
     center: function() {
         return this.begin() + (this.end() - this.begin())/2;
+    },
+    lengthStraight: function() {
+        var length = 0.0;
+        if (this.pathBegin) {
+            length += this.pathBegin.length;
+        }
+        if (this.pathMiddle) {
+            length += this.pathMiddle.length;
+        }
+        if (this.pathEnd) {
+            length += this.pathEnd.length;
+        }
+        return length;
     },
     toggleSelect: function() {
         if (this.isSelected) {
@@ -295,6 +311,50 @@ var Segment = {
         path.fullySelected = DisplaySettings.isDebug;
         return path;
     },
+    calcStationPosition: function(station) {
+        var pos = this.stationsMinor.indexOf(station);
+        console.log('pos', pos);
+        var nStations = this.stationsMinor.length + 1 // including main stations at begin and end
+        var totalLength = this.lengthStraight();
+        var distanceBetweenStations = totalLength/nStations;
+//        console.log('distanceBetweenStations', distanceBetweenStations);
+//        console.log('nStations', nStations);
+        var distanceStation = distanceBetweenStations * (pos+1);
+//        console.log('distanceStation', distanceStation);
+        var currentLength = 0;
+        var lengths = [];
+        var paths = [];
+        if (this.pathBegin) {
+            currentLength += this.pathBegin.length;
+        }
+        lengths.push(currentLength);
+        paths.push(this.pathBegin);
+        if (this.pathMiddle) {
+            currentLength += this.pathMiddle.length;
+        }
+        lengths.push(currentLength);
+        paths.push(this.pathMiddle);
+        if (this.pathEnd) {
+            currentLength += this.pathEnd.length;
+        }
+        lengths.push(currentLength);
+        paths.push(this.pathEnd);
+//        console.log('currentLength', currentLength);
+        var path = null;
+        var lengthDone = 0;
+        for (var i in lengths) {
+            if (lengths[i] > distanceStation) {
+                path = paths[i];
+                break;
+            }
+            lengthDone += lengths[i];
+        }
+        var middleLine = path.lastSegment.point - path.firstSegment.point;
+        var centerPointOnLine = path.firstSegment.point + middleLine.normalize()*(distanceStation-lengthDone);
+        var normalUnitVector = path.getNormalAt(path.length/2.0);
+//        console.log('centerPointOnLine', centerPointOnLine)
+        return {centerPointOnLine: centerPointOnLine, normalUnitVector: normalUnitVector};
+    },
     draw: function(previous) {
         this.paths = [];
         var minStraight = 40;
@@ -322,9 +382,9 @@ var Segment = {
             var centerArc1 = beginPoint1 + (beginPoint2-beginPoint1)/2;
             var beginCenter = centerArc1 + (arcBegin-centerArc1)/1.7;
 
-            var pathBegin = this.createPath();
-            pathBegin.add(this.begin());
-            pathBegin.add(beginPoint0);
+            this.pathBegin = this.createPath();
+            this.pathBegin.add(this.begin());
+            this.pathBegin.add(beginPoint0);
 
             var endPoint0 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius*2;
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
@@ -353,9 +413,9 @@ var Segment = {
             pathArc2.add(endPoint3);
             pathArc2.smooth();
 
-            var pathEnd = this.createPath();
-            pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
-            pathEnd.add(this.end());
+            this.pathEnd = this.createPath();
+            this.pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
+            this.pathEnd.add(this.end());
         } else {
             this.pathMiddle = this.createPath();
             this.pathMiddle.add(this.begin());
