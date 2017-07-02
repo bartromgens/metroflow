@@ -6,9 +6,15 @@ function showStationContextMenu(stationId) {
     $('#station-' + stationId).contextMenu();
 }
 
-function showSegmentContextMenu(segmentId) {
+
+function showSegmentContextMenu(segmentId, position) {
+    console.log('test', position);
+    console.log($('#segment-' + segmentId));
+//    $('#segment-' + segmentId).data('position', position);
     $('#segment-' + segmentId).contextMenu();
+    console.log('test');
 }
+
 
 function createStationContextMenu(stationElementId, track) {
     $.contextMenu({
@@ -28,18 +34,22 @@ function createStationContextMenu(stationElementId, track) {
     });
 }
 
+
 function createSegmentContextMenu(segmentElementId, track) {
     $.contextMenu({
         selector: '#' + segmentElementId,
         trigger: 'none',
         callback: function(key, options) {
-            if (key == "delete") {
-                var stationId = $(options.selector).data('station-id');
-                track.removeSegment(stationId);
+            console.log('options', options);
+            if (key == "create minor station") {
+                var segmentId = $(options.selector).data('segment-id');
+                var position = $(options.selector).data('position');
+                console.log('position', position);
+                core.createStationMinor(position);
             }
         },
         items: {
-            "delete": {name: "Delete", icon: "delete"},
+            "create minor station": {name: "create minor station", icon: "new"},
 //                "sep1": "---------",
 //                "quit": {name: "Quit", icon: function($element, key, item){ return 'context-menu-icon context-menu-icon-quit'; }}
         }
@@ -79,15 +89,18 @@ function createStationElement(station, track) {
 	station.registerObserver(stationObserver);
 }
 
+
 function createSegmentElements(track) {
+    console.log('createSegmentElements');
+    $(".segment").empty();
     for (var i in track.segments) {
         var segment = track.segments[i];
         createSegmentElement(segment, track);
     }
 }
 
+
 function createSegmentElement(segment, track) {
-    $(".segment").empty();
 	var segmentElementId = "segment-" + segment.id;
 	$("#overlay").append("<div class=\"segment\" id=\"" + segmentElementId + "\" data-segment-id=\"" + segment.id + "\"></div>")
 
@@ -95,11 +108,11 @@ function createSegmentElement(segment, track) {
 
     var segmentElement = $("#" + segmentElementId);
 
-    function updateElementPosition(segmentElement, segment) {
+    function updateSegmentElementPosition(segmentElement, segment) {
 	    segmentElement.css('top', (segment.center().y - segmentElement.width()/2) + 'px');
 	    segmentElement.css('left', (segment.center().x - segmentElement.height()/2) + 'px');
     }
-    updateElementPosition(segmentElement, segment);
+    updateSegmentElementPosition(segmentElement, segment);
 
     if (core.DisplaySettings.isDebug) {
         segmentElement.css('border-width', '1px');
@@ -109,7 +122,7 @@ function createSegmentElement(segment, track) {
 
     var segmentObserver = new core.Observer(
         function(segment) {
-            updateElementPosition(this.segment, station);
+            updateSegmentElementPosition(this.segmentElement, segment);
         },
         function(segment) {
             this.segmentElement.remove();

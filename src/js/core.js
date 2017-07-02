@@ -55,7 +55,7 @@ var Observable = {
     },
 }
 
-var Station = {
+var BaseStation = {
     Station: function(position) {
         console.log('new station for point', position);
         this.position = position;
@@ -72,29 +72,48 @@ var Station = {
     },
     select: function() {
         this.isSelected = true;
-        this.circle.strokeColor = StationStyle.selectionColor;
+        this.path.strokeColor = StationStyle.selectionColor;
     },
     unselect: function() {
         this.isSelected = false;
-        this.circle.strokeColor = StationStyle.strokeColor;
+        this.path.strokeColor = StationStyle.strokeColor;
     },
     setPosition: function(position) {
         this.position = position;
         this.notifyAllObservers();
     },
+}
+
+var Station = {
     draw: function() {
-        this.circle = new Path.Circle(this.position, StationStyle.stationRadius);
-        this.circle.strokeColor = StationStyle.strokeColor;
-        this.circle.strokeWidth = StationStyle.strokeWidth;
-        this.circle.fillColor = StationStyle.fillColor;
+        this.path = new Path.Circle(this.position, StationStyle.stationRadius);
+        this.path.strokeColor = StationStyle.strokeColor;
+        this.path.strokeWidth = StationStyle.strokeWidth;
+        this.path.fillColor = StationStyle.fillColor;
 //        this.circle.fullySelected = DisplaySettings.isDebug;
     },
 }
 
-function createStation(point) {
+var StationMinor = {
+    draw: function() {
+        this.path = new Path.Line(this.position, this.position + new Point(20, 20));
+        this.path.strokeColor = StationStyle.strokeColor;
+        this.path.strokeWidth = StationStyle.strokeWidth;
+        this.path.fillColor = StationStyle.fillColor;
+    },
+}
+
+function createStation(position) {
     var observable = Object.create(Observable).Observable();
-    station = Object.assign(observable, Station);
-    station = station.Station(point);
+    station = Object.assign(observable, BaseStation, Station);
+    station = station.Station(position);
+    return station;
+}
+
+function createStationMinor(position) {
+    var observable = Object.create(Observable).Observable();
+    station = Object.assign(observable, BaseStation, StationMinor);
+    station = station.Station(position);
     return station;
 }
 
@@ -114,13 +133,17 @@ var Track = {
     },
     createStation: function(position) {
     	var station = createStation(position);
+        if (this.stations.length > 0) {
+            var previousStation = this.stations[this.stations.length - 1];
+            var segment = createSegment(previousStation, station);
+            this.segments.push(segment);
+        }
         this.stations.push(station);
         this.draw();
         return station;
     },
     draw: function() {
-        console.log('draw track');
-        this.createSegments();
+//        console.log('draw track');
         project.clear();
         for (var i in this.segments) {
             var previous = null;
@@ -132,19 +155,20 @@ var Track = {
         for (var i in this.stations) {
             this.stations[i].draw();
         }
+        this.notifyAllObservers(this);
     },
-    createSegments: function() {
-        this.segments = [];
-        for (var i = 1; i < this.stations.length; ++i) {
-            var previousStation = this.stations[i-1];
-            var station = this.stations[i];
-    	    var segment = createSegment(previousStation.position, station.position);
-	        this.segments.push(segment);
-        }
-    },
+//    createSegments: function() {
+//        this.segments = [];
+//        for (var i = 1; i < this.stations.length; ++i) {
+//            var previousStation = this.stations[i-1];
+//            var station = this.stations[i];
+//    	    var segment = createSegment(previousStation, station);
+//	        this.segments.push(segment);
+//        }
+//    },
     findStationByPathId: function(id) {
         for (var i in this.stations) {
-            var stationId = this.stations[i].circle.id;
+            var stationId = this.stations[i].path.id;
             if (stationId === id) {
                 return this.stations[i];
             }
@@ -187,24 +211,32 @@ var Track = {
 }
 
 function createTrack() {
-    var track = Object.create(Track).Track();
+    var observable = Object.create(Observable).Observable();
+    track = Object.assign(observable, Track);
+    var track = track.Track();
     return track;
 }
 
 var Segment = {
-    Segment: function(begin, end) {
-        this.begin = begin;
-        this.end = end;
+    Segment: function(stationA, stationB) {
+        this.stationA = stationA;
+        this.stationB = stationB;
         this.id = uuidv4();
         this.paths = [];
         this.isSelected = false;
         return this;
     },
+    begin: function() {
+        return this.stationA.position;
+    },
+    end: function() {
+        return this.stationB.position;
+    },
     direction: function() {
-        return this.end - this.begin;
+        return this.end() - this.begin();
     },
     center: function() {
-        return this.begin + (this.end - this.begin)/2;
+        return this.begin() + (this.end() - this.begin())/2;
     },
     toggleSelect: function() {
         if (this.isSelected) {
@@ -236,11 +268,10 @@ var Segment = {
         return path;
     },
     draw: function(previous) {
-//        console.log('addLine');
         this.paths = [];
         var minStraight = 40;
         var arcRadius = 10.0;
-        var stationVector = this.end - this.begin;
+        var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
         var straightBegin = Math.abs(stationVector.y) - maxDistance;
         var straightEnd = Math.abs(stationVector.x) - maxDistance;
@@ -254,8 +285,8 @@ var Segment = {
         }
         var needsArc = Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
         if (needsArc) {
-            var arcEnd = this.end - arcEndRel;
-            var arcBegin = this.begin + arcBeginRel;
+            var arcEnd = this.end() - arcEndRel;
+            var arcBegin = this.begin() + arcBeginRel;
             var beginPoint0 = arcBegin - arcBeginRel.normalize()*arcRadius*2;
             var beginPoint1 = arcBegin - arcBeginRel.normalize()*arcRadius;
             var beginPoint2 = arcBegin + (arcEnd-arcBegin).normalize()*arcRadius;
@@ -264,7 +295,7 @@ var Segment = {
             var beginCenter = centerArc1 + (arcBegin-centerArc1)/1.7;
 
             var pathBegin = this.createPath();
-            pathBegin.add(this.begin);
+            pathBegin.add(this.begin());
             pathBegin.add(beginPoint0);
 
             var endPoint0 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius*2;
@@ -296,17 +327,17 @@ var Segment = {
 
             var pathEnd = this.createPath();
             pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
-            pathEnd.add(this.end);
+            pathEnd.add(this.end());
         } else {
             var path = this.createPath();
-            path.add(this.begin);
-            path.add(this.end);
+            path.add(this.begin());
+            path.add(this.end());
             path.smooth();
         }
 
         if (DisplaySettings.isDebug) {
             var debugPointRadius = 4;
-            var center = (stationVector)/2.0 + this.begin;
+            var center = (stationVector)/2.0 + this.begin();
             var centerCircle = new Path.Circle(center, debugPointRadius);
             centerCircle.strokeWidth = 1;
             centerCircle.strokeColor = 'green';
@@ -319,20 +350,23 @@ var Segment = {
             var arcEndCircle = new Path.Circle(arcEnd, debugPointRadius);
             arcEndCircle.style = arcBeginCircle.style;
         }
+        this.notifyAllObservers(this);
 //        path.fullySelected = true;
 //        return path;
     },
 }
 
-function createSegment(begin, end) {
+function createSegment(stationA, stationB) {
+    console.log('createSegment');
     var observable = Object.create(Observable).Observable();
     segment = Object.assign(observable, Segment);
-    segment = segment.Segment(begin, end);
+    segment = segment.Segment(stationA, stationB);
     return segment;
 }
 
 module.exports = {
     createStation: createStation,
+    createStationMinor: createStationMinor,
     createSegment: createSegment,
     createTrack: createTrack,
     DisplaySettings: DisplaySettings,

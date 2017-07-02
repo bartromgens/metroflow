@@ -39,7 +39,7 @@ function onMouseDown(event) {
         } else if (segmentClicked) {
             console.log('segment clicked');
             if (event.event.which == 3) {  // right mouse
-                interaction.showSegmentContextMenu(segmentClicked.id);
+                interaction.showSegmentContextMenu(segmentClicked.id, event.point);
                 return;
             }
             segmentClicked.toggleSelect();
@@ -70,7 +70,7 @@ function onMouseDown(event) {
 }
 
 function onMouseDrag(event) {
-    console.log('mouseDrag');
+//    console.log('mouseDrag');
 	if (stationClicked) {
 	    stationClicked.setPosition(stationClicked.position + event.delta);
 	    track.draw();
@@ -85,7 +85,7 @@ tool.onKeyDown = function(event) {
     if (event.key == 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-        track.draw();
+//        track.draw();
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
