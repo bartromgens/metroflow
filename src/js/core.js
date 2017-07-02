@@ -312,7 +312,7 @@ var Segment = {
     draw: function(previous) {
         this.paths = [];
         this.pathsStraight = [];
-        var minStraight = 40;
+        var minStraight = 30;
         var arcRadius = 10.0;
         var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
@@ -322,9 +322,13 @@ var Segment = {
         straightEnd = Math.max(straightEnd, minStraight);
         var arcBeginRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
         var arcEndRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
-        if (previous && Math.abs(previous.direction().x) > Math.abs(previous.direction().y)) {
-            arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
-            arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
+        if (previous) {
+            var previousLastPath = previous.pathsStraight[previous.pathsStraight.length-1]
+            var tangentEndLastPath = previousLastPath.getTangentAt(previousLastPath.length);
+            if (tangentEndLastPath.x != 0) {
+                arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
+                arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
+            }
         }
         var needsArc = Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
         if (needsArc) {
