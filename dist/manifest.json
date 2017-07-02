@@ -2,6 +2,8 @@
   "core.js": "metroflow.core.js",
   "css.css": "metroflow-basic.css",
   "css.js": "metroflow.css.js",
+  "interaction.js": "metroflow.interaction.js",
   "paperexample.js": "metroflow.paperexample.js",
+  "sidebar.js": "metroflow.sidebar.js",
   "sketcher.js": "metroflow.sketcher.js"
 }

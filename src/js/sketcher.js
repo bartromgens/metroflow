@@ -1,8 +1,7 @@
 require("paper");
 var core = require("./core.js");
-
-//core.StationStyle.strokeWidth = 6;
-//core.StationStyle.stationRadius = 1.3*6;
+var interaction = require("./interaction.js");
+var sidebar = require("./sidebar.js");
 
 var track = core.createTrack();
 var snapDistance = 60;
@@ -11,105 +10,69 @@ var hitOptions = {
     segments: true,
     stroke: true,
     fill: true,
-    tolerance: 5
+    tolerance: 10
 };
 
-var station = null;
-var path = null;
-
-
-var StationObserver = function() {
-    return {
-        notify: function(station) {
-            console.log('notify');
-            this.stationElement.css('top', (station.position.y-10) + 'px');
-            this.stationElement.css('left', (station.position.x-15) + 'px');
-        },
-        notifyRemove: function(station) {
-            this.stationElement.remove();
-        }
-    }
-}
-
+var stationClicked = null;
+var segmentClicked = null;
 
 function onMouseDown(event) {
     console.log('key', event.event.which);
 
 	var hitResult = project.hitTest(event.point, hitOptions);
-
 	if (hitResult) {
-	    console.log('hitresults');
-		path = hitResult.item;
-//        path.fullySelected = true;
-        console.log(path.id);
-        station = track.findStationByPathId(path.id);
-        console.log('station', station);
-        if (station) {
-            if ( event.event.which == 3 ) {
-                $('#station-' + station.id).contextMenu();
+		var path = hitResult.item;
+		console.log('hitresult type', hitResult.type);
+		console.log('hitResult.item;', hitResult.item);
+        stationClicked = track.findStationByPathId(path.id);
+        if (hitResult.type == "stroke") {
+            var segments = hitResult.item.segments;
+            segmentClicked = track.findSegmentByPathId(segments[0].path.id);
+            console.log('segmentClicked', segmentClicked);
+        }
+        if (stationClicked) {
+            if (event.event.which == 3) {  // right mouse
+                interaction.showStationContextMenu(stationClicked.id);
                 return;
             }
-            station.toggleSelect();
+            stationClicked.toggleSelect();
+        } else if (segmentClicked) {
+            console.log('segment clicked');
+            if (event.event.which == 3) {  // right mouse
+                interaction.showSegmentContextMenu(segmentClicked.id, event.point);
+                return;
+            }
+            segmentClicked.toggleSelect();
         }
 		if (hitResult.type == 'segment') {
-		    console.log('segment');
+		    console.log('segment found');
 			segment = hitResult.segment;
         }
 		return;
 	}
 
-    console.log('onMouseDown');
-	var point = new Point(event.point.x, event.point.y);
+	var position = new Point(event.point.x, event.point.y);
 	if (track.stations.length > 0) {
 	    var previousStation = track.stations[track.stations.length-1];
-	    if (Math.abs(previousStation.position.x - point.x) < snapDistance) {
-	        point.x = previousStation.position.x;
+	    if (Math.abs(previousStation.position.x - position.x) < snapDistance) {
+	        position.x = previousStation.position.x;
 	    }
-	    if (Math.abs(previousStation.position.y - point.y) < snapDistance) {
-	        point.y = previousStation.position.y;
+	    if (Math.abs(previousStation.position.y - position.y) < snapDistance) {
+	        position.y = previousStation.position.y;
 	    }
 	}
 
-	var stationNew = core.createStation(point);
-	var stationElementId = "station-" + stationNew.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + stationNew.id + "\"></div>")
-
-    $(function(){
-        $.contextMenu({
-            selector: '#' + stationElementId,
-            trigger: 'none',
-            callback: function(key, options) {
-                if (key == "delete") {
-                    console.log(options);
-                    var stationId = $(options.selector).data('station-id');
-                    console.log('delete station:', stationId);
-                    track.removeStation(stationId);
-                }
-            },
-            items: {
-                "delete": {name: "Delete", icon: "delete"},
-//                "sep1": "---------",
-//                "quit": {name: "Quit", icon: function($element, key, item){ return 'context-menu-icon context-menu-icon-quit'; }}
-            }
-        });
-    });
-
-    var stationElement = $("#" + stationElementId);
-	stationElement.css('top', (point.y-10) + 'px');
-	stationElement.css('left', (point.x-15) + 'px');
-	track.stations.push(stationNew);
-	track.draw();
-
-	var stationObserver = new StationObserver();
-	stationObserver.stationElement = stationElement;
-	stationNew.registerObserver(stationObserver);
+    var stationNew = track.createStation(position);
+    registerForSidebar(stationNew);
+	interaction.createStationElement(stationNew, track);
+	interaction.createSegmentElements(track);
+	sidebar.showStations(track);
 }
 
 function onMouseDrag(event) {
-    console.log('mouseDrag');
-    console.log('station', station);
-	if (station) {
-	    station.setPosition(station.position + event.delta);
+//    console.log('mouseDrag');
+	if (stationClicked) {
+	    stationClicked.setPosition(stationClicked.position + event.delta);
 	    track.draw();
 	}
 }
@@ -122,11 +85,25 @@ tool.onKeyDown = function(event) {
     if (event.key == 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-        track.draw();
+//        track.draw();
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
+            $(".segment").css('border-width', '1px');
         } else {
             $(".station").css('border-width', '0px');
+            $(".segment").css('border-width', '0px');
         }
     }
+}
+
+function registerForSidebar(station) {
+    var stationObserver = new core.Observer(
+        function(station) {
+            sidebar.showStations(track);
+        },
+        function(station) {
+            sidebar.showStations(track);
+        }
+    );
+    station.registerObserver(stationObserver);
 }

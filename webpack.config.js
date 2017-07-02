@@ -7,6 +7,8 @@ module.exports = {
     context: __dirname,
     entry: {
         core: "./src/js/core.js",
+        interaction: "./src/js/interaction.js",
+        sidebar: "./src/js/sidebar.js",
         sketcher: "./src/js/sketcher.js",
         paperexample: "./src/js/paperexample.js",
         css: ["./src/css/basic.css"]
@@ -31,14 +33,15 @@ module.exports = {
         loaders: [
              // babel loader, testing for files that have a .js extension
              // (except for files in our node_modules folder!).
-             {
+            {
                 test: /\.js$/,
                 exclude: /node_modules/,
-                loader: "babel",
+                loader: "babel-loader",
                 query: {
-                   compact: false // because I want readable output
+                    presets: ['es2015'],
+                    compact: false // because I want readable output
                 }
-             }
+            }
          ]
     },
     externals: {

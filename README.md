@@ -4,6 +4,10 @@ A javascript library to create metro (subway) map style flowcharts on an HTML ca
 
 **WARNING**: This is a work in progress and is not ready to be used yet.
 
+## Demo
+
+https://bartromgens.github.io/metroflow/
+
 ## Development
 
 ### Webpack bundles
