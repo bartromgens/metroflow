@@ -4,7 +4,7 @@ var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
 var strokeColor = "red";
 var fillColor = "white"
-var isDebug = false;
+var isDebug = true;
 
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -24,9 +24,9 @@ var StationStyle = {
 }
 
 var Station = {
-    Station: function(point) {
-        console.log('new station for point', point);
-        this.point = point;
+    Station: function(position) {
+        console.log('new station for point', position);
+        this.position = position;
         return this;
     },
     isSelected: false,
@@ -46,7 +46,7 @@ var Station = {
         this.circle.strokeColor = StationStyle.strokeColor;
     },
     draw: function() {
-        this.circle = new Path.Circle(this.point, StationStyle.stationRadius);
+        this.circle = new Path.Circle(this.position, StationStyle.stationRadius);
         this.circle.strokeColor = StationStyle.strokeColor;
         this.circle.strokeWidth = StationStyle.strokeWidth;
         this.circle.fillColor = StationStyle.fillColor;
@@ -64,6 +64,8 @@ var Track = {
     segments: [],
     draw: function() {
         console.log('draw track');
+        this.createSegments();
+        project.clear();
         for (var i in this.segments) {
             var previous = null;
             if (i > 0) {
@@ -73,6 +75,15 @@ var Track = {
         }
         for (var i in this.stations) {
             this.stations[i].draw();
+        }
+    },
+    createSegments: function() {
+        this.segments = [];
+        for (var i = 1; i < this.stations.length; ++i) {
+            var previousStation = this.stations[i-1];
+            var station = this.stations[i];
+    	    var segment = createSegment(previousStation.position, station.position);
+	        this.segments.push(segment);
         }
     },
     findStation: function(id) {
@@ -94,7 +105,6 @@ function createTrack() {
 
 var Segment = {
     Segment: function(begin, end) {
-        console.log('new segment', begin, end);
         this.begin = begin;
         this.end = end;
         return this;
@@ -112,9 +122,9 @@ var Segment = {
         return path;
     },
     draw: function(previous) {
-        console.log('addLine');
-        var minStraight = 60;
-        var arcRadius = 15.0;
+//        console.log('addLine');
+        var minStraight = 40;
+        var arcRadius = 10.0;
         var stationVector = this.end - this.begin;
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
         var straightBegin = Math.abs(stationVector.y) - maxDistance;
@@ -199,7 +209,6 @@ var Segment = {
 }
 
 function createSegment(begin, end) {
-    console.log('createSegment()');
     var segment = Object.create(Segment).Segment(begin, end);
     return segment;
 }

@@ -7,23 +7,27 @@ var core = require("./core.js");
 var track = core.createTrack();
 var snapDistance = 60;
 
-function onMouseDown(event) {
 
-    var hitOptions = {
-        segments: true,
-        stroke: true,
-        fill: true,
-        tolerance: 5
-    };
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    tolerance: 5
+};
+
+var station = null;
+var path = null;
+
+function onMouseDown(event) {
 
 	var hitResult = project.hitTest(event.point, hitOptions);
 
 	if (hitResult) {
 	    console.log('hitresults');
-		var path = hitResult.item;
+		path = hitResult.item;
 //        path.fullySelected = true;
         console.log(path.id);
-        var station = track.findStation(path.id);
+        station = track.findStation(path.id);
         console.log('station', station);
         if (station) {
             station.toggleSelect();
@@ -39,22 +43,27 @@ function onMouseDown(event) {
 	var point = new Point(event.point.x, event.point.y);
 	if (track.stations.length > 0) {
 	    var previousStation = track.stations[track.stations.length-1];
-	    if (Math.abs(previousStation.point.x - point.x) < snapDistance) {
-	        point.x = previousStation.point.x;
+	    if (Math.abs(previousStation.position.x - point.x) < snapDistance) {
+	        point.x = previousStation.position.x;
 	    }
-	    if (Math.abs(previousStation.point.y - point.y) < snapDistance) {
-	        point.y = previousStation.point.y;
+	    if (Math.abs(previousStation.position.y - point.y) < snapDistance) {
+	        point.y = previousStation.position.y;
 	    }
 	}
-	var station = core.createStation(point);
 
-	if (previousStation) {
-	    var segment = core.createSegment(previousStation.point, station.point);
-	    track.segments.push(segment);
-	}
-
-	track.stations.push(station);
+	var stationNew = core.createStation(point);
+	track.stations.push(stationNew);
 	track.draw();
 }
 
+function onMouseDrag(event) {
+    console.log('mouseDrag');
+    console.log('station', station);
+	if (station) {
+		station.position += event.delta;
+	    track.draw();
+	}
+}
+
 tool.onMouseDown = onMouseDown;
+tool.onMouseDrag = onMouseDrag;
