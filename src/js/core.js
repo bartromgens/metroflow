@@ -26,12 +26,40 @@ var StationStyle = {
     fullySelected: false,
 }
 
+var Observable = {
+    Observable: function() {
+        this.observers = [];
+        return this;
+    },
+    registerObserver: function(observer) {
+        var index = this.observers.indexOf(observer);
+        if (index == -1) {
+            this.observers.push(observer);
+        }
+    },
+    unregisterObserver: function(observer) {
+        var index = this.observers.indexOf(observer);
+        if (index > -1) {
+            this.observers.splice(index, 1);
+        }
+    },
+    notifyAllObservers: function() {
+        for (var i = 0; i < this.observers.length; i++) {
+            this.observers[i].notify(this);
+        };
+    },
+    notifyBeforeRemove: function() {
+        for (var i = 0; i < this.observers.length; i++) {
+            this.observers[i].notifyRemove(this);
+        };
+    },
+}
+
 var Station = {
     Station: function(position) {
         console.log('new station for point', position);
         this.position = position;
-        this.id = uuidv4().substring(0,8);
-        this.observers = [];
+        this.id = uuidv4().substring(0, 8);
         this.isSelected = false;
         return this;
     },
@@ -61,36 +89,16 @@ var Station = {
         this.circle.fillColor = StationStyle.fillColor;
 //        this.circle.fullySelected = DisplaySettings.isDebug;
     },
-    registerObserver: function(observer) {
-        var index = this.observers.indexOf(observer);
-        if (index == -1) {
-            this.observers.push(observer);
-        }
-    },
-    unregisterObserver: function(observer) {
-        var index = this.observers.indexOf(observer);
-        if (index > -1) {
-            this.observers.splice(index, 1);
-        }
-    },
-    notifyAllObservers: function() {
-        for (var i = 0; i < this.observers.length; i++) {
-            this.observers[i].notify(this);
-        };
-    },
-    notifyBeforeRemove: function() {
-        for (var i = 0; i < this.observers.length; i++) {
-            this.observers[i].notifyRemove(this);
-        };
-    },
 }
 
 function createStation(point) {
-    var station = Object.create(Station).Station(point);
+    var observable = Object.create(Observable).Observable();
+    station = Object.assign(observable, Station);
+    station = station.Station(point);
     return station;
 }
 
-var StationObserver = function(notify, notifyRemove) {
+var Observer = function(notify, notifyRemove) {
     return {
         notify: notify,
         notifyRemove: notifyRemove,
@@ -317,7 +325,9 @@ var Segment = {
 }
 
 function createSegment(begin, end) {
-    var segment = Object.create(Segment).Segment(begin, end);
+    var observable = Object.create(Observable).Observable();
+    segment = Object.assign(observable, Segment);
+    segment = segment.Segment(begin, end);
     return segment;
 }
 
@@ -326,5 +336,5 @@ module.exports = {
     createSegment: createSegment,
     createTrack: createTrack,
     DisplaySettings: DisplaySettings,
-    StationObserver: StationObserver,
+    Observer: Observer,
 };

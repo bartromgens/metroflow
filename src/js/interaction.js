@@ -67,7 +67,7 @@ function createStationElement(station, track) {
         stationElement.css('border-width', '0px');
     }
 
-    var stationObserver = new core.StationObserver(
+    var stationObserver = new core.Observer(
         function(station) {
             updateElementPosition(this.stationElement, station);
         },
@@ -107,16 +107,16 @@ function createSegmentElement(segment, track) {
         segmentElement.css('border-width', '0px');
     }
 
-//    var segmentObserver = new core.SegmentObserver(
-//        function(segment) {
-//            updateElementPosition(this.segment, station);
-//        },
-//        function(segment) {
-//            this.segmentElement.remove();
-//        }
-//    );
-//	stationObserver.stationElement = stationElement;
-//	station.registerObserver(stationObserver);
+    var segmentObserver = new core.Observer(
+        function(segment) {
+            updateElementPosition(this.segment, station);
+        },
+        function(segment) {
+            this.segmentElement.remove();
+        }
+    );
+	segmentObserver.segmentElement = segmentElement;
+	segment.registerObserver(segmentObserver);
 }
 
 module.exports = {

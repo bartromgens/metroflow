@@ -88,14 +88,16 @@ tool.onKeyDown = function(event) {
         track.draw();
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
+            $(".segment").css('border-width', '1px');
         } else {
             $(".station").css('border-width', '0px');
+            $(".segment").css('border-width', '0px');
         }
     }
 }
 
 function registerForSidebar(station) {
-    var stationObserver = new core.StationObserver(
+    var stationObserver = new core.Observer(
         function(station) {
             sidebar.showStations(track);
         },
