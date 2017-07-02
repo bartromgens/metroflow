@@ -19,6 +19,7 @@ var StationStyle = {
     strokeWidth: strokeWidth/2,
     fillColor: fillColor,
     stationRadius: stationRadius,
+    selectionColor: "green",
     fullySelected: isDebug,
 }
 
@@ -28,10 +29,20 @@ var Station = {
         this.point = point;
         return this;
     },
+    isSelected: false,
+    toggleSelect: function() {
+        if (this.isSelected) {
+            this.unselect();
+        } else {
+            this.select();
+        }
+    },
     select: function() {
-        this.circle.strokeColor = "green";
+        this.isSelected = true;
+        this.circle.strokeColor = StationStyle.selectionColor;
     },
     unselect: function() {
+        this.isSelected = false;
         this.circle.strokeColor = StationStyle.strokeColor;
     },
     draw: function() {
@@ -40,7 +51,6 @@ var Station = {
         this.circle.strokeWidth = StationStyle.strokeWidth;
         this.circle.fillColor = StationStyle.fillColor;
         this.circle.fullySelected = StationStyle.isDebug;
-        this.circle.stationId = uuidv4();
     }
 }
 
@@ -64,6 +74,16 @@ var Track = {
         for (var i in this.stations) {
             this.stations[i].draw();
         }
+    },
+    findStation: function(id) {
+        for (var i in this.stations) {
+            var stationId = this.stations[i].circle.id;
+            console.log(stationId);
+            if (this.stations[i].circle.id === id) {
+                return this.stations[i];
+            }
+        }
+        return null;
     }
 }
 
@@ -79,11 +99,9 @@ var Segment = {
         this.end = end;
         return this;
     },
-
     direction: function() {
         return this.end - this.begin;
     },
-
     createPath: function() {
         var path = new Path();
         path.strokeColor = strokeColor;
@@ -93,7 +111,6 @@ var Segment = {
         path.fullySelected = isDebug;
         return path;
     },
-
     draw: function(previous) {
         console.log('addLine');
         var minStraight = 60;
