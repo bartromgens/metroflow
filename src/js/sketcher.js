@@ -5,9 +5,36 @@ var core = require("./core.js");
 //core.StationStyle.stationRadius = 1.3*6;
 
 var track = core.createTrack();
-var snapDistance = 30;
+var snapDistance = 60;
 
 function onMouseDown(event) {
+
+    var hitOptions = {
+        segments: true,
+        stroke: true,
+        fill: true,
+        tolerance: 5
+    };
+
+	var hitResult = project.hitTest(event.point, hitOptions);
+
+	if (hitResult) {
+	    console.log('hitresults');
+		var path = hitResult.item;
+//        path.fullySelected = true;
+        console.log(path.id);
+        var station = track.findStation(path.id);
+        console.log('station', station);
+        if (station) {
+            station.toggleSelect();
+        }
+		if (hitResult.type == 'segment') {
+		    console.log('segment');
+			segment = hitResult.segment;
+        }
+		return;
+	}
+
     console.log('onMouseDown');
 	var point = new Point(event.point.x, event.point.y);
 	if (track.stations.length > 0) {
