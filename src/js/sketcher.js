@@ -14,6 +14,7 @@ var hitOptions = {
 };
 
 var stationClicked = null;
+var segmentClicked = null;
 
 function onMouseDown(event) {
     console.log('key', event.event.which);
@@ -21,15 +22,30 @@ function onMouseDown(event) {
 	var hitResult = project.hitTest(event.point, hitOptions);
 	if (hitResult) {
 		var path = hitResult.item;
+		console.log('hitresult type', hitResult.type);
+		console.log('hitResult.item;', hitResult.item);
         stationClicked = track.findStationByPathId(path.id);
+        if (hitResult.type == "stroke") {
+            var segments = hitResult.item.segments;
+            segmentClicked = track.findSegmentByPathId(segments[0].path.id);
+            console.log('segmentClicked', segmentClicked);
+        }
         if (stationClicked) {
             if (event.event.which == 3) {  // right mouse
                 interaction.showStationContextMenu(stationClicked.id);
                 return;
             }
             stationClicked.toggleSelect();
+        } else if (segmentClicked) {
+            console.log('segment clicked');
+            if (event.event.which == 3) {  // right mouse
+                interaction.showSegmentContextMenu(segmentClicked.id);
+                return;
+            }
+            segmentClicked.toggleSelect();
         }
 		if (hitResult.type == 'segment') {
+		    console.log('segment found');
 			segment = hitResult.segment;
         }
 		return;
@@ -49,6 +65,7 @@ function onMouseDown(event) {
     var stationNew = track.createStation(position);
     registerForSidebar(stationNew);
 	interaction.createStationElement(stationNew, track);
+	interaction.createSegmentElements(track);
 	sidebar.showStations(track);
 }
 

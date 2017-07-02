@@ -164,7 +164,18 @@ var Track = {
         }
         this.draw();
         return removedStation;
-    }
+    },
+    findSegmentByPathId: function(id) {
+        for (var i in this.segments) {
+            for (var j in this.segments[i].paths) {
+                var path = this.segments[i].paths[j];
+                if (path.id === id) {
+                    return this.segments[i];
+                }
+            }
+        }
+        return null;
+    },
 }
 
 function createTrack() {
@@ -176,13 +187,39 @@ var Segment = {
     Segment: function(begin, end) {
         this.begin = begin;
         this.end = end;
+        this.id = uuidv4();
+        this.paths = [];
+        this.isSelected = false;
         return this;
     },
     direction: function() {
         return this.end - this.begin;
     },
+    center: function() {
+        return this.begin + (this.end - this.begin)/2;
+    },
+    toggleSelect: function() {
+        if (this.isSelected) {
+            this.unselect();
+        } else {
+            this.select();
+        }
+    },
+    select: function() {
+        this.isSelected = true;
+        for (var i in this.paths){
+            this.paths[i].strokeColor = StationStyle.selectionColor;
+        }
+    },
+    unselect: function() {
+        this.isSelected = false;
+        for (var i in this.paths){
+            this.paths[i].strokeColor = strokeColor;
+        }
+    },
     createPath: function() {
         var path = new Path();
+        this.paths.push(path);
         path.strokeColor = strokeColor;
         path.strokeWidth = strokeWidth;
         path.strokeCap = 'round';
@@ -192,6 +229,7 @@ var Segment = {
     },
     draw: function(previous) {
 //        console.log('addLine');
+        this.paths = [];
         var minStraight = 40;
         var arcRadius = 10.0;
         var stationVector = this.end - this.begin;

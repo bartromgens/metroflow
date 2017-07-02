@@ -37,6 +37,19 @@ canvas[resize] {
     margin: 0;
 }
 
+.segment {
+    position: absolute;
+    top: 0;
+    z-index: -1;
+    width: 30px;
+    height: 30px;
+    border-style: dashed;
+    border-width: 0px;
+    pointer-events: auto;
+    padding: 0;
+    margin: 0;
+}
+
 #sidebar {
     position: absolute;
     right: 0;
