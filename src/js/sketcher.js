@@ -1,8 +1,6 @@
 require("paper");
 var core = require("./core.js");
-
-//core.StationStyle.strokeWidth = 6;
-//core.StationStyle.stationRadius = 1.3*6;
+var interaction = require("./interaction.js");
 
 var track = core.createTrack();
 var snapDistance = 60;
@@ -14,51 +12,28 @@ var hitOptions = {
     tolerance: 5
 };
 
-var station = null;
-var path = null;
-
-
-var StationObserver = function() {
-    return {
-        notify: function(station) {
-            console.log('notify');
-            this.stationElement.css('top', (station.position.y-10) + 'px');
-            this.stationElement.css('left', (station.position.x-15) + 'px');
-        },
-        notifyRemove: function(station) {
-            this.stationElement.remove();
-        }
-    }
-}
-
+var stationClicked = null;
 
 function onMouseDown(event) {
     console.log('key', event.event.which);
 
 	var hitResult = project.hitTest(event.point, hitOptions);
-
 	if (hitResult) {
-	    console.log('hitresults');
-		path = hitResult.item;
-//        path.fullySelected = true;
-        console.log(path.id);
-        station = track.findStationByPathId(path.id);
-        console.log('station', station);
-        if (station) {
+		var path = hitResult.item;
+        stationClicked = track.findStationByPathId(path.id);
+        if (stationClicked) {
             if ( event.event.which == 3 ) {
-                $('#station-' + station.id).contextMenu();
+                interaction.showStationContextMenu(stationClicked.id);
                 return;
             }
-            station.toggleSelect();
+            stationClicked.toggleSelect();
         }
 		if (hitResult.type == 'segment') {
-		    console.log('segment');
 			segment = hitResult.segment;
         }
 		return;
 	}
 
-    console.log('onMouseDown');
 	var point = new Point(event.point.x, event.point.y);
 	if (track.stations.length > 0) {
 	    var previousStation = track.stations[track.stations.length-1];
@@ -70,46 +45,14 @@ function onMouseDown(event) {
 	    }
 	}
 
-	var stationNew = core.createStation(point);
-	var stationElementId = "station-" + stationNew.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + stationNew.id + "\"></div>")
-
-    $(function(){
-        $.contextMenu({
-            selector: '#' + stationElementId,
-            trigger: 'none',
-            callback: function(key, options) {
-                if (key == "delete") {
-                    console.log(options);
-                    var stationId = $(options.selector).data('station-id');
-                    console.log('delete station:', stationId);
-                    track.removeStation(stationId);
-                }
-            },
-            items: {
-                "delete": {name: "Delete", icon: "delete"},
-//                "sep1": "---------",
-//                "quit": {name: "Quit", icon: function($element, key, item){ return 'context-menu-icon context-menu-icon-quit'; }}
-            }
-        });
-    });
-
-    var stationElement = $("#" + stationElementId);
-	stationElement.css('top', (point.y-10) + 'px');
-	stationElement.css('left', (point.x-15) + 'px');
-	track.stations.push(stationNew);
-	track.draw();
-
-	var stationObserver = new StationObserver();
-	stationObserver.stationElement = stationElement;
-	stationNew.registerObserver(stationObserver);
+    var stationNew = track.createStation(point);
+	interaction.createStationElement(stationNew, track);
 }
 
 function onMouseDrag(event) {
     console.log('mouseDrag');
-    console.log('station', station);
-	if (station) {
-	    station.setPosition(station.position + event.delta);
+	if (stationClicked) {
+	    stationClicked.setPosition(stationClicked.position + event.delta);
 	    track.draw();
 	}
 }

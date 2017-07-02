@@ -88,8 +88,18 @@ function createStation(point) {
 }
 
 var Track = {
-    stations: [],
-    segments: [],
+    Track: function() {
+        this.stations = [];
+        this.segments = [];
+        this.id = uuidv4();
+        return this;
+    },
+    createStation: function(position) {
+    	var station = createStation(position);
+        this.stations.push(station);
+        this.draw();
+        return station;
+    },
     draw: function() {
         console.log('draw track');
         this.createSegments();
@@ -148,7 +158,7 @@ var Track = {
 }
 
 function createTrack() {
-    var track = Object.create(Track);
+    var track = Object.create(Track).Track();
     return track;
 }
 
@@ -264,7 +274,6 @@ function createSegment(begin, end) {
 }
 
 module.exports = {
-    StationStyle: StationStyle,
     createStation: createStation,
     createSegment: createSegment,
     createTrack: createTrack,
