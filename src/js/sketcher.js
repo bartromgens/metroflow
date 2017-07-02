@@ -10,7 +10,7 @@ var hitOptions = {
     segments: true,
     stroke: true,
     fill: true,
-    tolerance: 10
+    tolerance: 3
 };
 
 var stationClicked = null;
@@ -69,19 +69,16 @@ function onMouseDown(event) {
 	sidebar.showStations(track);
 }
 
+
 function onMouseDrag(event) {
-//    console.log('mouseDrag');
 	if (stationClicked) {
 	    stationClicked.setPosition(stationClicked.position + event.delta);
 	    track.draw();
 	}
 }
 
-tool.onMouseDown = onMouseDown;
-tool.onMouseDrag = onMouseDrag;
 
-
-tool.onKeyDown = function(event) {
+function onKeyDown(event) {
     if (event.key == 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
@@ -95,6 +92,12 @@ tool.onKeyDown = function(event) {
         }
     }
 }
+
+tool.onMouseDown = onMouseDown;
+tool.onMouseDrag = onMouseDrag;
+tool.onKeyDown = onKeyDown;
+
+
 
 function registerForSidebar(station) {
     var stationObserver = new core.Observer(

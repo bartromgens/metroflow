@@ -1,4 +1,5 @@
 {
+  "contextmenu.js": "metroflow.contextmenu.js",
   "core.js": "metroflow.core.js",
   "css.css": "metroflow-basic.css",
   "css.js": "metroflow.css.js",

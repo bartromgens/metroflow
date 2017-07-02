@@ -1,4 +1,80 @@
-require("paper");
+var MetroFlow = MetroFlow || {}; MetroFlow["contextmenu"] =
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports) {
+
+module.exports = paper;
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(0);
 
 var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
@@ -423,3 +499,53 @@ module.exports = {
     DisplaySettings: DisplaySettings,
     Observer: Observer,
 };
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var core = __webpack_require__(1);
+
+
+function createStationContextMenu(stationElementId, track) {
+    $.contextMenu({
+        selector: '#' + stationElementId,
+        trigger: 'none',
+        callback: function(key, options) {
+            if (key == "delete") {
+                var stationId = $(options.selector).data('station-id');
+                track.removeStation(stationId);
+            }
+        },
+        items: {
+            "delete": {name: "Delete", icon: "delete"},
+        }
+    });
+}
+
+
+function createSegmentContextMenu(segmentElementId, track) {
+    $.contextMenu({
+        selector: '#' + segmentElementId,
+        trigger: 'none',
+        callback: function(key, options) {
+            if (key == "create minor station") {
+                var segmentId = $(options.selector).data('segment-id');
+                var position = $(options.selector).data('position');
+                track.createStationMinor(position, segmentId);
+            }
+        },
+        items: {
+            "create minor station": {name: "create minor station", icon: "new"},
+        }
+    });
+}
+
+
+module.exports = {
+    createStationContextMenu: createStationContextMenu,
+    createSegmentContextMenu: createSegmentContextMenu,
+};
+
+/***/ })
+/******/ ]);
