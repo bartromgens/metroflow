@@ -7,7 +7,6 @@ var core = require("./core.js");
 var track = core.createTrack();
 var snapDistance = 60;
 
-
 var hitOptions = {
     segments: true,
     stroke: true,
@@ -18,7 +17,23 @@ var hitOptions = {
 var station = null;
 var path = null;
 
+
+var StationObserver = function() {
+    return {
+        notify: function(station) {
+            console.log('notify');
+            this.stationElement.css('top', (station.position.y-10) + 'px');
+            this.stationElement.css('left', (station.position.x-15) + 'px');
+        },
+        notifyRemove: function(station) {
+            this.stationElement.remove();
+        }
+    }
+}
+
+
 function onMouseDown(event) {
+    console.log('key', event.event.which);
 
 	var hitResult = project.hitTest(event.point, hitOptions);
 
@@ -27,9 +42,13 @@ function onMouseDown(event) {
 		path = hitResult.item;
 //        path.fullySelected = true;
         console.log(path.id);
-        station = track.findStation(path.id);
+        station = track.findStationByPathId(path.id);
         console.log('station', station);
         if (station) {
+            if ( event.event.which == 3 ) {
+                $('#station-' + station.id).contextMenu();
+                return;
+            }
             station.toggleSelect();
         }
 		if (hitResult.type == 'segment') {
@@ -52,18 +71,62 @@ function onMouseDown(event) {
 	}
 
 	var stationNew = core.createStation(point);
+	var stationElementId = "station-" + stationNew.id;
+	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + stationNew.id + "\"></div>")
+
+    $(function(){
+        $.contextMenu({
+            selector: '#' + stationElementId,
+            trigger: 'none',
+            callback: function(key, options) {
+                if (key == "delete") {
+                    console.log(options);
+                    var stationId = $(options.selector).data('station-id');
+                    console.log('delete station:', stationId);
+                    track.removeStation(stationId);
+                }
+            },
+            items: {
+                "delete": {name: "Delete", icon: "delete"},
+//                "sep1": "---------",
+//                "quit": {name: "Quit", icon: function($element, key, item){ return 'context-menu-icon context-menu-icon-quit'; }}
+            }
+        });
+    });
+
+    var stationElement = $("#" + stationElementId);
+	stationElement.css('top', (point.y-10) + 'px');
+	stationElement.css('left', (point.x-15) + 'px');
 	track.stations.push(stationNew);
 	track.draw();
+
+	var stationObserver = new StationObserver();
+	stationObserver.stationElement = stationElement;
+	stationNew.registerObserver(stationObserver);
 }
 
 function onMouseDrag(event) {
     console.log('mouseDrag');
     console.log('station', station);
 	if (station) {
-		station.position += event.delta;
+	    station.setPosition(station.position + event.delta);
 	    track.draw();
 	}
 }
 
 tool.onMouseDown = onMouseDown;
 tool.onMouseDrag = onMouseDrag;
+
+
+tool.onKeyDown = function(event) {
+    if (event.key == 'd') {
+        console.log('d key pressed');
+        core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
+        track.draw();
+        if (core.DisplaySettings.isDebug) {
+            $(".station").css('border-width', '1px');
+        } else {
+            $(".station").css('border-width', '0px');
+        }
+    }
+}

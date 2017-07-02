@@ -28,18 +28,18 @@ module.exports = {
                 })
             }
         ],
-//        loaders: [
-//             // babel loader, testing for files that have a .js extension
-//             // (except for files in our node_modules folder!).
-//             {
-//                test: /\.js$/,
-//                exclude: /node_modules/,
-//                loader: "babel",
-//                query: {
-//                   compact: false // because I want readable output
-//                }
-//             }
-//         ]
+        loaders: [
+             // babel loader, testing for files that have a .js extension
+             // (except for files in our node_modules folder!).
+             {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                loader: "babel",
+                query: {
+                   compact: false // because I want readable output
+                }
+             }
+         ]
     },
     externals: {
         paper: "paper"

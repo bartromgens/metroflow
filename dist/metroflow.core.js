@@ -80,7 +80,10 @@ var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
 var strokeColor = "red";
 var fillColor = "white"
-var isDebug = false;
+
+var DisplaySettings = {
+    isDebug: false,
+};
 
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -96,16 +99,18 @@ var StationStyle = {
     fillColor: fillColor,
     stationRadius: stationRadius,
     selectionColor: "green",
-    fullySelected: isDebug,
+    fullySelected: false,
 }
 
 var Station = {
     Station: function(position) {
         console.log('new station for point', position);
         this.position = position;
+        this.id = uuidv4();
+        this.observers = [];
+        this.isSelected = false;
         return this;
     },
-    isSelected: false,
     toggleSelect: function() {
         if (this.isSelected) {
             this.unselect();
@@ -121,13 +126,36 @@ var Station = {
         this.isSelected = false;
         this.circle.strokeColor = StationStyle.strokeColor;
     },
+    setPosition: function(position) {
+        this.position = position;
+        this.notifyAllObservers();
+    },
     draw: function() {
         this.circle = new Path.Circle(this.position, StationStyle.stationRadius);
         this.circle.strokeColor = StationStyle.strokeColor;
         this.circle.strokeWidth = StationStyle.strokeWidth;
         this.circle.fillColor = StationStyle.fillColor;
-        this.circle.fullySelected = StationStyle.isDebug;
-    }
+//        this.circle.fullySelected = DisplaySettings.isDebug;
+    },
+    registerObserver: function(observer) {
+        this.observers.push(observer);
+    },
+    unregisterObserver: function(observer) {
+        var index = this.observers.indexOf(observer);
+        if (index > -1) {
+            this.observers.splice(index, 1);
+        }
+    },
+    notifyAllObservers: function() {
+        for (var i = 0; i < this.observers.length; i++) {
+            this.observers[i].notify(this);
+        };
+    },
+    notifyBeforeRemove: function() {
+        for (var i = 0; i < this.observers.length; i++) {
+            this.observers[i].notifyRemove(this);
+        };
+    },
 }
 
 function createStation(point) {
@@ -162,15 +190,36 @@ var Track = {
 	        this.segments.push(segment);
         }
     },
-    findStation: function(id) {
+    findStationByPathId: function(id) {
         for (var i in this.stations) {
             var stationId = this.stations[i].circle.id;
-            console.log(stationId);
-            if (this.stations[i].circle.id === id) {
+            if (stationId === id) {
                 return this.stations[i];
             }
         }
         return null;
+    },
+    findStation: function(id) {
+        for (var i in this.stations) {
+            var stationId = this.stations[i].id;
+            if (stationId === id) {
+                return this.stations[i];
+            }
+        }
+        return null;
+    },
+    removeStation: function(id) {
+        var station = this.findStation(id);
+        var pos = this.stations.indexOf(station);
+        if (pos > -1) {
+            station.notifyBeforeRemove();
+            var removedStation = this.stations.splice(pos, 1);
+        } else {
+            console.log('removeStation: station not found');
+            return null;
+        }
+        this.draw();
+        return removedStation;
     }
 }
 
@@ -194,7 +243,7 @@ var Segment = {
         path.strokeWidth = strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
-        path.fullySelected = isDebug;
+        path.fullySelected = DisplaySettings.isDebug;
         return path;
     },
     draw: function(previous) {
@@ -265,13 +314,14 @@ var Segment = {
             path.smooth();
         }
 
-        if (isDebug) {
+        if (DisplaySettings.isDebug) {
             var debugPointRadius = 4;
             var center = (stationVector)/2.0 + this.begin;
             var centerCircle = new Path.Circle(center, debugPointRadius);
             centerCircle.strokeWidth = 1;
-            centerCircle.strokeColor = 'blue';
-            centerCircle.fillColor = 'blue';
+            centerCircle.strokeColor = 'green';
+            centerCircle.fillColor = 'green';
+            centerCircle.remove();
             var arcBeginCircle = new Path.Circle(arcBegin, debugPointRadius);
             arcBeginCircle.style = centerCircle.style;
             arcBeginCircle.strokeColor = 'green';
@@ -294,6 +344,7 @@ module.exports = {
     createStation: createStation,
     createSegment: createSegment,
     createTrack: createTrack,
+    DisplaySettings: DisplaySettings,
 };
 
 /***/ })
