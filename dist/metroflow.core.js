@@ -175,10 +175,8 @@ var Station = {
 
 var StationMinor = {
     draw: function() {
-        var middleLine = this.segment.pathMiddle.lastSegment.point - this.segment.pathMiddle.firstSegment.point;
-        var centerPointOnLine = this.segment.pathMiddle.firstSegment.point + middleLine/2.0;
-        var tangentVector = this.segment.pathMiddle.getNormalAt(this.segment.pathMiddle.length/2.0);
-        this.path = new Path.Line(centerPointOnLine, centerPointOnLine + tangentVector*minorStationSize);
+        var position = this.segment.calcStationPosition(this);
+        this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
         this.path.strokeColor = strokeColor;
         this.path.strokeWidth = strokeWidth;
         this.path.fillColor = StationStyle.fillColor;
@@ -196,6 +194,7 @@ function createStationMinor(position, segment) {
     var observable = Object.create(Observable).Observable();
     station = Object.assign(observable, BaseStation, StationMinor);
     station = station.Station(position);
+    segment.stationsMinor.push(station);
     station.segment = segment;
     return station;
 }
@@ -324,9 +323,13 @@ var Segment = {
     Segment: function(stationA, stationB) {
         this.stationA = stationA;
         this.stationB = stationB;
+        this.stationsMinor = [];
         this.id = uuidv4();
         this.paths = [];
+        this.pathsStraight = [];
+        this.pathBegin = null;
         this.pathMiddle = null;
+        this.pathEnd = null;
         this.isSelected = false;
         return this;
     },
@@ -341,6 +344,13 @@ var Segment = {
     },
     center: function() {
         return this.begin() + (this.end() - this.begin())/2;
+    },
+    lengthStraight: function() {
+        var length = 0.0;
+        for (var i in this.pathsStraight) {
+            length += this.pathsStraight[i].length;
+        }
+        return length;
     },
     toggleSelect: function() {
         if (this.isSelected) {
@@ -371,8 +381,28 @@ var Segment = {
         path.fullySelected = DisplaySettings.isDebug;
         return path;
     },
+    calcStationPosition: function(station) {
+        var pos = this.stationsMinor.indexOf(station);
+        var nStations = this.stationsMinor.length + 1 // including main station
+        var distanceBetweenStations = this.lengthStraight()/nStations;
+        var distanceStation = distanceBetweenStations * (pos+1);
+        var currentLength = 0;
+        var path = null;
+        for (var i in this.pathsStraight) {
+            currentLength += this.pathsStraight[i].length;
+            if (currentLength > distanceStation) {
+                path = this.pathsStraight[i];
+                break;
+            }
+            lengthDone = currentLength;
+        }
+        var middleLine = path.lastSegment.point - path.firstSegment.point;
+        var centerPointOnLine = path.firstSegment.point + middleLine.normalize()*(distanceStation-lengthDone);
+        return {centerPointOnLine: centerPointOnLine, normalUnitVector: path.getNormalAt(path.length/2.0)};
+    },
     draw: function(previous) {
         this.paths = [];
+        this.pathsStraight = [];
         var minStraight = 40;
         var arcRadius = 10.0;
         var stationVector = this.end() - this.begin();
@@ -399,6 +429,7 @@ var Segment = {
             var beginCenter = centerArc1 + (arcBegin-centerArc1)/1.7;
 
             var pathBegin = this.createPath();
+            this.pathsStraight.push(pathBegin);
             pathBegin.add(this.begin());
             pathBegin.add(beginPoint0);
 
@@ -417,9 +448,10 @@ var Segment = {
             pathArc1.add(beginPoint3);
             pathArc1.smooth();
 
-            this.pathMiddle = this.createPath();
-            this.pathMiddle.add(beginPoint3);
-            this.pathMiddle.add(endPoint0);
+            var pathMiddle = this.createPath();
+            this.pathsStraight.push(pathMiddle);
+            pathMiddle.add(beginPoint3);
+            pathMiddle.add(endPoint0);
 
             var pathArc2 = this.createPath();
             pathArc2.add(endPoint0);
@@ -430,13 +462,15 @@ var Segment = {
             pathArc2.smooth();
 
             var pathEnd = this.createPath();
+            this.pathsStraight.push(pathEnd);
             pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
             pathEnd.add(this.end());
         } else {
-            this.pathMiddle = this.createPath();
-            this.pathMiddle.add(this.begin());
-            this.pathMiddle.add(this.end());
-            this.pathMiddle.smooth();
+            var pathMiddle = this.createPath();
+            this.pathsStraight.push(pathMiddle);
+            pathMiddle.add(this.begin());
+            pathMiddle.add(this.end());
+            pathMiddle.smooth();
         }
 
         if (DisplaySettings.isDebug) {
