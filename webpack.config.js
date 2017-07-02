@@ -47,7 +47,7 @@ module.exports = {
     plugins: [
         new ManifestPlugin(),
 //        new ExtractTextPlugin("paperexample.[contenthash].css"),
-        new ExtractTextPlugin("paperexample.css"),
+        new ExtractTextPlugin("metroflow-basic.css"),
         new WebpackCleanupPlugin(),
     ],
 };
