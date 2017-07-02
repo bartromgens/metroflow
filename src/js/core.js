@@ -308,17 +308,18 @@ var Segment = {
     calcStationPosition: function(station) {
         var pos = this.stationsMinor.indexOf(station);
         var nStations = this.stationsMinor.length + 1 // including main station
-        var distanceBetweenStations = this.lengthStraight()/nStations;
+        var totalLength = this.lengthStraight();
+        var distanceBetweenStations = totalLength/nStations;
         var distanceStation = distanceBetweenStations * (pos+1);
         var currentLength = 0;
-        var path = null;
+        var lengthDone = 0;
         for (var i in this.pathsStraight) {
             currentLength += this.pathsStraight[i].length;
             if (currentLength > distanceStation) {
                 path = this.pathsStraight[i];
                 break;
             }
-            lengthDone = currentLength;
+            lengthDone += currentLength;
         }
         var middleLine = path.lastSegment.point - path.firstSegment.point;
         var centerPointOnLine = path.firstSegment.point + middleLine.normalize()*(distanceStation-lengthDone);
