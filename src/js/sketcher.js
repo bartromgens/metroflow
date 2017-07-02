@@ -69,13 +69,14 @@ function onMouseDown(event) {
 	sidebar.showStations(track);
 }
 
+
 function onMouseDrag(event) {
-//    console.log('mouseDrag');
 	if (stationClicked) {
 	    stationClicked.setPosition(stationClicked.position + event.delta);
 	    track.draw();
 	}
 }
+
 
 function onKeyDown(event) {
     if (event.key == 'd') {

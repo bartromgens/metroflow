@@ -93,7 +93,6 @@ var Station = {
         this.path.strokeColor = StationStyle.strokeColor;
         this.path.strokeWidth = StationStyle.strokeWidth;
         this.path.fillColor = StationStyle.fillColor;
-//        this.circle.fullySelected = DisplaySettings.isDebug;
     },
 }
 
@@ -157,7 +156,6 @@ var Track = {
         return station;
     },
     draw: function() {
-//        console.log('draw track');
         project.clear();
         for (var i in this.segments) {
             var previous = null;
@@ -174,15 +172,6 @@ var Track = {
         }
         this.notifyAllObservers(this);
     },
-//    createSegments: function() {
-//        this.segments = [];
-//        for (var i = 1; i < this.stations.length; ++i) {
-//            var previousStation = this.stations[i-1];
-//            var station = this.stations[i];
-//    	    var segment = createSegment(previousStation, station);
-//	        this.segments.push(segment);
-//        }
-//    },
     findStationByPathId: function(id) {
         for (var i in this.stations) {
             var stationId = this.stations[i].path.id;
@@ -194,8 +183,7 @@ var Track = {
     },
     findStation: function(id) {
         for (var i in this.stations) {
-            var stationId = this.stations[i].id;
-            if (stationId === id) {
+            if (this.stations[i].id === id) {
                 return this.stations[i];
             }
         }
@@ -227,8 +215,7 @@ var Track = {
     },
     findSegment: function(id) {
         for (var i in this.segments) {
-            var segmentId = this.segments[i].id;
-            if (segmentId === id) {
+            if (this.segments[i].id === id) {
                 return this.segments[i];
             }
         }
@@ -251,9 +238,6 @@ var Segment = {
         this.id = uuidv4();
         this.paths = [];
         this.pathsStraight = [];
-        this.pathBegin = null;
-        this.pathMiddle = null;
-        this.pathEnd = null;
         this.isSelected = false;
         return this;
     },
