@@ -9,7 +9,7 @@ module.exports = {
         core: "./src/js/core.js",
         sketcher: "./src/js/sketcher.js",
         paperexample: "./src/js/paperexample.js",
-        css: ["./src/css/custom.css"]
+        css: ["./src/css/basic.css"]
     },
     output: {
         library: ["MetroFlow", "[name]"],
