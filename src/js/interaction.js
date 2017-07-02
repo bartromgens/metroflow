@@ -2,8 +2,6 @@ require("paper");
 var core = require("./core.js");
 
 
-
-
 function showStationContextMenu(stationId) {
     $('#station-' + stationId).contextMenu();
 }
