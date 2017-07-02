@@ -10,7 +10,7 @@ function showStationContextMenu(stationId) {
 function showSegmentContextMenu(segmentId, position) {
     console.log('test', position);
     console.log($('#segment-' + segmentId));
-//    $('#segment-' + segmentId).data('position', position);
+    $('#segment-' + segmentId).data('position', position);
     $('#segment-' + segmentId).contextMenu();
     console.log('test');
 }
@@ -28,8 +28,6 @@ function createStationContextMenu(stationElementId, track) {
         },
         items: {
             "delete": {name: "Delete", icon: "delete"},
-//                "sep1": "---------",
-//                "quit": {name: "Quit", icon: function($element, key, item){ return 'context-menu-icon context-menu-icon-quit'; }}
         }
     });
 }
@@ -44,14 +42,11 @@ function createSegmentContextMenu(segmentElementId, track) {
             if (key == "create minor station") {
                 var segmentId = $(options.selector).data('segment-id');
                 var position = $(options.selector).data('position');
-                console.log('position', position);
-                core.createStationMinor(position);
+                track.createStationMinor(position, segmentId);
             }
         },
         items: {
             "create minor station": {name: "create minor station", icon: "new"},
-//                "sep1": "---------",
-//                "quit": {name: "Quit", icon: function($element, key, item){ return 'context-menu-icon context-menu-icon-quit'; }}
         }
     });
 }

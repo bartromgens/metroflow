@@ -10,7 +10,7 @@ var hitOptions = {
     segments: true,
     stroke: true,
     fill: true,
-    tolerance: 5
+    tolerance: 10
 };
 
 var stationClicked = null;
