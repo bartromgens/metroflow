@@ -29,6 +29,6 @@ canvas[resize] {
     width: 30px;
     height: 30px;
     border-style: dashed;
-    border-width: 1px;
+    border-width: 0px;
     pointer-events: auto;
 }
