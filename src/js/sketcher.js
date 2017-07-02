@@ -1,6 +1,7 @@
 require("paper");
 var core = require("./core.js");
 var interaction = require("./interaction.js");
+var sidebar = require("./sidebar.js");
 
 var track = core.createTrack();
 var snapDistance = 60;
@@ -22,7 +23,7 @@ function onMouseDown(event) {
 		var path = hitResult.item;
         stationClicked = track.findStationByPathId(path.id);
         if (stationClicked) {
-            if ( event.event.which == 3 ) {
+            if (event.event.which == 3) {  // right mouse
                 interaction.showStationContextMenu(stationClicked.id);
                 return;
             }
@@ -34,19 +35,21 @@ function onMouseDown(event) {
 		return;
 	}
 
-	var point = new Point(event.point.x, event.point.y);
+	var position = new Point(event.point.x, event.point.y);
 	if (track.stations.length > 0) {
 	    var previousStation = track.stations[track.stations.length-1];
-	    if (Math.abs(previousStation.position.x - point.x) < snapDistance) {
-	        point.x = previousStation.position.x;
+	    if (Math.abs(previousStation.position.x - position.x) < snapDistance) {
+	        position.x = previousStation.position.x;
 	    }
-	    if (Math.abs(previousStation.position.y - point.y) < snapDistance) {
-	        point.y = previousStation.position.y;
+	    if (Math.abs(previousStation.position.y - position.y) < snapDistance) {
+	        position.y = previousStation.position.y;
 	    }
 	}
 
-    var stationNew = track.createStation(point);
+    var stationNew = track.createStation(position);
+    registerForSidebar(stationNew);
 	interaction.createStationElement(stationNew, track);
+	sidebar.showStations(track);
 }
 
 function onMouseDrag(event) {
@@ -72,4 +75,16 @@ tool.onKeyDown = function(event) {
             $(".station").css('border-width', '0px');
         }
     }
+}
+
+function registerForSidebar(station) {
+    var stationObserver = new core.StationObserver(
+        function(station) {
+            sidebar.showStations(track);
+        },
+        function(station) {
+            sidebar.showStations(track);
+        }
+    );
+    station.registerObserver(stationObserver);
 }

@@ -4,19 +4,21 @@ html {
 
 body {
     height: 100%;
+    padding: 0;
+    margin: 0;
 }
 
 /* Scale canvas with resize attribute to full size */
 canvas[resize] {
     position: absolute;
-    width: 100%;
+    width: 80%;
     height: 100%;
 }
 
 #overlay {
     position: absolute;
     top: 0;
-    width: 100%;
+    width: 80%;
     height: 100%;
     z-index: -1;
     pointer-events: none;
@@ -31,4 +33,17 @@ canvas[resize] {
     border-style: dashed;
     border-width: 0px;
     pointer-events: auto;
+    padding: 0;
+    margin: 0;
+}
+
+#sidebar {
+    position: absolute;
+    right: 0;
+    width: 20%;
+    height: 100%;
+    z-index: 100;
+    background-color: #f9f9f9;
+    pointer-events: none;
+    border-width: 1px;
 }

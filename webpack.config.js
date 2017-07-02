@@ -8,6 +8,7 @@ module.exports = {
     entry: {
         core: "./src/js/core.js",
         interaction: "./src/js/interaction.js",
+        sidebar: "./src/js/sidebar.js",
         sketcher: "./src/js/sketcher.js",
         paperexample: "./src/js/paperexample.js",
         css: ["./src/css/basic.css"]

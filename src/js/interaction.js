@@ -2,18 +2,7 @@ require("paper");
 var core = require("./core.js");
 
 
-var StationObserver = function() {
-    return {
-        notify: function(station) {
-            console.log('notify');
-            this.stationElement.css('top', (station.position.y-10) + 'px');
-            this.stationElement.css('left', (station.position.x-15) + 'px');
-        },
-        notifyRemove: function(station) {
-            this.stationElement.remove();
-        }
-    }
-}
+
 
 function showStationContextMenu(stationId) {
     $('#station-' + stationId).contextMenu();
@@ -47,8 +36,12 @@ function createStationElement(station, track) {
 	createStationContextMenu(stationElementId, track);
 
     var stationElement = $("#" + stationElementId);
-	stationElement.css('top', (station.position.y-10) + 'px');
-	stationElement.css('left', (station.position.x-15) + 'px');
+
+    function updateElementPosition(stationElement, station) {
+	    stationElement.css('top', (station.position.y - stationElement.width()/2) + 'px');
+	    stationElement.css('left', (station.position.x - stationElement.height()/2) + 'px');
+    }
+    updateElementPosition(stationElement, station);
 
     if (core.DisplaySettings.isDebug) {
         stationElement.css('border-width', '1px');
@@ -56,7 +49,14 @@ function createStationElement(station, track) {
         stationElement.css('border-width', '0px');
     }
 
-    var stationObserver = new StationObserver();
+    var stationObserver = new core.StationObserver(
+        function(station) {
+            updateElementPosition(this.stationElement, station);
+        },
+        function(station) {
+            this.stationElement.remove();
+        }
+    );
 	stationObserver.stationElement = stationElement;
 	station.registerObserver(stationObserver);
 }

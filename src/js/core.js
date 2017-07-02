@@ -30,7 +30,7 @@ var Station = {
     Station: function(position) {
         console.log('new station for point', position);
         this.position = position;
-        this.id = uuidv4();
+        this.id = uuidv4().substring(0,8);
         this.observers = [];
         this.isSelected = false;
         return this;
@@ -62,7 +62,10 @@ var Station = {
 //        this.circle.fullySelected = DisplaySettings.isDebug;
     },
     registerObserver: function(observer) {
-        this.observers.push(observer);
+        var index = this.observers.indexOf(observer);
+        if (index == -1) {
+            this.observers.push(observer);
+        }
     },
     unregisterObserver: function(observer) {
         var index = this.observers.indexOf(observer);
@@ -85,6 +88,13 @@ var Station = {
 function createStation(point) {
     var station = Object.create(Station).Station(point);
     return station;
+}
+
+var StationObserver = function(notify, notifyRemove) {
+    return {
+        notify: notify,
+        notifyRemove: notifyRemove,
+    }
 }
 
 var Track = {
@@ -278,4 +288,5 @@ module.exports = {
     createSegment: createSegment,
     createTrack: createTrack,
     DisplaySettings: DisplaySettings,
+    StationObserver: StationObserver,
 };
