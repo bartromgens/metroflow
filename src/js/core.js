@@ -108,14 +108,14 @@ var StationMinor = {
 
 function createStation(position) {
     var observable = Object.create(Observable).Observable();
-    station = Object.assign(observable, BaseStation, Station);
+    var station = Object.assign(observable, BaseStation, Station);
     station = station.Station(position);
     return station;
 }
 
 function createStationMinor(position, segment) {
     var observable = Object.create(Observable).Observable();
-    station = Object.assign(observable, BaseStation, StationMinor);
+    var station = Object.assign(observable, BaseStation, StationMinor);
     station = station.Station(position);
     segment.stationsMinor.push(station);
     station.segment = segment;
@@ -225,8 +225,8 @@ var Track = {
 
 function createTrack() {
     var observable = Object.create(Observable).Observable();
-    track = Object.assign(observable, Track);
-    var track = track.Track();
+    var track = Object.assign(observable, Track);
+    track = track.Track();
     return track;
 }
 
