@@ -7,7 +7,9 @@ var toolbar = require("./toolbar.js");
 
 var map = core.createMap();
 
-var track = map.createTrack();
+var currentTrack = map.createTrack();
+var segmentClicked = null;
+var selectedStation = null;
 
 
 var modes = {
@@ -27,13 +29,19 @@ var hitOptions = {
 };
 
 
-var segmentClicked = null;
-var selectedStation = null;
+function setCurrentTrack(track) {
+    if (!track) {
+        return;
+    }
+    currentTrack = track;
+}
 
 
 function getStationClicked(hitResult) {
     var path = hitResult.item;
-    var stationClicked = track.findStationByPathId(path.id);
+    var result = map.findStationByPathId(path.id);
+    var stationClicked = result.station;
+    setCurrentTrack(result.track);
     return stationClicked;
 }
 
@@ -41,7 +49,9 @@ function getStationClicked(hitResult) {
 function getSegmentClicked(hitResult) {
     var path = hitResult.item;
     var segments = path.segments;
-    var segmentClicked = track.findSegmentByPathId(segments[0].path.id);
+    var result = map.findSegmentByPathId(segments[0].path.id);
+    var segmentClicked = result.segment;
+    setCurrentTrack(result.track);
     return segmentClicked;
 }
 
@@ -76,13 +86,13 @@ function onClickMajorStationMode(event) {
             selectedStation = stationClicked;
         }
     } else {
-        var stationNew = track.createStation(event.point, selectedStation);
-        var position = core.snapPosition(track, stationNew, event.point);
+        var stationNew = currentTrack.createStation(event.point, selectedStation);
+        var position = core.snapPosition(currentTrack, stationNew, event.point);
         stationNew.setPosition(position);
         selectedStation = stationNew;
-        sidebar.notifyNewStation(stationNew, track);
-        interaction.createStationElement(stationNew, track);
-        interaction.createSegmentElements(track);
+        sidebar.notifyNewStation(stationNew, currentTrack);
+        interaction.createStationElement(stationNew, currentTrack);
+        interaction.createSegmentElements(currentTrack);
         map.draw();
     }
 }
@@ -97,7 +107,7 @@ function onClickMinorStationMode(event) {
             console.log('stroke hit');
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
-                track.createStationMinor(event.point, segmentClicked.id);
+                currentTrack.createStationMinor(event.point, segmentClicked.id);
                 map.draw();
             } else {
                 console.log('warning: no segment clicked');
@@ -110,15 +120,8 @@ function onClickMinorStationMode(event) {
 function onClickSelectMode(event) {
     var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult) {
-        var path = hitResult.item;
-        console.log('hitresult type', hitResult.type);
-        console.log('hitResult.item;', hitResult.item);
-        var stationClicked = track.findStationByPathId(path.id);
-        if (hitResult.type === "stroke") {
-            var segments = hitResult.item.segments;
-            segmentClicked = track.findSegmentByPathId(segments[0].path.id);
-            console.log('segmentClicked', segmentClicked);
-        }
+        var stationClicked = getStationClicked(hitResult);
+        var segmentClicked = getSegmentClicked(hitResult);
         if (stationClicked) {
             stationClicked.toggleSelect();
             selectedStation = stationClicked;
@@ -153,7 +156,7 @@ function onMouseDown(event) {
 
 function onMouseDrag(event) {
 	if (selectedStation) {
-	    var position = core.snapPosition(track, selectedStation, event.point);
+	    var position = core.snapPosition(currentTrack, selectedStation, event.point);
         selectedStation.setPosition(position);
 	    map.draw();
 	}
@@ -199,7 +202,7 @@ function initialiseToolbarActions() {
         var segmentStyle = styles.createSegmentStyle();
         segmentStyle.strokeColor = "blue";
         newTrack.segmentStyle = segmentStyle;
-        track = newTrack;
+        currentTrack = newTrack;
     }
 
     toolbar.setMajorStationButtonAction(majorStationButtonClicked);

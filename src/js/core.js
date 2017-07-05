@@ -187,6 +187,26 @@ var Map = {
         for (var i in this.tracks) {
             this.tracks[i].draw();
         }
+    },
+    findStationByPathId: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var station = track.findStationByPathId(id);
+            if (station) {
+                return {station: station, track: track};
+            }
+        }
+        return {station: null, track: null};
+    },
+    findSegmentByPathId: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var segment = track.findSegmentByPathId(id);
+            if (segment) {
+                return {segment: segment, track: track};
+            }
+        }
+        return {segment: null, track: null};
     }
 };
 
