@@ -1,24 +1,26 @@
 require("paper");
 var core = require("./core.js");
 
+
 function showStations(track) {
-    $("#sidebar").empty();
+    var sideBar = $("#sidebar");
+    sideBar.empty();
     for (var i in track.stations) {
         var station = track.stations[i];
-        $("#sidebar").append("<span><small>Station " + station.id + "</small></span>");
-        $("#sidebar").append("<span><small> (" + station.position.x + ", " + station.position.y + ")</small></span>");
-        $("#sidebar").append("<br/>");
+        sideBar.append("<span><small>Station " + station.id + "</small></span>");
+        sideBar.append("<span><small> (" + station.position.x + ", " + station.position.y + ")</small></span>");
+        sideBar.append("<br/>");
     }
 }
 
 
-function notifyNewStation(station) {
+function notifyNewStation(station, track) {
     var stationObserver = new core.Observer(
         function(station) {
-            sidebar.showStations(track);
+            showStations(track);
         },
         function(station) {
-            sidebar.showStations(track);
+            showStations(track);
         }
     );
     station.registerObserver(stationObserver);

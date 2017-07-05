@@ -2,6 +2,7 @@ require("paper");
 var core = require("./core.js");
 var interaction = require("./interaction.js");
 var sidebar = require("./sidebar.js");
+var toolbar = require("./toolbar.js");
 
 
 var track = core.createTrack();
@@ -67,14 +68,14 @@ function onMouseDown(event) {
 	}
 
     var stationNew = track.createStation(position);
-    sidebar.notifyNewStation(stationNew);
+    sidebar.notifyNewStation(stationNew, track);
 	interaction.createStationElement(stationNew, track);
 	interaction.createSegmentElements(track);
-	sidebar.showStations(track);
 }
 
 
 function onMouseDrag(event) {
+    console.log('onMouseDrag');
 	if (stationClicked) {
 	    stationClicked.setPosition(stationClicked.position + event.delta);
 	    track.draw();
