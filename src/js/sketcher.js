@@ -25,38 +25,54 @@ var hitOptions = {
 };
 
 
-var stationClicked = null;
 var segmentClicked = null;
 var selectedStation = null;
+
+
+function getStationClicked(hitResult) {
+    var path = hitResult.item;
+    var stationClicked = track.findStationByPathId(path.id);
+    return stationClicked;
+}
+
+function getSegmentClicked(hitResult) {
+    var path = hitResult.item;
+    var segments = hitResult.item.segments;
+    var segmentClicked = track.findSegmentByPathId(segments[0].path.id);
+    return segmentClicked;
+}
+
+function onRightClick(event) {
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (!hitResult) {
+        return;
+    }
+
+    var stationClicked = getStationClicked(hitResult);
+    if (stationClicked) {  // right mouse
+        interaction.showStationContextMenu(stationClicked.id);
+        return;
+    }
+    var segmentClicked = getSegmentClicked(hitResult);
+    if (segmentClicked) {  // right mouse
+        interaction.showSegmentContextMenu(segmentClicked.id);
+        return;
+    }
+}
 
 
 function onClickMajorStationMode(event) {
     console.log('onClickMajorStation');
     var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult) {
-        var path = hitResult.item;
-        stationClicked = track.findStationByPathId(path.id);
+        var stationClicked = getStationClicked(hitResult);
         if (stationClicked) {
             console.log('station clicked');
-            if (event.event.which === 3) {  // right mouse
-                interaction.showStationContextMenu(stationClicked.id);
-                return;
-            }
             stationClicked.select();
             selectedStation = stationClicked;
         }
     } else {
         var position = new Point(event.point.x, event.point.y);
-        if (track.stations.length > 0) {
-            var previousStation = track.stations[track.stations.length-1];
-            if (Math.abs(previousStation.position.x - position.x) < snapDistance) {
-                position.x = previousStation.position.x;
-            }
-            if (Math.abs(previousStation.position.y - position.y) < snapDistance) {
-                position.y = previousStation.position.y;
-            }
-        }
-
         var stationNew = track.createStation(position, selectedStation);
         selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, track);
@@ -73,8 +89,7 @@ function onClickMinorStationMode(event) {
         var path = hitResult.item;
         if (hitResult.type === "stroke" || path) {
             console.log('stroke hit');
-            var segments = hitResult.item.segments;
-            segmentClicked = track.findSegmentByPathId(segments[0].path.id);
+            segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
                 track.createStationMinor(event.point, segmentClicked.id);
             } else {
@@ -91,25 +106,16 @@ function onClickSelectMode(event) {
         var path = hitResult.item;
         console.log('hitresult type', hitResult.type);
         console.log('hitResult.item;', hitResult.item);
-        stationClicked = track.findStationByPathId(path.id);
+        var stationClicked = track.findStationByPathId(path.id);
         if (hitResult.type === "stroke") {
             var segments = hitResult.item.segments;
             segmentClicked = track.findSegmentByPathId(segments[0].path.id);
             console.log('segmentClicked', segmentClicked);
         }
         if (stationClicked) {
-            if (event.event.which === 3) {  // right mouse
-                interaction.showStationContextMenu(stationClicked.id);
-                return;
-            }
             stationClicked.toggleSelect();
             selectedStation = stationClicked;
         } else if (segmentClicked) {
-            console.log('segment clicked');
-            if (event.event.which === 3) {  // right mouse
-                interaction.showSegmentContextMenu(segmentClicked.id, event.point);
-                return;
-            }
             segmentClicked.toggleSelect();
         }
         if (hitResult.type === 'segment') {
@@ -122,6 +128,11 @@ function onClickSelectMode(event) {
 
 function onMouseDown(event) {
     console.log('key', event.event.which);
+    if (event.event.which === 3) {  // right mouse
+        onRightClick(event);
+        return;
+    }
+
     if (mode === modes.majorstation) {
         onClickMajorStationMode(event);
     } else if (mode === modes.minorstation) {
