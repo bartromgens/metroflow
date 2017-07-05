@@ -73,3 +73,8 @@ canvas[resize] {
     pointer-events: auto;
     border: dashed 0px;
 }
+
+.toolbar-buttons {
+    padding-top: 5px;
+    padding-left: 10px;
+}
