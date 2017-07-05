@@ -121,23 +121,21 @@ function onClickSelectMode(event) {
     var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult) {
         var stationClicked = getStationClicked(hitResult);
-        var segmentClicked = getSegmentClicked(hitResult);
         if (stationClicked) {
             stationClicked.toggleSelect();
             selectedStation = stationClicked;
-        } else if (segmentClicked) {
-            segmentClicked.toggleSelect();
+            return;
         }
-        if (hitResult.type === 'segment') {
-            console.log('segment found');
-            segment = hitResult.segment;
+        var segmentClicked = getSegmentClicked(hitResult);
+        if (segmentClicked) {
+            segmentClicked.toggleSelect();
+            return;
         }
     }
 }
 
 
 function onMouseDown(event) {
-    console.log('key', event.event.which);
     if (event.event.which === 3) {  // right mouse
         onRightClick(event);
         return;
