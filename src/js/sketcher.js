@@ -6,7 +6,6 @@ var toolbar = require("./toolbar.js");
 
 
 var track = core.createTrack();
-var snapDistance = 60;
 
 var modes = {
     majorstation: "majorstation",
@@ -72,12 +71,14 @@ function onClickMajorStationMode(event) {
             selectedStation = stationClicked;
         }
     } else {
-        var position = new Point(event.point.x, event.point.y);
-        var stationNew = track.createStation(position, selectedStation);
+        var stationNew = track.createStation(event.point, selectedStation);
+        var position = core.snapPosition(track, stationNew, event.point);
+        stationNew.setPosition(position);
         selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, track);
         interaction.createStationElement(stationNew, track);
         interaction.createSegmentElements(track);
+        track.draw();
     }
 }
 

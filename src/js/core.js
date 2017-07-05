@@ -65,8 +65,11 @@ var Observable = {
 
 
 function snapPosition(track, station, position) {
-    var snapDistance = minStraight+arcRadius*2;
+    var snapDistance = minStraight+arcRadius*2.0;
     var stations = track.connectedStations(station);
+    if (stations.length === 0 && track.lastAddedStation()) {
+        stations.push(track.lastAddedStation());
+    }
     var nearestX = null;
     var nearestY = null;
     var minDistanceX = 1e99;
@@ -186,13 +189,13 @@ var Track = {
     	var station = createStation(position);
         if (this.stations.length > 0) {
             if (!previousStation) {
-                previousStation = this.stations[this.stations.length - 1];
+                previousStation = this.lastAddedStation();
             }
             var segment = createSegment(previousStation, station);
             this.segments.push(segment);
         }
         this.stations.push(station);
-        this.draw();
+        console.log('create station', station.id);
         return station;
     },
     createStationMinor: function(position, segmentId) {
@@ -210,6 +213,12 @@ var Track = {
             }
         }
         return null;
+    },
+    lastAddedStation: function() {
+        if (this.stations.length === 0) {
+            return null;
+        }
+        return this.stations[this.stations.length - 1];
     },
     connectedStations: function(station) {
         var stations = [];

@@ -36,8 +36,7 @@ canvas[resize] {
     z-index: -1;
     width: 30px;
     height: 30px;
-    border-style: dashed;
-    border-width: 0px;
+    border: dashed 0px;
     pointer-events: auto;
     padding: 0;
     margin: 0;
