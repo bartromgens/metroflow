@@ -5,7 +5,10 @@ var sidebar = require("./sidebar.js");
 var toolbar = require("./toolbar.js");
 
 
-var track = core.createTrack();
+var map = core.createMap();
+
+var track = map.createTrack();
+
 
 var modes = {
     majorstation: "majorstation",
@@ -34,12 +37,14 @@ function getStationClicked(hitResult) {
     return stationClicked;
 }
 
+
 function getSegmentClicked(hitResult) {
     var path = hitResult.item;
-    var segments = hitResult.item.segments;
+    var segments = path.segments;
     var segmentClicked = track.findSegmentByPathId(segments[0].path.id);
     return segmentClicked;
 }
+
 
 function onRightClick(event) {
     var hitResult = project.hitTest(event.point, hitOptions);
@@ -78,7 +83,7 @@ function onClickMajorStationMode(event) {
         sidebar.notifyNewStation(stationNew, track);
         interaction.createStationElement(stationNew, track);
         interaction.createSegmentElements(track);
-        track.draw();
+        map.draw();
     }
 }
 
@@ -149,7 +154,7 @@ function onMouseDrag(event) {
 	if (selectedStation) {
 	    var position = core.snapPosition(track, selectedStation, event.point);
         selectedStation.setPosition(position);
-	    track.draw();
+	    map.draw();
 	}
 }
 
@@ -158,7 +163,7 @@ function onKeyDown(event) {
     if (event.key === 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-        track.draw();
+        map.draw();
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
@@ -187,9 +192,16 @@ function initialiseToolbarActions() {
         mode = modes.select;
     }
 
+    function newTrackButtonClicked() {
+        console.log('new track button clicked');
+        var newTrack = map.createTrack();
+        track = newTrack;
+    }
+
     toolbar.setMajorStationButtonAction(majorStationButtonClicked);
     toolbar.setMinorStationButtonAction(minorStationButtonClicked);
     toolbar.setSelectButtonAction(selectButtonClicked);
+    toolbar.setNewTrackButtonAction(newTrackButtonClicked);
 }
 
 

@@ -28,9 +28,15 @@ function setSelectButtonAction(callback) {
     buttonSelect.bind("click", callback);
 }
 
+function setNewTrackButtonAction(callback) {
+    var buttonNewTrack = $("#button-new-track");
+    buttonNewTrack.bind("click", callback);
+}
+
 
 module.exports = {
     setMajorStationButtonAction: setMajorStationButtonAction,
     setMinorStationButtonAction: setMinorStationButtonAction,
-    setSelectButtonAction: setSelectButtonAction
+    setSelectButtonAction: setSelectButtonAction,
+    setNewTrackButtonAction: setNewTrackButtonAction
 };

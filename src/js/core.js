@@ -177,6 +177,33 @@ var Observer = function(notify, notifyRemove) {
 };
 
 
+var Map = {
+    Map: function() {
+        this.tracks = [];
+        return this;
+    },
+    createTrack: function() {
+        var newTrack = createTrack();
+        this.tracks.push(newTrack);
+        return newTrack;
+    },
+    draw: function() {
+        project.clear();
+        for (var i in this.tracks) {
+            this.tracks[i].draw();
+        }
+    }
+};
+
+
+function createMap() {
+    var observable = Object.create(Observable).Observable();
+    var map = Object.assign(observable, Map);
+    map = map.Map();
+    return map;
+}
+
+
 var Track = {
     Track: function() {
         this.stations = [];
@@ -234,7 +261,6 @@ var Track = {
         return stations;
     },
     draw: function() {
-        project.clear();
         for (var i in this.segments) {
             var segment = this.segments[i];
             var previous = this.segmentToStation(segment.stationA);
@@ -511,7 +537,7 @@ module.exports = {
     createStation: createStation,
     createStationMinor: createStationMinor,
     createSegment: createSegment,
-    createTrack: createTrack,
+    createMap: createMap,
     DisplaySettings: DisplaySettings,
     Observer: Observer,
     snapPosition: snapPosition,
