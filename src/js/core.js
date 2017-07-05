@@ -7,6 +7,10 @@ var fillColor = "white";
 
 var minorStationSize = strokeWidth*2;
 
+var minStraight = 30;
+var arcRadius = 10.0;
+
+
 var DisplaySettings = {
     isDebug: false,
 };
@@ -14,7 +18,7 @@ var DisplaySettings = {
 
 function uuidv4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 }
@@ -58,6 +62,38 @@ var Observable = {
         }
     },
 };
+
+
+function snapPosition(track, station, position) {
+    var snapDistance = minStraight+arcRadius*2;
+    var stations = track.connectedStations(station);
+    var nearestX = null;
+    var nearestY = null;
+    var minDistanceX = 1e99;
+    var minDistanceY = 1e99;
+    for (var i in stations) {
+        var stationVector = position - stations[i].position;
+        var deltaX = Math.abs(stationVector.x);
+        if (deltaX < minDistanceX) {
+            nearestX = stations[i];
+            minDistanceX = deltaX;
+        }
+        var deltaY = Math.abs(stationVector.y);
+        if (deltaY < minDistanceY) {
+            nearestY = stations[i];
+            minDistanceY = deltaY;
+        }
+    }
+    var snapX = position.x;
+    if (minDistanceX < snapDistance) {
+        snapX = nearestX.position.x;
+    }
+    var snapY = position.y;
+    if (minDistanceY < snapDistance) {
+        snapY = nearestY.position.y;
+    }
+    return new Point(snapX, snapY);
+}
 
 
 var BaseStation = {
@@ -174,6 +210,19 @@ var Track = {
             }
         }
         return null;
+    },
+    connectedStations: function(station) {
+        var stations = [];
+        for (var i in this.segments) {
+            var segment = this.segments[i];
+            if (station.id === segment.stationA.id) {
+                stations.push(segment.stationB);
+            }
+            if (station.id === segment.stationB.id) {
+                stations.push(segment.stationA);
+            }
+        }
+        return stations;
     },
     draw: function() {
         project.clear();
@@ -332,14 +381,13 @@ var Segment = {
     draw: function(previous) {
         this.paths = [];
         this.pathsStraight = [];
-        var minStraight = 30;
-        var arcRadius = 10.0;
         var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
         var straightBegin = Math.abs(stationVector.y) - maxDistance;
         var straightEnd = Math.abs(stationVector.x) - maxDistance;
         straightBegin = Math.max(straightBegin, minStraight);
         straightEnd = Math.max(straightEnd, minStraight);
+        // TODO: this is ugly and might not always work, needs to be vector based
         var arcBeginRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
         var arcEndRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
         if (previous) {
@@ -348,11 +396,9 @@ var Segment = {
             var inSameDirectionOutX = (Math.sign(stationVector.x) - tangentEndLastPath.x) !== 0;
             var inSameDirectionOutY = (Math.sign(stationVector.y) - tangentEndLastPath.y) !== 0;
             if (tangentEndLastPath.x !== 0 && !inSameDirectionOutX) {
-                console.log('B');
                 arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
                 arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
             } else if (tangentEndLastPath.y !== 0 && inSameDirectionOutY) {
-                console.log('C');
                 arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
                 arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
             }
@@ -451,4 +497,5 @@ module.exports = {
     createTrack: createTrack,
     DisplaySettings: DisplaySettings,
     Observer: Observer,
+    snapPosition: snapPosition,
 };

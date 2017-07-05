@@ -134,9 +134,9 @@ function onMouseDown(event) {
 
 
 function onMouseDrag(event) {
-    console.log('onMouseDrag');
 	if (selectedStation) {
-        selectedStation.setPosition(selectedStation.position + event.delta);
+	    var position = core.snapPosition(track, selectedStation, event.point);
+        selectedStation.setPosition(position);
 	    track.draw();
 	}
 }
@@ -146,7 +146,7 @@ function onKeyDown(event) {
     if (event.key === 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-//        track.draw();
+        track.draw();
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
