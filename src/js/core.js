@@ -3,7 +3,7 @@ require("paper");
 var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
 var strokeColor = "red";
-var fillColor = "white"
+var fillColor = "white";
 
 var minorStationSize = strokeWidth*2;
 
@@ -26,7 +26,8 @@ var StationStyle = {
     stationRadius: stationRadius,
     selectionColor: "green",
     fullySelected: false,
-}
+};
+
 
 var Observable = {
     Observable: function() {
@@ -35,7 +36,7 @@ var Observable = {
     },
     registerObserver: function(observer) {
         var index = this.observers.indexOf(observer);
-        if (index == -1) {
+        if (index === -1) {
             this.observers.push(observer);
         }
     },
@@ -48,14 +49,15 @@ var Observable = {
     notifyAllObservers: function() {
         for (var i = 0; i < this.observers.length; i++) {
             this.observers[i].notify(this);
-        };
+        }
     },
     notifyBeforeRemove: function() {
         for (var i = 0; i < this.observers.length; i++) {
             this.observers[i].notifyRemove(this);
-        };
+        }
     },
-}
+};
+
 
 var BaseStation = {
     Station: function(position) {
@@ -85,7 +87,8 @@ var BaseStation = {
         this.position = position;
         this.notifyAllObservers();
     },
-}
+};
+
 
 var Station = {
     draw: function() {
@@ -94,7 +97,8 @@ var Station = {
         this.path.strokeWidth = StationStyle.strokeWidth;
         this.path.fillColor = StationStyle.fillColor;
     },
-}
+};
+
 
 var StationMinor = {
     draw: function() {
@@ -104,7 +108,8 @@ var StationMinor = {
         this.path.strokeWidth = strokeWidth;
         this.path.fillColor = StationStyle.fillColor;
     },
-}
+};
+
 
 function createStation(position) {
     var observable = Object.create(Observable).Observable();
@@ -112,6 +117,7 @@ function createStation(position) {
     station = station.Station(position);
     return station;
 }
+
 
 function createStationMinor(position, segment) {
     var observable = Object.create(Observable).Observable();
@@ -122,12 +128,14 @@ function createStationMinor(position, segment) {
     return station;
 }
 
+
 var Observer = function(notify, notifyRemove) {
     return {
         notify: notify,
         notifyRemove: notifyRemove,
     }
-}
+};
+
 
 var Track = {
     Track: function() {
@@ -221,7 +229,8 @@ var Track = {
         }
         return null;
     },
-}
+};
+
 
 function createTrack() {
     var observable = Object.create(Observable).Observable();
@@ -229,6 +238,7 @@ function createTrack() {
     track = track.Track();
     return track;
 }
+
 
 var Segment = {
     Segment: function(stationA, stationB) {
@@ -325,7 +335,7 @@ var Segment = {
         if (previous) {
             var previousLastPath = previous.pathsStraight[previous.pathsStraight.length-1]
             var tangentEndLastPath = previousLastPath.getTangentAt(previousLastPath.length);
-            if (tangentEndLastPath.x != 0) {
+            if (tangentEndLastPath.x !== 0) {
                 arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
                 arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
             }
@@ -405,7 +415,8 @@ var Segment = {
 //        path.fullySelected = true;
 //        return path;
     },
-}
+};
+
 
 function createSegment(stationA, stationB) {
     console.log('createSegment');
@@ -414,6 +425,7 @@ function createSegment(stationA, stationB) {
     segment = segment.Segment(stationA, stationB);
     return segment;
 }
+
 
 module.exports = {
     createStation: createStation,
