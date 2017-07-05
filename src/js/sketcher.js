@@ -98,6 +98,7 @@ function onClickMinorStationMode(event) {
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
                 track.createStationMinor(event.point, segmentClicked.id);
+                map.draw();
             } else {
                 console.log('warning: no segment clicked');
             }
@@ -195,6 +196,9 @@ function initialiseToolbarActions() {
     function newTrackButtonClicked() {
         console.log('new track button clicked');
         var newTrack = map.createTrack();
+        var segmentStyle = styles.createSegmentStyle();
+        segmentStyle.strokeColor = "blue";
+        newTrack.segmentStyle = segmentStyle;
         track = newTrack;
     }
 
