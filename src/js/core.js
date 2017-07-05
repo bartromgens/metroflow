@@ -336,9 +336,16 @@ var Segment = {
         var arcBeginRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
         var arcEndRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
         if (previous) {
-            var previousLastPath = previous.pathsStraight[previous.pathsStraight.length-1]
+            var previousLastPath = previous.pathsStraight[previous.pathsStraight.length-1];
             var tangentEndLastPath = previousLastPath.getTangentAt(previousLastPath.length);
-            if (tangentEndLastPath.x !== 0) {
+            var inSameDirectionOutX = (Math.sign(stationVector.x) - tangentEndLastPath.x) !== 0;
+            var inSameDirectionOutY = (Math.sign(stationVector.y) - tangentEndLastPath.y) !== 0;
+            if (tangentEndLastPath.x !== 0 && !inSameDirectionOutX) {
+                console.log('B');
+                arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
+                arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
+            } else if (tangentEndLastPath.y !== 0 && inSameDirectionOutY) {
+                console.log('C');
                 arcBeginRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
                 arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
             }

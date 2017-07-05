@@ -58,6 +58,7 @@ function onClickMajorStationMode(event) {
         }
 
         var stationNew = track.createStation(position, selectedStation);
+        selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, track);
         interaction.createStationElement(stationNew, track);
         interaction.createSegmentElements(track);
