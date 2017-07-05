@@ -1,11 +1,6 @@
 require("paper");
+styles = require("./styles.js");
 
-var strokeWidth = 8;
-var stationRadius = 1*strokeWidth;
-var strokeColor = "red";
-var fillColor = "white";
-
-var minorStationSize = strokeWidth*2;
 
 var minStraight = 30;
 var arcRadius = 10.0;
@@ -22,16 +17,6 @@ function uuidv4() {
         return v.toString(16);
     });
 }
-
-
-var StationStyle = {
-    strokeColor: "black",
-    strokeWidth: strokeWidth/2,
-    fillColor: fillColor,
-    stationRadius: stationRadius,
-    selectionColor: "green",
-    fullySelected: false,
-};
 
 
 var Observable = {
@@ -100,9 +85,10 @@ function snapPosition(track, station, position) {
 
 
 var BaseStation = {
-    Station: function(position) {
+    Station: function(position, style) {
         console.log('new station for point', position);
         this.position = position;
+        this.style = style;
         this.id = uuidv4().substring(0, 8);
         this.path = null;
         this.isSelected = false;
@@ -117,11 +103,11 @@ var BaseStation = {
     },
     select: function() {
         this.isSelected = true;
-        this.path.strokeColor = StationStyle.selectionColor;
+        this.path.strokeColor = this.style.selectionColor;
     },
     unselect: function() {
         this.isSelected = false;
-        this.path.strokeColor = StationStyle.strokeColor;
+        this.path.strokeColor = this.style.strokeColor;
     },
     setPosition: function(position) {
         this.position = position;
@@ -132,10 +118,10 @@ var BaseStation = {
 
 var Station = {
     draw: function() {
-        this.path = new Path.Circle(this.position, StationStyle.stationRadius);
-        this.path.strokeColor = StationStyle.strokeColor;
-        this.path.strokeWidth = StationStyle.strokeWidth;
-        this.path.fillColor = StationStyle.fillColor;
+        this.path = new Path.Circle(this.position, this.style.stationRadius);
+        this.path.strokeColor = this.style.strokeColor;
+        this.path.strokeWidth = this.style.strokeWidth;
+        this.path.fillColor = this.style.fillColor;
     },
 };
 
@@ -143,26 +129,35 @@ var Station = {
 var StationMinor = {
     draw: function() {
         var position = this.segment.calcStationPosition(this);
+        var minorStationSize = this.style.strokeWidth*2;
         this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
-        this.path.strokeColor = strokeColor;
-        this.path.strokeWidth = strokeWidth;
-        this.path.fillColor = StationStyle.fillColor;
+        this.path.strokeColor = this.style.strokeColor;
+        this.path.strokeWidth = this.style.strokeWidth;
+        // this.path.fillColor = this.style.fillColor;
     },
 };
 
 
-function createStation(position) {
+function createStation(position, style) {
     var observable = Object.create(Observable).Observable();
     var station = Object.assign(observable, BaseStation, Station);
-    station = station.Station(position);
+    if (!style) {
+        style = styles.createStationStyle();
+    }
+    station = station.Station(position, style);
     return station;
 }
 
 
-function createStationMinor(position, segment) {
+function createStationMinor(position, segment, style) {
+    console.log('createStationMinor');
     var observable = Object.create(Observable).Observable();
     var station = Object.assign(observable, BaseStation, StationMinor);
-    station = station.Station(position);
+    if (!style) {
+        style = styles.createStationMinorStyle();
+        style.strokeColor = segment.style.strokeColor;
+    }
+    station = station.Station(position, style);
     segment.stationsMinor.push(station);
     station.segment = segment;
     return station;
@@ -208,6 +203,7 @@ var Track = {
     Track: function() {
         this.stations = [];
         this.stationsMinor = [];
+        this.segmentStyle = styles.createSegmentStyle();
         this.segments = [];
         this.id = uuidv4();
         return this;
@@ -218,7 +214,7 @@ var Track = {
             if (!previousStation) {
                 previousStation = this.lastAddedStation();
             }
-            var segment = createSegment(previousStation, station);
+            var segment = createSegment(previousStation, station, this.segmentStyle);
             this.segments.push(segment);
         }
         this.stations.push(station);
@@ -335,9 +331,10 @@ function createTrack() {
 
 
 var Segment = {
-    Segment: function(stationA, stationB) {
+    Segment: function(stationA, stationB, style) {
         this.stationA = stationA;
         this.stationB = stationB;
+        this.style = style;
         this.stationsMinor = [];
         this.id = uuidv4();
         this.paths = [];
@@ -382,20 +379,20 @@ var Segment = {
     select: function() {
         this.isSelected = true;
         for (var i in this.paths){
-            this.paths[i].strokeColor = StationStyle.selectionColor;
+            this.paths[i].strokeColor = "green";
         }
     },
     unselect: function() {
         this.isSelected = false;
         for (var i in this.paths){
-            this.paths[i].strokeColor = strokeColor;
+            this.paths[i].strokeColor = this.style.strokeColor;
         }
     },
     createPath: function() {
         var path = new Path();
         this.paths.push(path);
-        path.strokeColor = strokeColor;
-        path.strokeWidth = strokeWidth;
+        path.strokeColor = this.style.strokeColor;
+        path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
         path.fullySelected = DisplaySettings.isDebug;
@@ -403,7 +400,7 @@ var Segment = {
     },
     calcStationPosition: function(station) {
         var pos = this.stationsMinor.indexOf(station);
-        var nStations = this.stationsMinor.length + 1 // including main station
+        var nStations = this.stationsMinor.length + 1; // including main station
         var totalLength = this.lengthStraight();
         var distanceBetweenStations = totalLength/nStations;
         var distanceStation = distanceBetweenStations * (pos+1);
@@ -524,11 +521,11 @@ var Segment = {
 };
 
 
-function createSegment(stationA, stationB) {
+function createSegment(stationA, stationB, style) {
     console.log('createSegment');
     var observable = Object.create(Observable).Observable();
     segment = Object.assign(observable, Segment);
-    segment = segment.Segment(stationA, stationB);
+    segment = segment.Segment(stationA, stationB, style);
     return segment;
 }
 
