@@ -7,8 +7,10 @@ module.exports = {
     context: __dirname,
     entry: {
         core: "./src/js/core.js",
+        styles: "./src/js/styles.js",
         interaction: "./src/js/interaction.js",
         sidebar: "./src/js/sidebar.js",
+        toolbar: "./src/js/toolbar.js",
         contextmenu: "./src/js/contextmenu.js",
         sketcher: "./src/js/sketcher.js",
         paperexample: "./src/js/paperexample.js",

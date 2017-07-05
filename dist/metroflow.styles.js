@@ -1,4 +1,4 @@
-var MetroFlow = MetroFlow || {}; MetroFlow["css"] =
+var MetroFlow = MetroFlow || {}; MetroFlow["styles"] =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -61,23 +61,74 @@ var MetroFlow = MetroFlow || {}; MetroFlow["css"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 9);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 10:
+/***/ 2:
 /***/ (function(module, exports) {
 
-// removed by extract-text-webpack-plugin
 
-/***/ }),
+var fillColor = "white";
+var strokeWidth = 8;
+var stationRadius = 1*strokeWidth;
 
-/***/ 9:
-/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(10);
+var MapStyle = {
 
+};
+
+var TrackStyle = {
+
+};
+
+
+var SegmentStyle = {
+    strokeColor: "red",
+    strokeWidth: strokeWidth,
+    selectionColor: "green",
+    fullySelected: false,
+};
+
+
+var StationStyle = {
+    strokeColor: "black",
+    strokeWidth: strokeWidth/2,
+    fillColor: fillColor,
+    stationRadius: stationRadius,
+    selectionColor: "green",
+    fullySelected: false,
+};
+
+var StationMinorStyle = {
+    strokeColor: "red",
+    strokeWidth: strokeWidth,
+    fillColor: fillColor,
+    stationRadius: stationRadius,
+    selectionColor: "green",
+    fullySelected: false,
+};
+
+
+function createStationStyle() {
+    return Object.create(StationStyle);
+}
+
+function createStationMinorStyle() {
+    return Object.create(StationMinorStyle);
+}
+
+function createSegmentStyle() {
+    return Object.create(SegmentStyle);
+}
+
+
+module.exports = {
+    createStationStyle: createStationStyle,
+    createSegmentStyle: createSegmentStyle,
+    createStationMinorStyle: createStationMinorStyle,
+};
 
 /***/ })
 

@@ -1,4 +1,4 @@
-var MetroFlow = MetroFlow || {}; MetroFlow["css"] =
+var MetroFlow = MetroFlow || {}; MetroFlow["toolbar"] =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -61,23 +61,56 @@ var MetroFlow = MetroFlow || {}; MetroFlow["css"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 9);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 10:
+/***/ 6:
 /***/ (function(module, exports) {
 
-// removed by extract-text-webpack-plugin
 
-/***/ }),
+$(function() {
+    var buttonMajorStation = $("#button-major-station");
+    var buttonMinorStation = $("#button-minor-station");
+    var buttonSelect = $("#button-select");
 
-/***/ 9:
-/***/ (function(module, exports, __webpack_require__) {
+    buttonMajorStation.bind("click", function () {
+        console.log('major button');
+    });
 
-module.exports = __webpack_require__(10);
+    buttonMinorStation.bind("click", function () {
+        console.log('minor button');
+    });
+});
 
+function setMajorStationButtonAction(callback) {
+    var buttonMajorStation = $("#button-major-station");
+    buttonMajorStation.bind("click", callback);
+}
+
+function setMinorStationButtonAction(callback) {
+    var buttonMinorStation = $("#button-minor-station");
+    buttonMinorStation.bind("click", callback);
+}
+
+function setSelectButtonAction(callback) {
+    var buttonSelect = $("#button-select");
+    buttonSelect.bind("click", callback);
+}
+
+function setNewTrackButtonAction(callback) {
+    var buttonNewTrack = $("#button-new-track");
+    buttonNewTrack.bind("click", callback);
+}
+
+
+module.exports = {
+    setMajorStationButtonAction: setMajorStationButtonAction,
+    setMinorStationButtonAction: setMinorStationButtonAction,
+    setSelectButtonAction: setSelectButtonAction,
+    setNewTrackButtonAction: setNewTrackButtonAction
+};
 
 /***/ })
 
