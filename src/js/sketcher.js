@@ -3,8 +3,10 @@ var core = require("./core.js");
 var interaction = require("./interaction.js");
 var sidebar = require("./sidebar.js");
 
+
 var track = core.createTrack();
 var snapDistance = 60;
+
 
 var hitOptions = {
     segments: true,
@@ -13,8 +15,10 @@ var hitOptions = {
     tolerance: 3
 };
 
+
 var stationClicked = null;
 var segmentClicked = null;
+
 
 function onMouseDown(event) {
     console.log('key', event.event.which);
@@ -63,7 +67,7 @@ function onMouseDown(event) {
 	}
 
     var stationNew = track.createStation(position);
-    registerForSidebar(stationNew);
+    sidebar.notifyNewStation(stationNew);
 	interaction.createStationElement(stationNew, track);
 	interaction.createSegmentElements(track);
 	sidebar.showStations(track);
@@ -93,20 +97,11 @@ function onKeyDown(event) {
     }
 }
 
+
 tool.onMouseDown = onMouseDown;
 tool.onMouseDrag = onMouseDrag;
 tool.onKeyDown = onKeyDown;
 
 
 
-function registerForSidebar(station) {
-    var stationObserver = new core.Observer(
-        function(station) {
-            sidebar.showStations(track);
-        },
-        function(station) {
-            sidebar.showStations(track);
-        }
-    );
-    station.registerObserver(stationObserver);
-}
+

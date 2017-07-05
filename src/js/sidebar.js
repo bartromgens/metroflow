@@ -11,6 +11,21 @@ function showStations(track) {
     }
 }
 
+
+function notifyNewStation(station) {
+    var stationObserver = new core.Observer(
+        function(station) {
+            sidebar.showStations(track);
+        },
+        function(station) {
+            sidebar.showStations(track);
+        }
+    );
+    station.registerObserver(stationObserver);
+}
+
+
 module.exports = {
     showStations: showStations,
+    notifyNewStation: notifyNewStation
 };
