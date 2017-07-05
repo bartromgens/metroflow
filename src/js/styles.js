@@ -2,11 +2,13 @@
 var fillColor = "white";
 var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
+var selectionColor = "green";
 
 
 var MapStyle = {
 
 };
+
 
 var TrackStyle = {
 
@@ -17,7 +19,7 @@ var SegmentStyle = {
     strokeColor: "red",
     strokeWidth: strokeWidth,
     selectionColor: "green",
-    fullySelected: false,
+    fullySelected: false
 };
 
 
@@ -26,17 +28,16 @@ var StationStyle = {
     strokeWidth: strokeWidth/2,
     fillColor: fillColor,
     stationRadius: stationRadius,
-    selectionColor: "green",
-    fullySelected: false,
+    selectionColor: selectionColor,
+    fullySelected: false
 };
 
+
 var StationMinorStyle = {
-    strokeColor: "red",
-    strokeWidth: strokeWidth,
-    fillColor: fillColor,
-    stationRadius: stationRadius,
-    selectionColor: "green",
-    fullySelected: false,
+    strokeColor: SegmentStyle.strokeColor,
+    strokeWidth: SegmentStyle.strokeWidth,
+    selectionColor: selectionColor,
+    fullySelected: false
 };
 
 
