@@ -166,14 +166,21 @@ var Track = {
         this.draw();
         return station;
     },
+    segmentToStation: function(station) {
+        for (var i in this.segments) {
+            var segment = this.segments[i];
+            if (segment.stationB.id === station.id) {
+                return segment;
+            }
+        }
+        return null;
+    },
     draw: function() {
         project.clear();
         for (var i in this.segments) {
-            var previous = null;
-            if (i > 0) {
-                previous = this.segments[i-1];
-            }
-            this.segments[i].draw(previous);
+            var segment = this.segments[i];
+            var previous = this.segmentToStation(segment.stationA);
+            segment.draw(previous);
         }
         for (var i in this.stations) {
             this.stations[i].draw();
