@@ -7,7 +7,6 @@ var toolbar = require("./toolbar.js");
 
 var track = core.createTrack();
 var snapDistance = 60;
-var selectedStation = null;
 
 var modes = {
     majorstation: "majorstation",
@@ -28,6 +27,7 @@ var hitOptions = {
 
 var stationClicked = null;
 var segmentClicked = null;
+var selectedStation = null;
 
 
 function onClickMajorStationMode(event) {
@@ -37,11 +37,12 @@ function onClickMajorStationMode(event) {
         var path = hitResult.item;
         stationClicked = track.findStationByPathId(path.id);
         if (stationClicked) {
+            console.log('station clicked');
             if (event.event.which === 3) {  // right mouse
                 interaction.showStationContextMenu(stationClicked.id);
                 return;
             }
-            stationClicked.toggleSelect();
+            stationClicked.select();
             selectedStation = stationClicked;
         }
     } else {
@@ -65,7 +66,21 @@ function onClickMajorStationMode(event) {
 
 
 function onClickMinorStationMode(event) {
-
+    console.log('onClickMinorStationMode');
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult) {
+        var path = hitResult.item;
+        if (hitResult.type === "stroke" || path) {
+            console.log('stroke hit');
+            var segments = hitResult.item.segments;
+            segmentClicked = track.findSegmentByPathId(segments[0].path.id);
+            if (segmentClicked) {
+                track.createStationMinor(event.point, segmentClicked.id);
+            } else {
+                console.log('warning: no segment clicked');
+            }
+        }
+    }
 }
 
 
@@ -87,6 +102,7 @@ function onClickSelectMode(event) {
                 return;
             }
             stationClicked.toggleSelect();
+            selectedStation = stationClicked;
         } else if (segmentClicked) {
             console.log('segment clicked');
             if (event.event.which === 3) {  // right mouse
@@ -105,10 +121,10 @@ function onClickSelectMode(event) {
 
 function onMouseDown(event) {
     console.log('key', event.event.which);
-
     if (mode === modes.majorstation) {
         onClickMajorStationMode(event);
     } else if (mode === modes.minorstation) {
+        selectedStation = null;
         onClickMinorStationMode(event);
     } else if (mode === modes.select) {
         onClickSelectMode(event);
@@ -118,8 +134,8 @@ function onMouseDown(event) {
 
 function onMouseDrag(event) {
     console.log('onMouseDrag');
-	if (stationClicked) {
-	    stationClicked.setPosition(stationClicked.position + event.delta);
+	if (selectedStation) {
+        selectedStation.setPosition(selectedStation.position + event.delta);
 	    track.draw();
 	}
 }
