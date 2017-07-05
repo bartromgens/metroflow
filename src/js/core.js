@@ -146,10 +146,12 @@ var Track = {
         this.id = uuidv4();
         return this;
     },
-    createStation: function(position) {
+    createStation: function(position, previousStation) {
     	var station = createStation(position);
         if (this.stations.length > 0) {
-            var previousStation = this.stations[this.stations.length - 1];
+            if (!previousStation) {
+                previousStation = this.stations[this.stations.length - 1];
+            }
             var segment = createSegment(previousStation, station);
             this.segments.push(segment);
         }

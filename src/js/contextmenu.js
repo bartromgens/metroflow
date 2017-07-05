@@ -6,7 +6,7 @@ function createStationContextMenu(stationElementId, track) {
         selector: '#' + stationElementId,
         trigger: 'none',
         callback: function(key, options) {
-            if (key == "delete") {
+            if (key === "delete") {
                 var stationId = $(options.selector).data('station-id');
                 track.removeStation(stationId);
             }
@@ -23,7 +23,7 @@ function createSegmentContextMenu(segmentElementId, track) {
         selector: '#' + segmentElementId,
         trigger: 'none',
         callback: function(key, options) {
-            if (key == "create minor station") {
+            if (key === "create minor station") {
                 var segmentId = $(options.selector).data('segment-id');
                 var position = $(options.selector).data('position');
                 track.createStationMinor(position, segmentId);

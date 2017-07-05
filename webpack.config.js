@@ -9,6 +9,7 @@ module.exports = {
         core: "./src/js/core.js",
         interaction: "./src/js/interaction.js",
         sidebar: "./src/js/sidebar.js",
+        toolbar: "./src/js/toolbar.js",
         contextmenu: "./src/js/contextmenu.js",
         sketcher: "./src/js/sketcher.js",
         paperexample: "./src/js/paperexample.js",
