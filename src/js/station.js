@@ -11,6 +11,7 @@ var BaseStation = {
         this.id = core.uuidv4().substring(0, 8);
         this.path = null;
         this.isSelected = false;
+        this.name = "station";
         return this;
     },
     toggleSelect: function() {
@@ -48,12 +49,16 @@ var Station = {
 var StationMinor = {
     draw: function() {
         var position = this.segment.calcStationPosition(this);
-        var minorStationSize = this.style.strokeWidth*2;
+        this.position = position.centerPointOnLine;
+        var minorStationSize = this.style.minorStationSize;
         this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
         this.path.strokeColor = this.style.strokeColor;
         this.path.strokeWidth = this.style.strokeWidth;
         // this.path.fillColor = this.style.fillColor;
     },
+    direction: function() {
+        return (this.path.lastSegment.point - this.path.firstSegment.point).normalize();
+    }
 };
 
 

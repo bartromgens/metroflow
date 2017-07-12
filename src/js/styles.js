@@ -37,6 +37,7 @@ var StationMinorStyle = {
     strokeColor: SegmentStyle.strokeColor,
     strokeWidth: SegmentStyle.strokeWidth,
     selectionColor: selectionColor,
+    minorStationSize: SegmentStyle.strokeWidth * 2.0,
     fullySelected: false
 };
 

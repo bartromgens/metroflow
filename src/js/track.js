@@ -32,10 +32,24 @@ var Track = {
         this.draw();
         return station;
     },
+    stationSegments: function(station) {
+        var segments = [];
+        segments.push(this.segmentToStation(station));
+        segments.push(this.segmentFromStation(station));
+    },
     segmentToStation: function(station) {
         for (var i in this.segments) {
             var segment = this.segments[i];
             if (segment.stationB.id === station.id) {
+                return segment;
+            }
+        }
+        return null;
+    },
+    segmentFromStation: function(station) {
+        for (var i in this.segments) {
+            var segment = this.segments[i];
+            if (segment.stationA.id === station.id) {
                 return segment;
             }
         }
@@ -73,6 +87,64 @@ var Track = {
             this.stationsMinor[i].draw();
         }
         this.notifyAllObservers(this);
+    },
+    createText: function(station, positionRelative) {
+        var text = new PointText(station.position + positionRelative);
+        text.justification = 'left';
+        text.fillColor = 'black';
+        text.content = station.name;
+        return text;
+    },
+    preventIntersectionSegment: function(text, station, segment, positions) {
+        if (!segment) {
+            return;
+        }
+        var positionsTried = 0;
+        var intersects = true;
+        while (intersects && positionsTried < positions.length) {
+            for (var j in segment.paths) {
+                var path = segment.paths[j];
+                intersects = text.intersects(path);
+                if (intersects) {
+                    var textOld = text;
+                    positionsTried++;
+                    text = this.createText(station, positions[positionsTried]);
+                    text.fontSize = textOld.fontSize;
+                    textOld.remove();
+                    break;
+                }
+            }
+        }
+    },
+    drawStationNames: function() {
+        var fontSize = 20;
+        this.drawMajorStationNames(fontSize);
+        fontSize = 15;
+        this.drawMinorStationNames(fontSize);
+    },
+    drawMajorStationNames: function(fontSize) {
+        for (var i in this.stations) {
+            var station = this.stations[i];
+            var positions = [];
+            var stationRadius = station.style.stationRadius + station.style.strokeWidth;
+            positions.push(new Point(stationRadius, fontSize / 4.0));
+            positions.push(new Point(-stationRadius, fontSize / 4.0));
+            positions.push(new Point(0, -stationRadius * 1.2));
+            positions.push(new Point(0, stationRadius * 1.2));
+            var segmentTo = this.segmentToStation(station);
+            var segmentFrom = this.segmentFromStation(station);
+            var text = this.createText(station, positions[0]);
+            text.fontSize = fontSize;
+            this.preventIntersectionSegment(text, station, segmentTo, positions);
+            this.preventIntersectionSegment(text, station, segmentFrom, positions);
+        }
+    },
+    drawMinorStationNames: function(fontSize) {
+        for (var i in this.stationsMinor) {
+            var station = this.stationsMinor[i];
+            var text = this.createText(station, station.direction()*station.style.minorStationSize*1.1);
+            text.fontSize = fontSize;
+        }
     },
     findStationByPathId: function(id) {
         for (var i in this.stations) {

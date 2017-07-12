@@ -17,11 +17,17 @@ var Map = {
         for (var i in this.tracks) {
             this.tracks[i].draw();
         }
+        this.drawStationNames();
+    },
+    drawStationNames: function() {
+        for (var i in this.tracks) {
+            this.tracks[i].drawStationNames();
+        }
     },
     findStationByPathId: function(id) {
         for (var i in this.tracks) {
             var track = this.tracks[i];
-            var station = metrotrack.findStationByPathId(id);
+            var station = track.findStationByPathId(id);
             if (station) {
                 return {station: station, track: track};
             }
@@ -31,7 +37,7 @@ var Map = {
     findSegmentByPathId: function(id) {
         for (var i in this.tracks) {
             var track = this.tracks[i];
-            var segment = metrotrack.findSegmentByPathId(id);
+            var segment = track.findSegmentByPathId(id);
             if (segment) {
                 return {segment: segment, track: track};
             }

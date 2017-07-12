@@ -11,6 +11,8 @@ var Segment = {
         this.stationsMinor = [];
         this.id = core.uuidv4();
         this.paths = [];
+        this.directionBegin = null;
+        this.directionEnd = null;
         this.pathsStraight = [];
         this.isSelected = false;
         return this;
@@ -129,8 +131,11 @@ var Segment = {
 
             var pathBegin = this.createPath();
             this.pathsStraight.push(pathBegin);
-            pathBegin.add(this.begin());
-            pathBegin.add(beginPoint0);
+            var beginA = this.begin();
+            var beginB = beginPoint0;
+            pathBegin.add(beginA);
+            pathBegin.add(beginB);
+            this.directionBegin = (beginB - beginA).normalize();
 
             var endPoint0 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius*2;
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
@@ -162,14 +167,19 @@ var Segment = {
 
             var pathEnd = this.createPath();
             this.pathsStraight.push(pathEnd);
-            pathEnd.add(arcEnd + arcEndRel.normalize()*arcRadius*2);
-            pathEnd.add(this.end());
+            var endA = arcEnd + arcEndRel.normalize()*arcRadius*2;
+            var endB = this.end();
+            pathEnd.add(endA);
+            pathEnd.add(endB);
+            this.directionEnd = (endB - endA).normalize();
         } else {
             var pathMiddle = this.createPath();
             this.pathsStraight.push(pathMiddle);
             pathMiddle.add(this.begin());
             pathMiddle.add(this.end());
             pathMiddle.smooth();
+            this.directionBegin = (this.end() - this.begin()).normalize();
+            this.directionEnd = (this.begin() - this.end()).normalize();
         }
 
         if (core.DisplaySettings.isDebug) {
