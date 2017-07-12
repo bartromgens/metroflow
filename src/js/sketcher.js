@@ -1,11 +1,14 @@
 require("paper");
 var core = require("./core.js");
+var map = require("./map.js");
+var station = require("./station.js");
+var snap = require("./snap.js");
 var interaction = require("./interaction.js");
 var sidebar = require("./sidebar.js");
 var toolbar = require("./toolbar.js");
 
 
-var map = core.createMap();
+var map = map.createMap();
 
 var currentTrack = map.createTrack();
 var segmentClicked = null;
@@ -87,7 +90,7 @@ function onClickMajorStationMode(event) {
         }
     } else {
         var stationNew = currentTrack.createStation(event.point, selectedStation);
-        var position = core.snapPosition(currentTrack, stationNew, event.point);
+        var position = snap.snapPosition(currentTrack, stationNew, event.point);
         stationNew.setPosition(position);
         selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, currentTrack);
@@ -154,7 +157,7 @@ function onMouseDown(event) {
 
 function onMouseDrag(event) {
 	if (selectedStation) {
-	    var position = core.snapPosition(currentTrack, selectedStation, event.point);
+	    var position = snap.snapPosition(currentTrack, selectedStation, event.point);
         selectedStation.setPosition(position);
 	    map.draw();
 	}

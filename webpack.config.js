@@ -3,11 +3,17 @@ var ManifestPlugin = require('webpack-manifest-plugin');
 var WebpackCleanupPlugin = require('webpack-cleanup-plugin');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 
+
 module.exports = {
     context: __dirname,
     entry: {
         core: "./src/js/core.js",
+        map: "./src/js/map.js",
+        track: "./src/js/track.js",
+        segment: "./src/js/segment.js",
+        station: "./src/js/station.js",
         styles: "./src/js/styles.js",
+        snap: "./src/js/snap.js",
         interaction: "./src/js/interaction.js",
         sidebar: "./src/js/sidebar.js",
         toolbar: "./src/js/toolbar.js",
