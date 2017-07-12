@@ -13,7 +13,6 @@ module.exports = {
         toolbar: "./src/js/toolbar.js",
         contextmenu: "./src/js/contextmenu.js",
         sketcher: "./src/js/sketcher.js",
-        paperexample: "./src/js/paperexample.js",
         css: ["./src/css/basic.css"]
     },
     output: {
@@ -52,7 +51,7 @@ module.exports = {
     },
     plugins: [
         new ManifestPlugin(),
-//        new ExtractTextPlugin("paperexample.[contenthash].css"),
+//        new ExtractTextPlugin("metro.[contenthash].css"),
         new ExtractTextPlugin("metroflow-basic.css"),
         new WebpackCleanupPlugin(),
     ],
