@@ -95,15 +95,22 @@ var Track = {
         text.content = station.name;
         return text;
     },
-    preventIntersectionSegment: function(text, station, segment, positions) {
-        if (!segment) {
+    preventIntersectionSegments: function(text, station, segments, positions) {
+        if (!segments) {
             return;
+        }
+        var paths = [];
+        for (var i in segments) {
+            for (var j in segments[i].paths) {
+                paths.push(segments[i].paths[j]);
+            }
         }
         var positionsTried = 0;
         var intersects = true;
         while (intersects && positionsTried < positions.length) {
-            for (var j in segment.paths) {
-                var path = segment.paths[j];
+            intersects = false;
+            for (var j in paths) {
+                var path = paths[j];
                 intersects = text.intersects(path);
                 if (intersects) {
                     var textOld = text;
@@ -128,15 +135,23 @@ var Track = {
             var positions = [];
             var stationRadius = station.style.stationRadius + station.style.strokeWidth;
             positions.push(new Point(stationRadius, fontSize / 4.0));
-            positions.push(new Point(-stationRadius, fontSize / 4.0));
-            positions.push(new Point(0, -stationRadius * 1.2));
-            positions.push(new Point(0, stationRadius * 1.2));
-            var segmentTo = this.segmentToStation(station);
-            var segmentFrom = this.segmentFromStation(station);
             var text = this.createText(station, positions[0]);
             text.fontSize = fontSize;
-            this.preventIntersectionSegment(text, station, segmentTo, positions);
-            this.preventIntersectionSegment(text, station, segmentFrom, positions);
+            positions.push(new Point(-stationRadius-text.bounds.width, fontSize / 4.0));
+            positions.push(new Point(0, -stationRadius*1.2));
+            positions.push(new Point(-text.bounds.width, -stationRadius*1.2));
+            positions.push(new Point(0, stationRadius*2.2));
+            positions.push(new Point(-text.bounds.width, stationRadius*2.2));
+            var segmentTo = this.segmentToStation(station);
+            var segmentFrom = this.segmentFromStation(station);
+            var segments = [];
+            if (segmentTo) {
+                segments.push(segmentTo);
+            }
+            if (segmentFrom) {
+                segments.push(segmentFrom);
+            }
+            this.preventIntersectionSegments(text, station, segments, positions);
         }
     },
     drawMinorStationNames: function(fontSize) {
