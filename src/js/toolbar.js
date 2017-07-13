@@ -44,8 +44,6 @@ function setLoadMapAction(callback) {
 }
 
 
-
-
 module.exports = {
     setMajorStationButtonAction: setMajorStationButtonAction,
     setMinorStationButtonAction: setMinorStationButtonAction,

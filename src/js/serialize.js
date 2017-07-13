@@ -1,8 +1,4 @@
-var core = require("./core.js");
 var metromap = require("./map.js");
-var metrotrack = require("./track.js");
-var metrosegment = require("./segment.js");
-var metrostation = require("./station.js");
 
 
 function saveMap(map) {
