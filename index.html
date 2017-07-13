@@ -9,8 +9,10 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.contextMenu.min.css">
     <link rel="stylesheet" href="dist/metroflow-basic.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.ui.position.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-contextmenu/2.5.0/jquery.contextMenu.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.11.4/paper-full.min.js"></script>
@@ -27,16 +29,27 @@
             <input id="button-select" type="image" src="src/data/images/icon_select.svg" width="32px"/>
             <input id="button-major-station" type="image" src="src/data/images/icon_major_station.svg" width="32px"/>
             <input id="button-minor-station" type="image" src="src/data/images/icon_minor_station.svg" width="32px"/>
-            <button id="button-new-track" type="button"width="32px">new track</button>
+            <button id="button-new-track" type="button">new track</button>
+            <button id="button-save-map" type="button">save map</button>
+            <label>load map: </label><input type="file" id="file-input"/>
         </div>
     </div>
 
-    <div id="draw-area">
-	    <canvas id="paperCanvas" resize></canvas>
-        <div id="overlay"></div>
-    </div>
+    <canvas id="paperCanvas" resize></canvas>
+    <div id="overlay"></div>
 
-    <div id="sidebar"></div>
+    <div id="sidebar">
+        <div class="toolbar-buttons">
+            <button id="button-example-map1" type="button">Example map 1</button>
+        </div>
+        <h3>track style</h3>
+        <div class="track-style-widget">
+            <label>Track color: </label><input id="track-color-picker" type="color" value="#ff0000">
+            <br/>
+            <label>Track width: </label><div id="track-width-slider"></div>
+            <label>Station radius: </label><div id="station-radius-slider"></div>
+        </div>
+    </div>
 
 </body>
 

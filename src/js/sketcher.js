@@ -1,11 +1,14 @@
 require("paper");
 var core = require("./core.js");
+var metromap = require("./map.js");
+var snap = require("./snap.js");
 var interaction = require("./interaction.js");
 var sidebar = require("./sidebar.js");
 var toolbar = require("./toolbar.js");
+var serialize = require("./serialize.js");
 
 
-var map = core.createMap();
+var map = metromap.createMap();
 
 var currentTrack = map.createTrack();
 var segmentClicked = null;
@@ -87,7 +90,7 @@ function onClickMajorStationMode(event) {
         }
     } else {
         var stationNew = currentTrack.createStation(event.point, selectedStation);
-        var position = core.snapPosition(currentTrack, stationNew, event.point);
+        var position = snap.snapPosition(currentTrack, stationNew, event.point);
         stationNew.setPosition(position);
         selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, currentTrack);
@@ -107,7 +110,7 @@ function onClickMinorStationMode(event) {
             console.log('stroke hit');
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
-                currentTrack.createStationMinor(event.point, segmentClicked.id);
+                currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
                 map.draw();
             } else {
                 console.log('warning: no segment clicked');
@@ -154,7 +157,7 @@ function onMouseDown(event) {
 
 function onMouseDrag(event) {
 	if (selectedStation) {
-	    var position = core.snapPosition(currentTrack, selectedStation, event.point);
+	    var position = snap.snapPosition(currentTrack, selectedStation, event.point);
         selectedStation.setPosition(position);
 	    map.draw();
 	}
@@ -203,10 +206,86 @@ function initialiseToolbarActions() {
         currentTrack = newTrack;
     }
 
+    function saveMapClicked() {
+        console.log('save map button clicked');
+        var mapJSONString = serialize.saveMap(map);
+        var data = "text/json;charset=utf-8," + encodeURIComponent(mapJSONString);
+        var a = document.createElement('a');
+        a.href = 'data:' + data;
+        a.download = 'data.json';
+        a.innerHTML = 'download JSON';
+
+        // var container = document.getElementById('toolbar');
+        // container.appendChild(a);
+        a.click();
+    }
+
+    function loadMapClicked(event) {
+        console.log('load map button clicked');
+        readSingleFile(event);
+
+        function readSingleFile(event) {
+            var file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var contents = event.target.result;
+                displayContents(contents);
+            };
+            reader.readAsText(file);
+        }
+
+        function displayContents(contents) {
+            map = serialize.loadMap(JSON.parse(contents));
+            map.draw();
+        }
+    }
+
+    function loadJSONMap(filepath) {
+        $.getJSON(filepath, function(json) {
+            console.log(json);
+            map = serialize.loadMap(json);
+            map.draw();
+        });
+    }
+
+    function loadExampleMapClicked() {
+        loadJSONMap("src/maps/test1.json");
+    }
+
+    function onTrackColorChanged(color) {
+        console.log('onTrackColorChanged');
+        var segmentStyle = currentTrack.segmentStyle;
+        segmentStyle.strokeColor = color;
+        currentTrack.setSegmentStyle(segmentStyle);
+        map.draw();
+    }
+
+    function onTrackWidthChanged(value) {
+        var segmentStyle = currentTrack.segmentStyle;
+        segmentStyle.strokeWidth = value;
+        currentTrack.setSegmentStyle(segmentStyle);
+        map.draw();
+    }
+
+    function onStationRadiusChanged(radius) {
+        currentTrack.setStationRadius(radius);
+        map.draw();
+    }
+
     toolbar.setMajorStationButtonAction(majorStationButtonClicked);
     toolbar.setMinorStationButtonAction(minorStationButtonClicked);
     toolbar.setSelectButtonAction(selectButtonClicked);
     toolbar.setNewTrackButtonAction(newTrackButtonClicked);
+    toolbar.setSaveMapAction(saveMapClicked);
+    toolbar.setLoadMapAction(loadMapClicked);
+
+    sidebar.setExampleMapAction(loadExampleMapClicked);
+    sidebar.setTrackColorChangeAction(onTrackColorChanged);
+    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
+    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
 }
 
 

@@ -4,9 +4,13 @@
   "css.css": "metroflow-basic.css",
   "css.js": "metroflow.css.js",
   "interaction.js": "metroflow.interaction.js",
-  "paperexample.js": "metroflow.paperexample.js",
+  "map.js": "metroflow.map.js",
+  "segment.js": "metroflow.segment.js",
   "sidebar.js": "metroflow.sidebar.js",
   "sketcher.js": "metroflow.sketcher.js",
+  "snap.js": "metroflow.snap.js",
+  "station.js": "metroflow.station.js",
   "styles.js": "metroflow.styles.js",
-  "toolbar.js": "metroflow.toolbar.js"
+  "toolbar.js": "metroflow.toolbar.js",
+  "track.js": "metroflow.track.js"
 }

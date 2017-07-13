@@ -14,6 +14,12 @@ function showSegmentContextMenu(segmentId, position) {
 }
 
 
+function createStationMinorElement(station, track) {
+    var stationElementId = "station-" + station.id;
+	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
+}
+
+
 function createStationElement(station, track) {
 	var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")

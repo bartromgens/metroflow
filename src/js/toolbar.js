@@ -33,10 +33,22 @@ function setNewTrackButtonAction(callback) {
     buttonNewTrack.bind("click", callback);
 }
 
+function setSaveMapAction(callback) {
+    var button = $("#button-save-map");
+    button.bind("click", callback);
+}
+
+function setLoadMapAction(callback) {
+    document.getElementById('file-input')
+        .addEventListener('change', callback, false);
+}
+
 
 module.exports = {
     setMajorStationButtonAction: setMajorStationButtonAction,
     setMinorStationButtonAction: setMinorStationButtonAction,
     setSelectButtonAction: setSelectButtonAction,
-    setNewTrackButtonAction: setNewTrackButtonAction
+    setNewTrackButtonAction: setNewTrackButtonAction,
+    setSaveMapAction: setSaveMapAction,
+    setLoadMapAction: setLoadMapAction
 };

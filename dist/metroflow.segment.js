@@ -1,4 +1,4 @@
-var MetroFlow = MetroFlow || {}; MetroFlow["toolbar"] =
+var MetroFlow = MetroFlow || {}; MetroFlow["segment"] =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -61,68 +61,15 @@ var MetroFlow = MetroFlow || {}; MetroFlow["toolbar"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 11);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 11:
+/***/ 3:
 /***/ (function(module, exports) {
 
-
-$(function() {
-    var buttonMajorStation = $("#button-major-station");
-    var buttonMinorStation = $("#button-minor-station");
-    var buttonSelect = $("#button-select");
-
-    buttonMajorStation.bind("click", function () {
-        console.log('major button');
-    });
-
-    buttonMinorStation.bind("click", function () {
-        console.log('minor button');
-    });
-});
-
-function setMajorStationButtonAction(callback) {
-    var buttonMajorStation = $("#button-major-station");
-    buttonMajorStation.bind("click", callback);
-}
-
-function setMinorStationButtonAction(callback) {
-    var buttonMinorStation = $("#button-minor-station");
-    buttonMinorStation.bind("click", callback);
-}
-
-function setSelectButtonAction(callback) {
-    var buttonSelect = $("#button-select");
-    buttonSelect.bind("click", callback);
-}
-
-function setNewTrackButtonAction(callback) {
-    var buttonNewTrack = $("#button-new-track");
-    buttonNewTrack.bind("click", callback);
-}
-
-function setSaveMapAction(callback) {
-    var button = $("#button-save-map");
-    button.bind("click", callback);
-}
-
-function setLoadMapAction(callback) {
-    document.getElementById('file-input')
-        .addEventListener('change', callback, false);
-}
-
-
-module.exports = {
-    setMajorStationButtonAction: setMajorStationButtonAction,
-    setMinorStationButtonAction: setMinorStationButtonAction,
-    setSelectButtonAction: setSelectButtonAction,
-    setNewTrackButtonAction: setNewTrackButtonAction,
-    setSaveMapAction: setSaveMapAction,
-    setLoadMapAction: setLoadMapAction
-};
+throw new Error("Module build failed: Error: ENOENT: no such file or directory, open '/home/bart/dev/metroflow/src/js/segment.js'\n    at Error (native)");
 
 /***/ })
 
