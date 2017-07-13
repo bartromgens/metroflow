@@ -1,5 +1,14 @@
 require("paper");
 var core = require("./core.js");
+var metrosketcher = require("./sketcher.js");
+
+
+
+
+function setExampleMapAction(callback) {
+    $("#button-example-map1").bind("click", callback);
+}
+
 
 //
 // function showStations(track) {
@@ -33,5 +42,6 @@ function notifyNewStation(station, track) {
 
 
 module.exports = {
-    notifyNewStation: notifyNewStation
+    notifyNewStation: notifyNewStation,
+    setExampleMapAction: setExampleMapAction,
 };

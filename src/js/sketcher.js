@@ -1,7 +1,6 @@
 require("paper");
 var core = require("./core.js");
-var map = require("./map.js");
-var station = require("./station.js");
+var metromap = require("./map.js");
 var snap = require("./snap.js");
 var interaction = require("./interaction.js");
 var sidebar = require("./sidebar.js");
@@ -9,7 +8,7 @@ var toolbar = require("./toolbar.js");
 var serialize = require("./serialize.js");
 
 
-var map = map.createMap();
+var map = metromap.createMap();
 
 var currentTrack = map.createTrack();
 var segmentClicked = null;
@@ -214,8 +213,22 @@ function initialiseToolbarActions() {
 
     function loadMapClicked() {
         console.log('load map button clicked');
-        map = serialize.loadMap(null);
-        map.draw();
+        $.getJSON("src/maps/test1.json", function(json) {
+            map = serialize.loadMap(null);
+            map.draw();
+        });
+    }
+
+    function loadJSONMap(filepath) {
+        $.getJSON(filepath, function(json) {
+            console.log(json);
+            map = serialize.loadMap(json);
+            map.draw();
+        });
+    }
+
+    function loadExampleMapClicked() {
+        loadJSONMap("src/maps/test1.json");
     }
 
     toolbar.setMajorStationButtonAction(majorStationButtonClicked);
@@ -224,6 +237,8 @@ function initialiseToolbarActions() {
     toolbar.setNewTrackButtonAction(newTrackButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
+
+    sidebar.setExampleMapAction(loadExampleMapClicked);
 }
 
 

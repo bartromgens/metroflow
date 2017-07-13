@@ -64,7 +64,7 @@ canvas[resize] {
     height: 90%;
     z-index: 100;
     background-color: #f9f9f9;
-    pointer-events: none;
+    pointer-events: auto;
     border: dashed 0px;
 }
 
