@@ -263,6 +263,18 @@ function initialiseToolbarActions() {
         map.draw();
     }
 
+    function onTrackWidthChanged(value) {
+        var segmentStyle = currentTrack.segmentStyle;
+        segmentStyle.strokeWidth = value;
+        currentTrack.setSegmentStyle(segmentStyle);
+        map.draw();
+    }
+
+    function onStationRadiusChanged(radius) {
+        currentTrack.setStationRadius(radius);
+        map.draw();
+    }
+
     toolbar.setMajorStationButtonAction(majorStationButtonClicked);
     toolbar.setMinorStationButtonAction(minorStationButtonClicked);
     toolbar.setSelectButtonAction(selectButtonClicked);
@@ -271,7 +283,9 @@ function initialiseToolbarActions() {
     toolbar.setLoadMapAction(loadMapClicked);
 
     sidebar.setExampleMapAction(loadExampleMapClicked);
-    sidebar.setTrackColorChangeAction(onTrackColorChanged)
+    sidebar.setTrackColorChangeAction(onTrackColorChanged);
+    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
+    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
 }
 
 

@@ -9,18 +9,24 @@ var Track = {
         this.stations = [];
         this.stationsMinor = [];
         this.segmentStyle = metrostyles.createSegmentStyle();
+        this.stationStyle = metrostyles.createStationStyle();
         this.stationMinorStyle = metrostyles.createStationMinorStyle();
         this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
         this.segments = [];
         this.id = core.uuidv4();
         return this;
     },
+    setStationRadius: function(radius) {
+        this.stationStyle.stationRadius = radius;
+    },
     setSegmentStyle: function(style) {
         this.segmentStyle = style;
+        this.stationMinorStyle.strokeWidth = this.segmentStyle.strokeWidth;
         this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
+        this.stationMinorStyle.minorStationSize = this.segmentStyle.strokeWidth * 2.0;
     },
     createStation: function(position, previousStation) {
-        var station = metrostation.createStation(position, null);
+        var station = metrostation.createStation(position, this.stationStyle);
         if (this.stations.length > 0) {
             if (!previousStation) {
                 previousStation = this.lastAddedStation();

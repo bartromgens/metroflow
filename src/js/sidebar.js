@@ -22,6 +22,37 @@ function setTrackColorChangeAction(callback) {
 }
 
 
+function setTrackWidthSliderChangeAction(callback) {
+    $(function() {
+        $("#track-width-slider").slider({
+            slide: watchSlider,
+            change: watchSlider,
+            min: 0,
+            max: 20,
+        });
+    });
+
+    function watchSlider(event, ui) {
+        callback(ui.value);
+    }
+}
+
+function setStationRadiusSliderChangeAction(callback) {
+    $(function() {
+        $("#station-radius-slider").slider({
+            slide: watchSlider,
+            change: watchSlider,
+            min: 0,
+            max: 20,
+        });
+    });
+
+    function watchSlider(event, ui) {
+        callback(ui.value);
+    }
+}
+
+
 //
 // function showStations(track) {
 //     var sideBar = $("#sidebar");
@@ -57,4 +88,6 @@ module.exports = {
     notifyNewStation: notifyNewStation,
     setExampleMapAction: setExampleMapAction,
     setTrackColorChangeAction: setTrackColorChangeAction,
+    setTrackWidthSliderChangeAction: setTrackWidthSliderChangeAction,
+    setStationRadiusSliderChangeAction: setStationRadiusSliderChangeAction,
 };
