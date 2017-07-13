@@ -132,12 +132,12 @@ var Track = {
     drawMajorStationNames: function(fontSize) {
         for (var i in this.stations) {
             var station = this.stations[i];
-            var positions = [];
             var stationRadius = station.style.stationRadius + station.style.strokeWidth;
-            positions.push(new Point(stationRadius, fontSize / 4.0));
+            var positions = [];
+            positions.push(new Point(stationRadius, fontSize/4.0));
             var text = this.createText(station, positions[0]);
             text.fontSize = fontSize;
-            positions.push(new Point(-stationRadius-text.bounds.width, fontSize / 4.0));
+            positions.push(new Point(-stationRadius-text.bounds.width, fontSize/4.0));
             positions.push(new Point(0, -stationRadius*1.2));
             positions.push(new Point(-text.bounds.width, -stationRadius*1.2));
             positions.push(new Point(0, stationRadius*2.2));
@@ -157,8 +157,15 @@ var Track = {
     drawMinorStationNames: function(fontSize) {
         for (var i in this.stationsMinor) {
             var station = this.stationsMinor[i];
-            var text = this.createText(station, station.direction()*station.style.minorStationSize*1.1);
+            var stationLineDirection = station.direction();
+            var xOffset = 0;
+            var position = station.direction()*station.style.minorStationSize*1.2 + new Point(0, Math.sign(station.direction().y)*fontSize/4.0);
+            var text = this.createText(station, position);
             text.fontSize = fontSize;
+            if (stationLineDirection.x < 0) {
+                xOffset = -text.bounds.width;
+                text.position += new Point(xOffset, 0);
+            }
         }
     },
     findStationByPathId: function(id) {
