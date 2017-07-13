@@ -19,6 +19,9 @@ var Map = {
         }
         this.drawStationNames();
     },
+    clear: function() {
+        this.tracks = [];
+    },
     drawStationNames: function() {
         for (var i in this.tracks) {
             this.tracks[i].drawStationNames();

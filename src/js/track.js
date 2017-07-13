@@ -1,6 +1,7 @@
 var core = require("./core.js");
 var metrosegment = require("./segment.js");
 var metrostation = require("./station.js");
+var metrostyles = require("./styles.js");
 
 
 var Track = {
@@ -25,9 +26,19 @@ var Track = {
         console.log('create station', station.id);
         return station;
     },
-    createStationMinor: function(position, segmentId) {
+    createStationMinorOnSegmentId: function(position, segmentId) {
         var segment = this.findSegment(segmentId);
-        var station = metrostation.createStationMinor(position, segment);
+        return this.createStationMinor(position, segment);
+    },
+    createStationMinorBetweenStations: function(stationA, stationB) {
+        var segment = this.findSegmentBetweenStations(stationA, stationB);
+        return this.createStationMinor(segment.center(), segment);
+    },
+    createStationMinor: function(position, segment) {
+        var style = metrostyles.createStationMinorStyle();
+        style.strokeColor = segment.style.strokeColor;
+        var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, style);
+        segment.stationsMinor.push(station);
         this.stationsMinor.push(station);
         this.draw();
         return station;
@@ -84,7 +95,9 @@ var Track = {
             this.stations[i].draw();
         }
         for (var i in this.stationsMinor) {
-            this.stationsMinor[i].draw();
+            var stationMinor = this.stationsMinor[i];
+            var segment = this.findSegmentForStationMinor(stationMinor);
+            this.stationsMinor[i].draw(segment);
         }
         this.notifyAllObservers(this);
     },
@@ -217,6 +230,18 @@ var Track = {
         }
         return null;
     },
+    findSegmentBetweenStations: function(stationA, stationB) {
+        for (var i in this.segments) {
+            if (stationA.id === this.segments[i].stationA.id
+                && stationB.id === this.segments[i].stationB.id) {
+                return this.segments[i];
+            }
+        }
+        return null;
+    },
+    findSegmentForStationMinor: function(stationMinor) {
+        return this.findSegmentBetweenStations(stationMinor.stationA, stationMinor.stationB);
+    }
 };
 
 

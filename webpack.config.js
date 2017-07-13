@@ -14,6 +14,7 @@ module.exports = {
         station: "./src/js/station.js",
         styles: "./src/js/styles.js",
         snap: "./src/js/snap.js",
+        serialize: "./src/js/serialize.js",
         interaction: "./src/js/interaction.js",
         sidebar: "./src/js/sidebar.js",
         toolbar: "./src/js/toolbar.js",

@@ -26,7 +26,7 @@ function createSegmentContextMenu(segmentElementId, track) {
             var segmentId = $(options.selector).data('segment-id');
             if (key === "create minor station") {
                 var position = $(options.selector).data('position');
-                track.createStationMinor(position, segmentId);
+                track.createStationMinorOnSegmentId(position, segmentId);
             } else if (key === "switchdirection") {
                 var stationId = $(options.selector).data('station-id');
                 var segment = track.findSegment(segmentId);

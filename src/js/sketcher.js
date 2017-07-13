@@ -6,6 +6,7 @@ var snap = require("./snap.js");
 var interaction = require("./interaction.js");
 var sidebar = require("./sidebar.js");
 var toolbar = require("./toolbar.js");
+var serialize = require("./serialize.js");
 
 
 var map = map.createMap();
@@ -110,7 +111,7 @@ function onClickMinorStationMode(event) {
             console.log('stroke hit');
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
-                currentTrack.createStationMinor(event.point, segmentClicked.id);
+                currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
                 map.draw();
             } else {
                 console.log('warning: no segment clicked');
@@ -206,10 +207,23 @@ function initialiseToolbarActions() {
         currentTrack = newTrack;
     }
 
+    function saveMapClicked() {
+        console.log('save map button clicked');
+        serialize.saveMap(map);
+    }
+
+    function loadMapClicked() {
+        console.log('load map button clicked');
+        map = serialize.loadMap(null);
+        map.draw();
+    }
+
     toolbar.setMajorStationButtonAction(majorStationButtonClicked);
     toolbar.setMinorStationButtonAction(minorStationButtonClicked);
     toolbar.setSelectButtonAction(selectButtonClicked);
     toolbar.setNewTrackButtonAction(newTrackButtonClicked);
+    toolbar.setSaveMapAction(saveMapClicked);
+    toolbar.setLoadMapAction(loadMapClicked);
 }
 
 
