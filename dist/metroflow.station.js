@@ -64,13 +64,252 @@ var MetroFlow = MetroFlow || {}; MetroFlow["station"] =
 /******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
-/******/ ({
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
 
-/***/ 4:
+__webpack_require__(1);
+styles = __webpack_require__(2);
+
+
+var DisplaySettings = {
+    isDebug: false,
+};
+
+
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+
+var Observable = {
+    Observable: function() {
+        this.observers = [];
+        return this;
+    },
+    registerObserver: function(observer) {
+        var index = this.observers.indexOf(observer);
+        if (index === -1) {
+            this.observers.push(observer);
+        }
+    },
+    unregisterObserver: function(observer) {
+        var index = this.observers.indexOf(observer);
+        if (index > -1) {
+            this.observers.splice(index, 1);
+        }
+    },
+    notifyAllObservers: function() {
+        for (var i = 0; i < this.observers.length; i++) {
+            this.observers[i].notify(this);
+        }
+    },
+    notifyBeforeRemove: function() {
+        for (var i = 0; i < this.observers.length; i++) {
+            this.observers[i].notifyRemove(this);
+        }
+    },
+};
+
+
+function Observer(notify, notifyRemove) {
+    return {
+        notify: notify,
+        notifyRemove: notifyRemove,
+    }
+};
+
+
+module.exports = {
+    DisplaySettings: DisplaySettings,
+    Observer: Observer,
+    Observable: Observable,
+    uuidv4: uuidv4,
+};
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: Error: ENOENT: no such file or directory, open '/home/bart/dev/metroflow/src/js/station.js'\n    at Error (native)");
+module.exports = paper;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+
+var fillColor = "white";
+var strokeWidth = 8;
+var stationRadius = 1*strokeWidth;
+var selectionColor = "green";
+
+
+var MapStyle = {
+
+};
+
+
+var TrackStyle = {
+
+};
+
+
+var SegmentStyle = {
+    strokeColor: "red",
+    strokeWidth: strokeWidth,
+    selectionColor: "green",
+    fullySelected: false
+};
+
+
+var StationStyle = {
+    strokeColor: "black",
+    strokeWidth: strokeWidth/2,
+    fillColor: fillColor,
+    stationRadius: stationRadius,
+    selectionColor: selectionColor,
+    fullySelected: false
+};
+
+
+var StationMinorStyle = {
+    strokeColor: SegmentStyle.strokeColor,
+    strokeWidth: SegmentStyle.strokeWidth,
+    selectionColor: selectionColor,
+    minorStationSize: SegmentStyle.strokeWidth * 2.0,
+    fullySelected: false
+};
+
+
+function createStationStyle() {
+    var newStyle = {};
+    Object.keys(StationStyle).forEach(function(key) {
+        newStyle[ key ] = StationStyle[ key ];
+    });
+    return newStyle;
+}
+
+function createStationMinorStyle() {
+    var newStyle = {};
+    Object.keys(StationMinorStyle).forEach(function(key) {
+        newStyle[key] = StationMinorStyle[key];
+    });
+    return newStyle;
+}
+
+function createSegmentStyle() {
+    var newStyle = {};
+    Object.keys(SegmentStyle).forEach(function(key) {
+        newStyle[key] = SegmentStyle[key];
+    });
+    return newStyle;
+}
+
+
+module.exports = {
+    createStationStyle: createStationStyle,
+    createSegmentStyle: createSegmentStyle,
+    createStationMinorStyle: createStationMinorStyle,
+};
+
+/***/ }),
+/* 3 */,
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
+core = __webpack_require__(0);
+styles = __webpack_require__(2);
+
+
+var BaseStation = {
+    Station: function(position, style) {
+        console.log('new station for point', position);
+        this.position = position;
+        this.style = style;
+        this.id = core.uuidv4().substring(0, 8);
+        this.path = null;
+        this.isSelected = false;
+        this.name = "station";
+        return this;
+    },
+    toggleSelect: function() {
+        if (this.isSelected) {
+            this.unselect();
+        } else {
+            this.select();
+        }
+    },
+    select: function() {
+        this.isSelected = true;
+        this.path.strokeColor = this.style.selectionColor;
+    },
+    unselect: function() {
+        this.isSelected = false;
+        this.path.strokeColor = this.style.strokeColor;
+    },
+    setPosition: function(position) {
+        this.position = position;
+        this.notifyAllObservers();
+    },
+};
+
+
+var Station = {
+    draw: function() {
+        this.path = new Path.Circle(this.position, this.style.stationRadius);
+        this.path.strokeColor = this.style.strokeColor;
+        this.path.strokeWidth = this.style.strokeWidth;
+        this.path.fillColor = this.style.fillColor;
+    },
+};
+
+
+var StationMinor = {
+    draw: function(segment) {
+        var position = segment.calcStationPosition(this);
+        this.position = position.centerPointOnLine;
+        var minorStationSize = this.style.minorStationSize;
+        this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
+        this.path.strokeColor = this.style.strokeColor;
+        this.path.strokeWidth = this.style.strokeWidth;
+        // this.path.fillColor = this.style.fillColor;
+    },
+    direction: function() {
+        return (this.path.lastSegment.point - this.path.firstSegment.point).normalize();
+    }
+};
+
+
+function createStation(position, style) {
+    var observable = Object.create(core.Observable).Observable();
+    var station = Object.assign(observable, BaseStation, Station);
+    if (!style) {
+        style = styles.createStationStyle();
+    }
+    station = station.Station(position, style);
+    return station;
+}
+
+
+function createStationMinor(position, stationA, stationB, style) {
+    console.log('createStationMinor');
+    var observable = Object.create(core.Observable).Observable();
+    var station = Object.assign(observable, BaseStation, StationMinor);
+    station = station.Station(position, style);
+    station.stationA = stationA;
+    station.stationB = stationB;
+    return station;
+}
+
+
+module.exports = {
+    createStation: createStation,
+    createStationMinor: createStationMinor,
+};
 
 /***/ })
-
-/******/ });
+/******/ ]);
