@@ -13,9 +13,8 @@ function saveMap(map) {
         mapData.tracks.push(trackData);
     }
     console.log(mapData);
-    mapJSON = JSON.stringify(mapData);
-    console.log(mapJSON);
-    loadMap(mapJSON);
+    var mapJSONString = JSON.stringify(mapData);
+    return mapJSONString;
 }
 
 

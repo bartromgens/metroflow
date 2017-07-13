@@ -39,9 +39,11 @@ function setSaveMapAction(callback) {
 }
 
 function setLoadMapAction(callback) {
-    var button = $("#button-load-map");
-    button.bind("click", callback);
+    document.getElementById('file-input')
+        .addEventListener('change', callback, false);
 }
+
+
 
 
 module.exports = {

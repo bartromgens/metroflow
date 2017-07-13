@@ -208,15 +208,39 @@ function initialiseToolbarActions() {
 
     function saveMapClicked() {
         console.log('save map button clicked');
-        serialize.saveMap(map);
+        var mapJSONString = serialize.saveMap(map);
+        var data = "text/json;charset=utf-8," + encodeURIComponent(mapJSONString);
+        var a = document.createElement('a');
+        a.href = 'data:' + data;
+        a.download = 'data.json';
+        a.innerHTML = 'download JSON';
+
+        // var container = document.getElementById('toolbar');
+        // container.appendChild(a);
+        a.click();
     }
 
-    function loadMapClicked() {
+    function loadMapClicked(event) {
         console.log('load map button clicked');
-        $.getJSON("src/maps/test1.json", function(json) {
-            map = serialize.loadMap(null);
+        readSingleFile(event);
+
+        function readSingleFile(event) {
+            var file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var contents = event.target.result;
+                displayContents(contents);
+            };
+            reader.readAsText(file);
+        }
+
+        function displayContents(contents) {
+            map = serialize.loadMap(JSON.parse(contents));
             map.draw();
-        });
+        }
     }
 
     function loadJSONMap(filepath) {
