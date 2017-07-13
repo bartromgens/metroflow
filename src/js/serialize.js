@@ -75,7 +75,7 @@ function loadMap(mapJSON) {
 function loadTrack(map, trackData) {
     var track = map.createTrack();
     track.id = trackData.id;
-    track.segmentStyle = trackData.segmentStyle;
+    track.setSegmentStyle(trackData.segmentStyle);
     var previousStation = null;
     for (var j in trackData.stations) {
         var stationData = trackData.stations[j];

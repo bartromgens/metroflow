@@ -255,6 +255,14 @@ function initialiseToolbarActions() {
         loadJSONMap("src/maps/test1.json");
     }
 
+    function onTrackColorChanged(color) {
+        console.log('onTrackColorChanged');
+        var segmentStyle = currentTrack.segmentStyle;
+        segmentStyle.strokeColor = color;
+        currentTrack.setSegmentStyle(segmentStyle);
+        map.draw();
+    }
+
     toolbar.setMajorStationButtonAction(majorStationButtonClicked);
     toolbar.setMinorStationButtonAction(minorStationButtonClicked);
     toolbar.setSelectButtonAction(selectButtonClicked);
@@ -263,6 +271,7 @@ function initialiseToolbarActions() {
     toolbar.setLoadMapAction(loadMapClicked);
 
     sidebar.setExampleMapAction(loadExampleMapClicked);
+    sidebar.setTrackColorChangeAction(onTrackColorChanged)
 }
 
 

@@ -8,10 +8,16 @@ var Track = {
     Track: function() {
         this.stations = [];
         this.stationsMinor = [];
-        this.segmentStyle = styles.createSegmentStyle();
+        this.segmentStyle = metrostyles.createSegmentStyle();
+        this.stationMinorStyle = metrostyles.createStationMinorStyle();
+        this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
         this.segments = [];
         this.id = core.uuidv4();
         return this;
+    },
+    setSegmentStyle: function(style) {
+        this.segmentStyle = style;
+        this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
     },
     createStation: function(position, previousStation) {
         var station = metrostation.createStation(position, null);
@@ -35,9 +41,7 @@ var Track = {
         return this.createStationMinor(segment.center(), segment);
     },
     createStationMinor: function(position, segment) {
-        var style = metrostyles.createStationMinorStyle();
-        style.strokeColor = segment.style.strokeColor;
-        var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, style);
+        var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, this.stationMinorStyle);
         segment.stationsMinor.push(station);
         this.stationsMinor.push(station);
         this.draw();
