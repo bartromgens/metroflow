@@ -27,14 +27,24 @@
             <input id="button-select" type="image" src="src/data/images/icon_select.svg" width="32px"/>
             <input id="button-major-station" type="image" src="src/data/images/icon_major_station.svg" width="32px"/>
             <input id="button-minor-station" type="image" src="src/data/images/icon_minor_station.svg" width="32px"/>
-            <button id="button-new-track" type="button"width="32px">new track</button>
+            <button id="button-new-track" type="button">new track</button>
+            <button id="button-save-map" type="button">save map</button>
+            <input type="file" id="file-input" />
         </div>
     </div>
 
     <canvas id="paperCanvas" resize></canvas>
     <div id="overlay"></div>
 
-    <div id="sidebar"></div>
+    <div id="sidebar">
+        <div class="toolbar-buttons">
+            <button id="button-example-map1" type="button">Example map 1</button>
+        </div>
+        <h3>track style</h3>
+        <div class="track-style-widget">
+            <input id="track-color-picker" type="color" value="#ff0000">
+        </div>
+    </div>
 
 </body>
 

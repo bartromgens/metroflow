@@ -47,8 +47,8 @@ var Station = {
 
 
 var StationMinor = {
-    draw: function() {
-        var position = this.segment.calcStationPosition(this);
+    draw: function(segment) {
+        var position = segment.calcStationPosition(this);
         this.position = position.centerPointOnLine;
         var minorStationSize = this.style.minorStationSize;
         this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
@@ -73,17 +73,13 @@ function createStation(position, style) {
 }
 
 
-function createStationMinor(position, segment, style) {
+function createStationMinor(position, stationA, stationB, style) {
     console.log('createStationMinor');
     var observable = Object.create(core.Observable).Observable();
     var station = Object.assign(observable, BaseStation, StationMinor);
-    if (!style) {
-        style = styles.createStationMinorStyle();
-        style.strokeColor = segment.style.strokeColor;
-    }
     station = station.Station(position, style);
-    segment.stationsMinor.push(station);
-    station.segment = segment;
+    station.stationA = stationA;
+    station.stationB = stationB;
     return station;
 }
 

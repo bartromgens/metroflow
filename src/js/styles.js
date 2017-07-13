@@ -43,15 +43,27 @@ var StationMinorStyle = {
 
 
 function createStationStyle() {
-    return Object.create(StationStyle);
+    var newStyle = {};
+    Object.keys(StationStyle).forEach(function(key) {
+        newStyle[ key ] = StationStyle[ key ];
+    });
+    return newStyle;
 }
 
 function createStationMinorStyle() {
-    return Object.create(StationMinorStyle);
+    var newStyle = {};
+    Object.keys(StationMinorStyle).forEach(function(key) {
+        newStyle[key] = StationMinorStyle[key];
+    });
+    return newStyle;
 }
 
 function createSegmentStyle() {
-    return Object.create(SegmentStyle);
+    var newStyle = {};
+    Object.keys(SegmentStyle).forEach(function(key) {
+        newStyle[key] = SegmentStyle[key];
+    });
+    return newStyle;
 }
 
 

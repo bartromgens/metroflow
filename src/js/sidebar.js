@@ -1,5 +1,26 @@
 require("paper");
 var core = require("./core.js");
+var metrosketcher = require("./sketcher.js");
+
+
+
+
+function setExampleMapAction(callback) {
+    $("#button-example-map1").bind("click", callback);
+}
+
+
+function setTrackColorChangeAction(callback) {
+    var colorPicker = document.getElementById("track-color-picker");
+    colorPicker.addEventListener("input", watchColorPicker, false);
+    colorPicker.addEventListener("change", watchColorPicker, false);
+
+    function watchColorPicker(event) {
+        var color = event.target.value;
+        callback(color);
+    }
+}
+
 
 //
 // function showStations(track) {
@@ -33,5 +54,7 @@ function notifyNewStation(station, track) {
 
 
 module.exports = {
-    notifyNewStation: notifyNewStation
+    notifyNewStation: notifyNewStation,
+    setExampleMapAction: setExampleMapAction,
+    setTrackColorChangeAction: setTrackColorChangeAction,
 };
