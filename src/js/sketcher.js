@@ -17,11 +17,11 @@ var connectionStationA = null;
 var connectionStationB = null;
 var drawSettings = null;
 var drawSettingsDrag = null;
+var drawSettingsFull = null;
 
 
 function resetState() {
     map = null;
-    drawSettings = null;
     currentTrack = null;
     segmentClicked = null;
     selectedStation = null;
@@ -35,6 +35,10 @@ function initialise() {
     drawSettingsDrag = metromap.createDrawSettings();
     drawSettingsDrag.text = false;
     drawSettingsDrag.fast = true;
+    drawSettingsFull = metromap.createDrawSettings();
+    drawSettingsFull.text = true;
+    drawSettingsFull.fast = false;
+    drawSettingsFull.calcTextPositions = true;
     initialiseToolbarActions();
     map = metromap.createMap();
     setCurrentTrack(map.createTrack());
@@ -303,11 +307,7 @@ function initialiseToolbarActions() {
 
     function calcTextPositionButtonClicked() {
         console.log('calc text position button clicked');
-        var drawSettings = metromap.createDrawSettings();
-        drawSettings.fast = false;
-        drawSettings.text = true;
-        drawSettings.calcTextPositions = true;
-        map.draw(drawSettings);
+        map.draw(drawSettingsFull);
     }
 
     function saveMapClicked() {
@@ -353,7 +353,7 @@ function initialiseToolbarActions() {
         if (map.tracks.length > 0) {
             setCurrentTrack(map.tracks[0]);
         }
-        map.draw(drawSettings);
+        map.draw(drawSettingsFull);
     }
 
     function loadMapFile(filepath) {

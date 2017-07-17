@@ -5,7 +5,8 @@ metroconnection = require("./connection.js");
 var DrawSettings = {
     text: true,
     fast: true,
-    calcTextPositions: false
+    calcTextPositions: false,
+    minorStationText: true,
 };
 
 
@@ -43,7 +44,7 @@ var Map = {
         console.time("map.draw");
         project.clear();
         for (var i in this.tracks) {
-            this.tracks[i].draw();
+            this.tracks[i].draw(drawSettings);
         }
         for (var i in this.connections) {
             this.connections[i].draw();
@@ -54,16 +55,16 @@ var Map = {
                 paths = this.allPaths();
                 console.log("map.draw() paths.length", paths.length);
             }
-            this.drawStationNames(paths, drawSettings.calcTextPositions);
+            this.drawStationNames(paths, drawSettings);
         }
         console.timeEnd("map.draw");
     },
     clear: function() {
         this.tracks = [];
     },
-    drawStationNames: function(paths, calcTextPositions) {
+    drawStationNames: function(paths, drawSettings) {
         for (var i in this.tracks) {
-            this.tracks[i].drawStationNames(paths, calcTextPositions);
+            this.tracks[i].drawStationNames(paths, drawSettings);
         }
     },
     allPaths: function() {

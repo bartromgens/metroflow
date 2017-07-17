@@ -162,11 +162,13 @@ var Track = {
         }
         return positions[positionsTried];
     },
-    drawStationNames: function(paths, calcTextPositions) {
-        var fontSize = 18;
-        this.drawMajorStationNames(paths, fontSize, calcTextPositions);
-        fontSize = 12;
-        this.drawMinorStationNames(fontSize);
+    drawStationNames: function(paths, drawSettings) {
+        var fontSize = 16;
+        this.drawMajorStationNames(paths, fontSize, drawSettings.calcTextPositions);
+        fontSize = 10;
+        if (drawSettings.minorStationText) {
+            this.drawMinorStationNames(fontSize);
+        }
     },
     drawMajorStationNames: function(paths, fontSize, calcTextPositions) {
         for (var i in this.stations) {
@@ -184,8 +186,10 @@ var Track = {
             text.fontSize = fontSize;
             positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
             positions.push(new Point(0, -stationRadius * 1.2));
+            positions.push(new Point(stationRadius, -stationRadius * 0.8));
             positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
             positions.push(new Point(0, stationRadius * 2.2));
+            positions.push(new Point(stationRadius, stationRadius * 1.4));
             positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
             var pathsToUse = paths;
             if (paths.length === 0) {
@@ -217,12 +221,16 @@ var Track = {
             var station = this.stationsMinor[i];
             var stationLineDirection = station.direction();
             var xOffset = 0;
-            var position = station.direction()*station.style.minorStationSize*1.2 + new Point(0, Math.sign(station.direction().y)*fontSize/4.0);
+            var position = station.direction()*station.style.minorStationSize*1.2;
             var text = this.createText(station, position);
             text.fontSize = fontSize;
             if (stationLineDirection.x < 0) {
                 xOffset = -text.bounds.width;
                 text.position += new Point(xOffset, 0);
+            }
+            if (stationLineDirection.y > 0.01) {
+                yOffset = text.bounds.height/1.5;
+                text.position += new Point(0, yOffset);
             }
         }
     },
