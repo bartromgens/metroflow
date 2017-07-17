@@ -7,6 +7,7 @@ var Connection = {
     Connection: function(stationA, stationB) {
         this.stationA = stationA;
         this.stationB = stationB;
+        this.id = core.uuidv4();
         return this;
     },
     draw: function() {
@@ -17,10 +18,10 @@ var Connection = {
         var stationStrokeWidth = Math.min(stationStrokeWidthA, stationStrokeWidthB);
         var stationRadius = Math.min(stationRadiusA, stationRadiusB);
         var difference = this.stationB.position - this.stationA.position;
-        var size = new Size(difference.length, stationRadius-stationStrokeWidth/2);
-        var offset = new Point(0, stationRadius/2-stationStrokeWidth/4);
+        var size = new Size(difference.length-stationRadius, stationRadius-stationStrokeWidth/2);
+        var offset = new Point(-stationRadius/2, stationRadius/2-stationStrokeWidth/4);
         var rectangle = new Path.Rectangle(this.stationA.position - offset, size);
-        rectangle.fillColor = styles.rgbToHex(255, 255, 255);
+        rectangle.fillColor = styles.rgbToHex(255, 0, 255);
         rectangle.strokeWidth = 0;
         rectangle.rotate(difference.angle, this.stationA.position);
         var offset = difference.normalize().rotate(90) * stationRadius/2;

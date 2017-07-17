@@ -42,6 +42,7 @@ function createConnectionData(connection) {
     var connectionData = {
         stationA: connection.stationA.id,
         stationB: connection.stationB.id,
+        id: connection.id,
     };
     return connectionData;
 }
@@ -100,7 +101,11 @@ function loadMap(mapJSON) {
 function loadConnections(map, connectionData) {
     var stationA = map.findStation(connectionData.stationA);
     var stationB = map.findStation(connectionData.stationB);
-    return map.createConnection(stationA, stationB);
+    var connection = map.createConnection(stationA, stationB);
+    if (connection) {
+        connection.id = connectionData.id;
+    }
+    return connection;
 }
 
 
