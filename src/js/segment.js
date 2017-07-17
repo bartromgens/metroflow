@@ -46,27 +46,24 @@ var Segment = {
     },
     toggleSelect: function() {
         if (this.isSelected) {
-            this.unselect();
+            this.deselect();
         } else {
             this.select();
         }
     },
     select: function() {
         this.isSelected = true;
-        for (var i in this.paths){
-            this.paths[i].strokeColor = this.style.selectionColor;
-        }
     },
-    unselect: function() {
+    deselect: function() {
         this.isSelected = false;
-        for (var i in this.paths){
-            this.paths[i].strokeColor = this.style.strokeColor;
-        }
     },
     createPath: function() {
         var path = new Path();
         this.paths.push(path);
         path.strokeColor = this.style.strokeColor;
+        if (this.isSelected) {
+            path.strokeColor = this.style.selectionColor;
+        }
         path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';

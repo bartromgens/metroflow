@@ -17,7 +17,7 @@ var BaseStation = {
     },
     toggleSelect: function() {
         if (this.isSelected) {
-            this.unselect();
+            this.deselect();
         } else {
             this.select();
         }
@@ -25,7 +25,7 @@ var BaseStation = {
     select: function() {
         this.isSelected = true;
     },
-    unselect: function() {
+    deselect: function() {
         this.isSelected = false;
     },
     setPosition: function(position) {

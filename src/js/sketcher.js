@@ -70,11 +70,14 @@ var hitOptions = {
 
 
 function setCurrentTrack(track) {
-    if (!track) {
+    if (!track || (currentTrack && currentTrack.id === track.id)) {
         return;
     }
-    currentTrack = track;
+    if (selectedStation) {
+        selectedStation.deselect();
+    }
     selectedStation = null;
+    currentTrack = track;
     sidebar.setCurrentTrack(track);
 }
 
@@ -122,6 +125,16 @@ function onRightClick(event) {
 }
 
 
+function selectStation(stationClicked) {
+    if (selectedStation && stationClicked.id !== selectedStation.id) {
+        selectedStation.deselect();
+    }
+    stationClicked.toggleSelect();
+    selectedStation = stationClicked;
+    map.draw(drawSettings);
+}
+
+
 function onClickMajorStationMode(event) {
     console.log('onClickMajorStation');
     var hitResult = project.hitTest(event.point, hitOptions);
@@ -129,8 +142,8 @@ function onClickMajorStationMode(event) {
         var stationClicked = getStationClicked(hitResult);
         if (stationClicked) {
             console.log('station clicked');
-            stationClicked.select();
-            selectedStation = stationClicked;
+            selectStation(stationClicked);
+            return;
         }
     } else {
         if (!selectedStation) {
@@ -141,11 +154,11 @@ function onClickMajorStationMode(event) {
             var position = snap.snapPosition(currentTrack, stationNew, event.point);
             stationNew.setPosition(position);
         }
-        selectedStation = stationNew;
+        selectStation(stationNew);
         sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
         interaction.createSegmentElements(currentTrack);
-        map.draw(drawSettings);
+        return;
     }
 }
 
@@ -174,13 +187,13 @@ function onClickSelectMode(event) {
     if (hitResult) {
         var stationClicked = getStationClicked(hitResult);
         if (stationClicked) {
-            stationClicked.toggleSelect();
-            selectedStation = stationClicked;
-            map.draw(drawSettings);
+            console.log('selectedStation', selectedStation);
+            selectStation(stationClicked);
             return;
         }
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
+            console.log('segment clicked');
             segmentClicked.toggleSelect();
             map.draw(drawSettings);
             return;
@@ -255,6 +268,7 @@ function onMouseDrag(event) {
 	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
         }
         selectedStation.setPosition(position);
+        selectedStation.select();
 	    map.draw(drawSettingsDrag);
 	}
 }
@@ -433,7 +447,3 @@ tool.onMouseDown = onMouseDown;
 tool.onMouseUp = onMouseUp;
 tool.onMouseDrag = onMouseDrag;
 tool.onKeyDown = onKeyDown;
-
-
-
-
