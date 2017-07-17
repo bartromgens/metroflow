@@ -228,7 +228,7 @@ function onClickCreateConnectionMode(event) {
         }
         console.log('create new connection', connectionStationA.id, connectionStationB.id);
         map.createConnection(connectionStationA, connectionStationB);
-        connectionStationA.unselect();
+        connectionStationA.deselect();
         map.draw(drawSettings);
         revision.createRevision(map);
         connectionStationA = null;
@@ -418,18 +418,27 @@ function initialiseToolbarActions() {
         loadMapFile("src/maps/test1.json");
     }
 
+    function prepareUndoRedo() {
+        var currentTrackId = currentTrack.id;
+        project.clear();
+        resetState();
+        return currentTrackId;
+    }
+
+    function finaliseUndoRedo(currentTrackId) {
+        var track = map.findTrack(currentTrackId);
+        setCurrentTrack(track);
+        map.draw(drawSettingsFull);
+    }
+
     function onUndoButtonClicked() {
         if (!revision.hasUndo()) {
             console.log('NO UNDO AVAILABLE');
             return;
         }
-        var currentTrackId = currentTrack.id;
-        project.clear();
-        resetState();
+        var currentTrackId = prepareUndoRedo();
         map = revision.undo(map);
-        var track = map.findTrack(currentTrackId);
-        setCurrentTrack(track);
-        map.draw(drawSettingsFull);
+        finaliseUndoRedo(currentTrackId);
     }
 
 
@@ -438,13 +447,9 @@ function initialiseToolbarActions() {
             console.log('NO REDO AVAILABLE');
             return;
         }
-        var currentTrackId = currentTrack.id;
-        project.clear();
-        resetState();
+        var currentTrackId = prepareUndoRedo();
         map = revision.redo(map);
-        var track = map.findTrack(currentTrackId);
-        setCurrentTrack(track);
-        map.draw(drawSettingsFull);
+        finaliseUndoRedo(currentTrackId);
     }
 
     function onTrackColorChanged(color) {
