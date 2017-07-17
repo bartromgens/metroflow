@@ -29,6 +29,9 @@ var Track = {
         this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
         this.stationMinorStyle.minorStationSize = this.segmentStyle.strokeWidth * 2.0;
     },
+    setStationStyle: function(style) {
+        this.stationStyle = style;
+    },
     createStation: function(position, previousStation) {
         var station = metrostation.createStation(position, this.stationStyle);
         if (previousStation) {
@@ -153,9 +156,9 @@ var Track = {
         }
     },
     drawStationNames: function() {
-        var fontSize = 20;
+        var fontSize = 18;
         this.drawMajorStationNames(fontSize);
-        fontSize = 15;
+        fontSize = 12;
         this.drawMinorStationNames(fontSize);
     },
     drawMajorStationNames: function(fontSize) {

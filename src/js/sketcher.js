@@ -17,6 +17,16 @@ var connectionStationA = null;
 var connectionStationB = null;
 
 
+function resetState() {
+    map = null;
+    currentTrack = null;
+    segmentClicked = null;
+    selectedStation = null;
+    connectionStationA = null;
+    connectionStationB = null;
+}
+
+
 function initialise() {
     initialiseToolbarActions();
     map = metromap.createMap();
@@ -286,6 +296,7 @@ function initialiseToolbarActions() {
 
     function loadMapClicked(event) {
         console.log('load map button clicked');
+        resetState();
         readSingleFile(event);
 
         function readSingleFile(event) {
@@ -302,21 +313,26 @@ function initialiseToolbarActions() {
         }
 
         function displayContents(contents) {
-            map = serialize.loadMap(JSON.parse(contents));
-            map.draw();
+            loadMapJson(JSON.parse(contents));
         }
     }
 
-    function loadJSONMap(filepath) {
+    function loadMapJson(json) {
+        map = serialize.loadMap(json);
+        if (map.tracks.length > 0) {
+            setCurrentTrack(map.tracks[0]);
+        }
+        map.draw();
+    }
+
+    function loadMapFile(filepath) {
         $.getJSON(filepath, function(json) {
-            console.log(json);
-            map = serialize.loadMap(json);
-            map.draw();
+            loadMapJson(json);
         });
     }
 
     function loadExampleMapClicked() {
-        loadJSONMap("src/maps/test1.json");
+        loadMapFile("src/maps/test1.json");
     }
 
     function onTrackColorChanged(color) {
@@ -335,6 +351,7 @@ function initialiseToolbarActions() {
     }
 
     function onStationRadiusChanged(radius) {
+        console.log('onStationRadiusChanged', radius);
         currentTrack.stationStyle.stationRadius = radius;
         map.draw();
     }

@@ -56,7 +56,7 @@ var StationMinorStyle = {
 function createStationStyle() {
     var newStyle = {};
     Object.keys(StationStyle).forEach(function(key) {
-        newStyle[ key ] = StationStyle[ key ];
+        newStyle[key] = StationStyle[key];
     });
     return newStyle;
 }
