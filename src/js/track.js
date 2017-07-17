@@ -19,6 +19,9 @@ var Track = {
     setStationRadius: function(radius) {
         this.stationStyle.stationRadius = radius;
     },
+    setStationStrokeWidth: function(strokeWidth) {
+        this.stationStyle.strokeWidth = strokeWidth;
+    },
     setSegmentStyle: function(style) {
         this.segmentStyle = style;
         this.stationMinorStyle.strokeWidth = this.segmentStyle.strokeWidth;

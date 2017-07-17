@@ -83,3 +83,7 @@ canvas[resize] {
     padding-top: 5px;
     padding-left: 10px;
 }
+
+.track-style-widget {
+    margin: 10px;
+}

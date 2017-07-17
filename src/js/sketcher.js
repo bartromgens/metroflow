@@ -205,6 +205,8 @@ function initialiseToolbarActions() {
     sidebar.setTrackColorChangeAction(onTrackColorChanged);
     sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
     sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
+    sidebar.setStationStrokeWidthSliderChangeAction(onStationStrokeWidthChanged);
+    sidebar.setStationStrokeColorChangeAction(onStationStrokeColorChanged);
 
     function majorStationButtonClicked() {
         console.log('major station drawing selected');
@@ -295,7 +297,17 @@ function initialiseToolbarActions() {
     }
 
     function onStationRadiusChanged(radius) {
-        currentTrack.setStationRadius(radius);
+        currentTrack.stationStyle.stationRadius = radius;
+        map.draw();
+    }
+
+    function onStationStrokeWidthChanged(strokeWidth) {
+        currentTrack.stationStyle.strokeWidth = strokeWidth;
+        map.draw();
+    }
+
+    function onStationStrokeColorChanged(color) {
+        currentTrack.stationStyle.strokeColor = color;
         map.draw();
     }
 }
