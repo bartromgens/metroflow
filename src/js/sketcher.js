@@ -419,14 +419,25 @@ function initialiseToolbarActions() {
     }
 
     function prepareUndoRedo() {
-        var currentTrackId = currentTrack.id;
+        var currentTrackId = null;
+        if (currentTrack) {
+            currentTrackId = currentTrack.id;
+        }
         project.clear();
         resetState();
         return currentTrackId;
     }
 
     function finaliseUndoRedo(currentTrackId) {
-        var track = map.findTrack(currentTrackId);
+        var track = null;
+        if (currentTrackId) {
+            track = map.findTrack(currentTrackId);
+        }
+        if (track && map.tracks) {
+            track = map.tracks[map.tracks.length-1];
+        } else {
+            track = map.createTrack();
+        }
         setCurrentTrack(track);
         map.draw(drawSettingsFull);
     }
