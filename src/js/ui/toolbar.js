@@ -33,6 +33,19 @@ function setNewTrackButtonAction(callback) {
     buttonNewTrack.bind("click", callback);
 }
 
+function setNewConnectionAction(callback) {
+    var buttonNewConnection = $("#button-new-connection");
+    buttonNewConnection.bind("click", callback);
+}
+
+function setCalcTextPositionsAction(callback) {
+    $("#button-calc-text-positions").bind("click", callback);
+}
+
+function setToggleSnapAction(callback) {
+    $("#checkbox-snap").bind("click", callback);
+}
+
 function setSaveMapAction(callback) {
     var button = $("#button-save-map");
     button.bind("click", callback);
@@ -49,6 +62,9 @@ module.exports = {
     setMinorStationButtonAction: setMinorStationButtonAction,
     setSelectButtonAction: setSelectButtonAction,
     setNewTrackButtonAction: setNewTrackButtonAction,
+    setNewConnectionAction: setNewConnectionAction,
+    setToggleSnapAction: setToggleSnapAction,
+    setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,
     setLoadMapAction: setLoadMapAction
 };

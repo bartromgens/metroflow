@@ -1,8 +1,23 @@
 require("paper");
-var core = require("./core.js");
-var metrosketcher = require("./sketcher.js");
+var core = require("../core.js");
+var metrosketcher = require("../sketcher.js");
+
+var currentTrack = null;
 
 
+function setCurrentTrack(track) {
+    if (currentTrack && currentTrack.id === track.id) {
+        return;
+    }
+    currentTrack = track;
+    var colorPicker = document.getElementById("track-color-picker");
+    colorPicker.value = track.segmentStyle.strokeColor;
+    document.getElementById("station-stroke-color-picker").value = track.stationStyle.strokeColor;
+
+    $("#track-width-slider").slider('value', track.segmentStyle.strokeWidth);
+    $("#station-radius-slider").slider('value', track.stationStyle.stationRadius);
+    $("#station-stroke-width-slider").slider('value', track.stationStyle.strokeWidth);
+}
 
 
 function setExampleMapAction(callback) {
@@ -23,13 +38,11 @@ function setTrackColorChangeAction(callback) {
 
 
 function setTrackWidthSliderChangeAction(callback) {
-    $(function() {
-        $("#track-width-slider").slider({
-            slide: watchSlider,
-            change: watchSlider,
-            min: 0,
-            max: 20,
-        });
+    $("#track-width-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
     });
 
     function watchSlider(event, ui) {
@@ -37,18 +50,43 @@ function setTrackWidthSliderChangeAction(callback) {
     }
 }
 
+
 function setStationRadiusSliderChangeAction(callback) {
-    $(function() {
-        $("#station-radius-slider").slider({
-            slide: watchSlider,
-            change: watchSlider,
-            min: 0,
-            max: 20,
-        });
+    $("#station-radius-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
     });
 
     function watchSlider(event, ui) {
         callback(ui.value);
+    }
+}
+
+function setStationStrokeWidthSliderChangeAction(callback) {
+    $("#station-stroke-width-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
+    });
+
+    function watchSlider(event, ui) {
+        callback(ui.value);
+    }
+}
+
+
+
+function setStationStrokeColorChangeAction(callback) {
+    var colorPicker = document.getElementById("station-stroke-color-picker");
+    colorPicker.addEventListener("input", watchColorPicker, false);
+    colorPicker.addEventListener("change", watchColorPicker, false);
+
+    function watchColorPicker(event) {
+        var color = event.target.value;
+        callback(color);
     }
 }
 
@@ -87,7 +125,10 @@ function notifyNewStation(station, track) {
 module.exports = {
     notifyNewStation: notifyNewStation,
     setExampleMapAction: setExampleMapAction,
+    setCurrentTrack: setCurrentTrack,
     setTrackColorChangeAction: setTrackColorChangeAction,
     setTrackWidthSliderChangeAction: setTrackWidthSliderChangeAction,
     setStationRadiusSliderChangeAction: setStationRadiusSliderChangeAction,
+    setStationStrokeWidthSliderChangeAction: setStationStrokeWidthSliderChangeAction,
+    setStationStrokeColorChangeAction: setStationStrokeColorChangeAction,
 };

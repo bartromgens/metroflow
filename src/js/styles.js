@@ -2,7 +2,18 @@
 var fillColor = "white";
 var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
-var selectionColor = "green";
+var selectionColor = rgbToHex(0, 100, 0);
+
+
+function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+
+
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
 
 
 var MapStyle = {
@@ -16,15 +27,15 @@ var TrackStyle = {
 
 
 var SegmentStyle = {
-    strokeColor: "red",
+    strokeColor: rgbToHex(255, 0, 0),
     strokeWidth: strokeWidth,
-    selectionColor: "green",
+    selectionColor: selectionColor,
     fullySelected: false
 };
 
 
 var StationStyle = {
-    strokeColor: "black",
+    strokeColor: rgbToHex(0, 0, 0),
     strokeWidth: strokeWidth/2,
     fillColor: fillColor,
     stationRadius: stationRadius,
@@ -45,7 +56,7 @@ var StationMinorStyle = {
 function createStationStyle() {
     var newStyle = {};
     Object.keys(StationStyle).forEach(function(key) {
-        newStyle[ key ] = StationStyle[ key ];
+        newStyle[key] = StationStyle[key];
     });
     return newStyle;
 }
@@ -71,4 +82,5 @@ module.exports = {
     createStationStyle: createStationStyle,
     createSegmentStyle: createSegmentStyle,
     createStationMinorStyle: createStationMinorStyle,
+    rgbToHex: rgbToHex,
 };

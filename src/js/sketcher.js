@@ -3,22 +3,56 @@ var core = require("./core.js");
 var metromap = require("./map.js");
 var snap = require("./snap.js");
 var interaction = require("./interaction.js");
-var sidebar = require("./sidebar.js");
-var toolbar = require("./toolbar.js");
+var sidebar = require("./ui/sidebar.js");
+var toolbar = require("./ui/toolbar.js");
 var serialize = require("./serialize.js");
 
+$(initialise);
 
-var map = metromap.createMap();
-
-var currentTrack = map.createTrack();
+var map = null;
+var currentTrack = null;
 var segmentClicked = null;
 var selectedStation = null;
+var connectionStationA = null;
+var connectionStationB = null;
+var drawSettings = null;
+var drawSettingsDrag = null;
+var drawSettingsFull = null;
+var dragging = false;
+var doSnap = true;
+
+
+function resetState() {
+    map = null;
+    currentTrack = null;
+    segmentClicked = null;
+    selectedStation = null;
+    connectionStationA = null;
+    connectionStationB = null;
+    dragging = false;
+}
+
+
+function initialise() {
+    drawSettings = metromap.createDrawSettings();
+    drawSettingsDrag = metromap.createDrawSettings();
+    drawSettingsDrag.text = false;
+    drawSettingsDrag.fast = true;
+    drawSettingsFull = metromap.createDrawSettings();
+    drawSettingsFull.text = true;
+    drawSettingsFull.fast = false;
+    drawSettingsFull.calcTextPositions = true;
+    initialiseToolbarActions();
+    map = metromap.createMap();
+    setCurrentTrack(map.createTrack());
+}
 
 
 var modes = {
     majorstation: "majorstation",
     minorstation: "minorstation",
-    select: "select"
+    select: "select",
+    createConnection: "createConnection"
 };
 
 var mode = modes.majorstation;
@@ -37,6 +71,8 @@ function setCurrentTrack(track) {
         return;
     }
     currentTrack = track;
+    selectedStation = null;
+    sidebar.setCurrentTrack(track);
 }
 
 
@@ -52,6 +88,9 @@ function getStationClicked(hitResult) {
 function getSegmentClicked(hitResult) {
     var path = hitResult.item;
     var segments = path.segments;
+    if (!segments) {
+        return null;
+    }
     var result = map.findSegmentByPathId(segments[0].path.id);
     var segmentClicked = result.segment;
     setCurrentTrack(result.track);
@@ -89,14 +128,19 @@ function onClickMajorStationMode(event) {
             selectedStation = stationClicked;
         }
     } else {
+        if (!selectedStation) {
+            selectedStation = currentTrack.lastAddedStation();
+        }
         var stationNew = currentTrack.createStation(event.point, selectedStation);
-        var position = snap.snapPosition(currentTrack, stationNew, event.point);
-        stationNew.setPosition(position);
+        if (doSnap) {
+            var position = snap.snapPosition(currentTrack, stationNew, event.point);
+            stationNew.setPosition(position);
+        }
         selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
         interaction.createSegmentElements(currentTrack);
-        map.draw();
+        map.draw(drawSettings);
     }
 }
 
@@ -111,7 +155,7 @@ function onClickMinorStationMode(event) {
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
                 currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
-                map.draw();
+                map.draw(drawSettings);
             } else {
                 console.log('warning: no segment clicked');
             }
@@ -127,13 +171,46 @@ function onClickSelectMode(event) {
         if (stationClicked) {
             stationClicked.toggleSelect();
             selectedStation = stationClicked;
+            map.draw(drawSettings);
             return;
         }
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
             segmentClicked.toggleSelect();
+            map.draw(drawSettings);
             return;
         }
+    }
+}
+
+
+function onClickCreateConnectionMode(event) {
+    console.log('onClickCreateConnectionMode');
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (!hitResult) {
+        return;
+    }
+    var stationClicked = getStationClicked(hitResult);
+    if (!stationClicked) {
+        return
+    }
+
+    if (!connectionStationA) {
+        connectionStationA = stationClicked;
+        connectionStationA.select();
+        map.draw(drawSettings);
+    } else {
+        connectionStationB = stationClicked;
+        if (connectionStationA.id === connectionStationB.id) {
+            connectionStationB = null;
+            return;
+        }
+        console.log('create new connection', connectionStationA.id, connectionStationB.id);
+        map.createConnection(connectionStationA, connectionStationB);
+        connectionStationA.unselect();
+        map.draw(drawSettings);
+        connectionStationA = null;
+        connectionStationB = null;
     }
 }
 
@@ -151,15 +228,29 @@ function onMouseDown(event) {
         onClickMinorStationMode(event);
     } else if (mode === modes.select) {
         onClickSelectMode(event);
+    } else if (mode === modes.createConnection) {
+        onClickCreateConnectionMode(event);
+    }
+}
+
+
+function onMouseUp(event) {
+    if (dragging) {
+        map.draw(drawSettings);
+        dragging = false;
     }
 }
 
 
 function onMouseDrag(event) {
+    dragging = true;
 	if (selectedStation) {
-	    var position = snap.snapPosition(currentTrack, selectedStation, event.point);
+        var position = event.point;
+	    if (doSnap) {
+	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
+        }
         selectedStation.setPosition(position);
-	    map.draw();
+	    map.draw(drawSettingsDrag);
 	}
 }
 
@@ -168,7 +259,7 @@ function onKeyDown(event) {
     if (event.key === 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-        map.draw();
+        map.draw(drawSettings);
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
@@ -182,6 +273,24 @@ function onKeyDown(event) {
 
 function initialiseToolbarActions() {
     console.log('initialiseToolbarActions');
+
+    toolbar.setMajorStationButtonAction(majorStationButtonClicked);
+    toolbar.setMinorStationButtonAction(minorStationButtonClicked);
+    toolbar.setSelectButtonAction(selectButtonClicked);
+    toolbar.setNewTrackButtonAction(newTrackButtonClicked);
+    toolbar.setNewConnectionAction(newConnectionButtionClicked);
+    toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
+    toolbar.setToggleSnapAction(snapCheckboxClicked);
+    toolbar.setSaveMapAction(saveMapClicked);
+    toolbar.setLoadMapAction(loadMapClicked);
+
+    sidebar.setExampleMapAction(loadExampleMapClicked);
+    sidebar.setTrackColorChangeAction(onTrackColorChanged);
+    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
+    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
+    sidebar.setStationStrokeWidthSliderChangeAction(onStationStrokeWidthChanged);
+    sidebar.setStationStrokeColorChangeAction(onStationStrokeColorChanged);
+
     function majorStationButtonClicked() {
         console.log('major station drawing selected');
         mode = modes.majorstation;
@@ -201,9 +310,27 @@ function initialiseToolbarActions() {
         console.log('new track button clicked');
         var newTrack = map.createTrack();
         var segmentStyle = styles.createSegmentStyle();
-        segmentStyle.strokeColor = "blue";
+        segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
         newTrack.segmentStyle = segmentStyle;
-        currentTrack = newTrack;
+        setCurrentTrack(newTrack);
+    }
+
+    function newConnectionButtionClicked() {
+        console.log('new connection button clicked');
+        connectionStationA = null;
+        connectionStationB = null;
+        mode = modes.createConnection;
+    }
+
+    function calcTextPositionButtonClicked() {
+        console.log('calc text position button clicked');
+        map.draw(drawSettingsFull);
+    }
+
+    function snapCheckboxClicked(event) {
+        console.log('snap clicked', event.target.checked);
+        doSnap = event.target.checked;
+        map.draw(drawSettingsFull);
     }
 
     function saveMapClicked() {
@@ -222,6 +349,8 @@ function initialiseToolbarActions() {
 
     function loadMapClicked(event) {
         console.log('load map button clicked');
+        project.clear();
+        resetState();
         readSingleFile(event);
 
         function readSingleFile(event) {
@@ -238,21 +367,27 @@ function initialiseToolbarActions() {
         }
 
         function displayContents(contents) {
-            map = serialize.loadMap(JSON.parse(contents));
-            map.draw();
+            loadMapJson(JSON.parse(contents));
         }
     }
 
-    function loadJSONMap(filepath) {
+    function loadMapJson(json) {
+        map = serialize.loadMap(json);
+        if (map.tracks.length > 0) {
+            setCurrentTrack(map.tracks[0]);
+        }
+        map.draw(drawSettingsFull);
+    }
+
+    function loadMapFile(filepath) {
+        project.clear();
         $.getJSON(filepath, function(json) {
-            console.log(json);
-            map = serialize.loadMap(json);
-            map.draw();
+            loadMapJson(json);
         });
     }
 
     function loadExampleMapClicked() {
-        loadJSONMap("src/maps/test1.json");
+        loadMapFile("src/maps/test1.json");
     }
 
     function onTrackColorChanged(color) {
@@ -260,39 +395,36 @@ function initialiseToolbarActions() {
         var segmentStyle = currentTrack.segmentStyle;
         segmentStyle.strokeColor = color;
         currentTrack.setSegmentStyle(segmentStyle);
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onTrackWidthChanged(value) {
         var segmentStyle = currentTrack.segmentStyle;
         segmentStyle.strokeWidth = value;
         currentTrack.setSegmentStyle(segmentStyle);
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onStationRadiusChanged(radius) {
-        currentTrack.setStationRadius(radius);
-        map.draw();
+        console.log('onStationRadiusChanged', radius);
+        currentTrack.stationStyle.stationRadius = radius;
+        map.draw(drawSettings);
     }
 
-    toolbar.setMajorStationButtonAction(majorStationButtonClicked);
-    toolbar.setMinorStationButtonAction(minorStationButtonClicked);
-    toolbar.setSelectButtonAction(selectButtonClicked);
-    toolbar.setNewTrackButtonAction(newTrackButtonClicked);
-    toolbar.setSaveMapAction(saveMapClicked);
-    toolbar.setLoadMapAction(loadMapClicked);
+    function onStationStrokeWidthChanged(strokeWidth) {
+        currentTrack.stationStyle.strokeWidth = strokeWidth;
+        map.draw(drawSettings);
+    }
 
-    sidebar.setExampleMapAction(loadExampleMapClicked);
-    sidebar.setTrackColorChangeAction(onTrackColorChanged);
-    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
-    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
+    function onStationStrokeColorChanged(color) {
+        currentTrack.stationStyle.strokeColor = color;
+        map.draw(drawSettings);
+    }
 }
 
 
-$(initialiseToolbarActions);
-
-
 tool.onMouseDown = onMouseDown;
+tool.onMouseUp = onMouseUp;
 tool.onMouseDrag = onMouseDrag;
 tool.onKeyDown = onKeyDown;
 

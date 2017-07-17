@@ -1,4 +1,5 @@
 {
+  "connection.js": "metroflow.connection.js",
   "contextmenu.js": "metroflow.contextmenu.js",
   "core.js": "metroflow.core.js",
   "css.css": "metroflow-basic.css",

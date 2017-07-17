@@ -61,7 +61,7 @@ var MetroFlow = MetroFlow || {}; MetroFlow["sidebar"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 12);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -144,7 +144,18 @@ module.exports = paper;
 var fillColor = "white";
 var strokeWidth = 8;
 var stationRadius = 1*strokeWidth;
-var selectionColor = "green";
+var selectionColor = rgbToHex(0, 100, 0);
+
+
+function componentToHex(c) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+
+
+function rgbToHex(r, g, b) {
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
 
 
 var MapStyle = {
@@ -158,15 +169,15 @@ var TrackStyle = {
 
 
 var SegmentStyle = {
-    strokeColor: "red",
+    strokeColor: rgbToHex(255, 0, 0),
     strokeWidth: strokeWidth,
-    selectionColor: "green",
+    selectionColor: selectionColor,
     fullySelected: false
 };
 
 
 var StationStyle = {
-    strokeColor: "black",
+    strokeColor: rgbToHex(0, 0, 0),
     strokeWidth: strokeWidth/2,
     fillColor: fillColor,
     stationRadius: stationRadius,
@@ -187,7 +198,7 @@ var StationMinorStyle = {
 function createStationStyle() {
     var newStyle = {};
     Object.keys(StationStyle).forEach(function(key) {
-        newStyle[ key ] = StationStyle[ key ];
+        newStyle[key] = StationStyle[key];
     });
     return newStyle;
 }
@@ -213,6 +224,7 @@ module.exports = {
     createStationStyle: createStationStyle,
     createSegmentStyle: createSegmentStyle,
     createStationMinorStyle: createStationMinorStyle,
+    rgbToHex: rgbToHex,
 };
 
 /***/ }),
@@ -275,7 +287,7 @@ var Segment = {
     select: function() {
         this.isSelected = true;
         for (var i in this.paths){
-            this.paths[i].strokeColor = "green";
+            this.paths[i].strokeColor = this.style.selectionColor;
         }
     },
     unselect: function() {
@@ -458,6 +470,7 @@ var BaseStation = {
         this.path = null;
         this.isSelected = false;
         this.name = "station";
+        this.textPositionRel = null;
         return this;
     },
     toggleSelect: function() {
@@ -469,14 +482,13 @@ var BaseStation = {
     },
     select: function() {
         this.isSelected = true;
-        this.path.strokeColor = this.style.selectionColor;
     },
     unselect: function() {
         this.isSelected = false;
-        this.path.strokeColor = this.style.strokeColor;
     },
     setPosition: function(position) {
         this.position = position;
+        this.textPositionRel = null;
         this.notifyAllObservers();
     },
 };
@@ -485,7 +497,11 @@ var BaseStation = {
 var Station = {
     draw: function() {
         this.path = new Path.Circle(this.position, this.style.stationRadius);
-        this.path.strokeColor = this.style.strokeColor;
+        if (this.isSelected) {
+            this.path.strokeColor = this.style.selectionColor;
+        } else {
+            this.path.strokeColor = this.style.strokeColor;
+        }
         this.path.strokeWidth = this.style.strokeWidth;
         this.path.fillColor = this.style.fillColor;
     },
@@ -541,32 +557,91 @@ module.exports = {
 
 core = __webpack_require__(0);
 metrotrack = __webpack_require__(6);
+metroconnection = __webpack_require__(7);
+
+var DrawSettings = {
+    text: true,
+    fast: true,
+    calcTextPositions: false,
+    minorStationText: true,
+};
+
+
+function createDrawSettings() {
+    var drawSettings = {};
+    Object.keys(DrawSettings).forEach(function(key) {
+        drawSettings[key] = DrawSettings[key];
+    });
+    return drawSettings;
+}
 
 
 var Map = {
     Map: function() {
         this.tracks = [];
+        this.connections = [];
         return this;
     },
     createTrack: function() {
+        console.log('map.createTrack()');
         var newTrack = metrotrack.createTrack();
         this.tracks.push(newTrack);
         return newTrack;
     },
-    draw: function() {
+    createConnection: function(stationA, stationB) {
+        console.log('map.createConnection()');
+        if (stationA.id === stationB.id) {
+            return null
+        }
+        var newConnection = metroconnection.createConnection(stationA, stationB);
+        this.connections.push(newConnection);
+        return newConnection;
+    },
+    draw: function(drawSettings) {
+        console.time("map.draw");
         project.clear();
         for (var i in this.tracks) {
-            this.tracks[i].draw();
+            this.tracks[i].draw(drawSettings);
         }
-        this.drawStationNames();
+        for (var i in this.connections) {
+            this.connections[i].draw();
+        }
+        if (drawSettings.text) {
+            var paths = [];
+            if (!drawSettings.fast) {
+                paths = this.allPaths();
+                console.log("map.draw() paths.length", paths.length);
+            }
+            this.drawStationNames(paths, drawSettings);
+        }
+        console.timeEnd("map.draw");
     },
     clear: function() {
         this.tracks = [];
     },
-    drawStationNames: function() {
+    drawStationNames: function(paths, drawSettings) {
         for (var i in this.tracks) {
-            this.tracks[i].drawStationNames();
+            this.tracks[i].drawStationNames(paths, drawSettings);
         }
+    },
+    allPaths: function() {
+        var paths = [];
+        for (var i in this.tracks) {
+            paths = paths.concat(this.tracks[i].allPaths());
+        }
+        for (var i in this.connections) {
+            paths = paths.concat(this.connections[i].allPaths());
+        }
+        return paths;
+    },
+    findStation: function(id) {
+        for (var i in this.tracks) {
+            var station = this.tracks[i].findStation(id);
+            if (station) {
+                return station;
+            }
+        }
+        return null;
     },
     findStationByPathId: function(id) {
         for (var i in this.tracks) {
@@ -601,12 +676,14 @@ function createMap() {
 
 module.exports = {
     createMap: createMap,
+    createDrawSettings: createDrawSettings,
 };
 
 /***/ }),
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
+__webpack_require__(1);
 var core = __webpack_require__(0);
 var metrosegment = __webpack_require__(3);
 var metrostation = __webpack_require__(4);
@@ -628,24 +705,32 @@ var Track = {
     setStationRadius: function(radius) {
         this.stationStyle.stationRadius = radius;
     },
+    setStationStrokeWidth: function(strokeWidth) {
+        this.stationStyle.strokeWidth = strokeWidth;
+    },
     setSegmentStyle: function(style) {
         this.segmentStyle = style;
         this.stationMinorStyle.strokeWidth = this.segmentStyle.strokeWidth;
         this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
         this.stationMinorStyle.minorStationSize = this.segmentStyle.strokeWidth * 2.0;
     },
+    setStationStyle: function(style) {
+        this.stationStyle = style;
+    },
     createStation: function(position, previousStation) {
         var station = metrostation.createStation(position, this.stationStyle);
-        if (this.stations.length > 0) {
-            if (!previousStation) {
-                previousStation = this.lastAddedStation();
-            }
-            var segment = metrosegment.createSegment(previousStation, station, this.segmentStyle);
-            this.segments.push(segment);
+        if (previousStation) {
+            this.createSegment(previousStation, station)
         }
         this.stations.push(station);
         console.log('create station', station.id);
         return station;
+    },
+    createSegment: function(stationA, stationB) {
+        console.log('track.createSegment', stationA.id, stationB.id);
+        var segment = metrosegment.createSegment(stationA, stationB, this.segmentStyle);
+        this.segments.push(segment);
+        return segment;
     },
     createStationMinorOnSegmentId: function(position, segmentId) {
         var segment = this.findSegment(segmentId);
@@ -704,6 +789,15 @@ var Track = {
         }
         return stations;
     },
+    allPaths: function() {
+        var paths = [];
+        for (var i in this.segments) {
+            for (var j in this.segments[i].paths) {
+                paths.push(this.segments[i].paths[j]);
+            }
+        }
+        return paths;
+    },
     draw: function() {
         for (var i in this.segments) {
             var segment = this.segments[i];
@@ -727,21 +821,18 @@ var Track = {
         text.content = station.name;
         return text;
     },
-    preventIntersectionSegments: function(text, station, segments, positions) {
-        if (!segments) {
-            return;
-        }
-        var paths = [];
-        for (var i in segments) {
-            for (var j in segments[i].paths) {
-                paths.push(segments[i].paths[j]);
-            }
+    preventIntersectionSegments: function(text, station, paths, positions) {
+        if (!paths) {
+            return positions[0];
         }
         var positionsTried = 0;
         var intersects = true;
         while (intersects && positionsTried < positions.length) {
             intersects = false;
             for (var j in paths) {
+                if (positionsTried >= positions.length-1) {
+                    break;
+                }
                 var path = paths[j];
                 intersects = text.intersects(path);
                 if (intersects) {
@@ -754,49 +845,77 @@ var Track = {
                 }
             }
         }
+        return positions[positionsTried];
     },
-    drawStationNames: function() {
-        var fontSize = 20;
-        this.drawMajorStationNames(fontSize);
-        fontSize = 15;
-        this.drawMinorStationNames(fontSize);
+    drawStationNames: function(paths, drawSettings) {
+        var fontSize = 16;
+        this.drawMajorStationNames(paths, fontSize, drawSettings.calcTextPositions);
+        fontSize = 10;
+        if (drawSettings.minorStationText) {
+            this.drawMinorStationNames(fontSize);
+        }
     },
-    drawMajorStationNames: function(fontSize) {
+    drawMajorStationNames: function(paths, fontSize, calcTextPositions) {
         for (var i in this.stations) {
             var station = this.stations[i];
+            if (!calcTextPositions && station.textPositionRel) {
+                text = this.createText(station, station.textPositionRel);
+                text.fontSize = fontSize;
+                continue;
+            }
+            console.log('recalc best text position');
             var stationRadius = station.style.stationRadius + station.style.strokeWidth;
             var positions = [];
-            positions.push(new Point(stationRadius, fontSize/4.0));
+            positions.push(new Point(stationRadius, fontSize / 4.0));
             var text = this.createText(station, positions[0]);
             text.fontSize = fontSize;
-            positions.push(new Point(-stationRadius-text.bounds.width, fontSize/4.0));
-            positions.push(new Point(0, -stationRadius*1.2));
-            positions.push(new Point(-text.bounds.width, -stationRadius*1.2));
-            positions.push(new Point(0, stationRadius*2.2));
-            positions.push(new Point(-text.bounds.width, stationRadius*2.2));
-            var segmentTo = this.segmentToStation(station);
-            var segmentFrom = this.segmentFromStation(station);
-            var segments = [];
-            if (segmentTo) {
-                segments.push(segmentTo);
+            positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
+            positions.push(new Point(0, -stationRadius * 1.2));
+            positions.push(new Point(stationRadius, -stationRadius * 0.8));
+            positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
+            positions.push(new Point(0, stationRadius * 2.2));
+            positions.push(new Point(stationRadius, stationRadius * 1.4));
+            positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
+            var pathsToUse = paths;
+            if (paths.length === 0) {
+                pathsToUse = this.stationSegmentPaths(station);
             }
-            if (segmentFrom) {
-                segments.push(segmentFrom);
-            }
-            this.preventIntersectionSegments(text, station, segments, positions);
+            station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
         }
+    },
+    stationSegmentPaths: function(station) {
+        var segmentTo = this.segmentToStation(station);
+        var segmentFrom = this.segmentFromStation(station);
+        var segments = [];
+        if (segmentTo) {
+            segments.push(segmentTo);
+        }
+        if (segmentFrom) {
+            segments.push(segmentFrom);
+        }
+        var pathsLocal = [];
+        for (var i in segments) {
+            for (var j in segments[i].paths) {
+                pathsLocal.push(segments[i].paths[j]);
+            }
+        }
+        return pathsLocal;
     },
     drawMinorStationNames: function(fontSize) {
         for (var i in this.stationsMinor) {
             var station = this.stationsMinor[i];
             var stationLineDirection = station.direction();
             var xOffset = 0;
-            var position = station.direction()*station.style.minorStationSize*1.2 + new Point(0, Math.sign(station.direction().y)*fontSize/4.0);
+            var position = station.direction()*station.style.minorStationSize*1.2;
             var text = this.createText(station, position);
             text.fontSize = fontSize;
             if (stationLineDirection.x < 0) {
                 xOffset = -text.bounds.width;
                 text.position += new Point(xOffset, 0);
+            }
+            if (stationLineDirection.y > 0.01) {
+                yOffset = text.bounds.height/1.5;
+                text.position += new Point(0, yOffset);
             }
         }
     },
@@ -827,7 +946,6 @@ var Track = {
             console.log('removeStation: station not found');
             return null;
         }
-        this.draw();
         return removedStation;
     },
     findSegmentByPathId: function(id) {
@@ -880,6 +998,72 @@ module.exports = {
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
+__webpack_require__(1);
+core = __webpack_require__(0);
+styles = __webpack_require__(2);
+
+
+var Connection = {
+    Connection: function(stationA, stationB) {
+        this.stationA = stationA;
+        this.stationB = stationB;
+        this.id = core.uuidv4();
+        this.paths = [];
+        return this;
+    },
+    allPaths: function() {
+        return this.paths;
+    },
+    draw: function() {
+        var stationRadiusA = this.stationA.style.stationRadius;
+        var stationRadiusB = this.stationB.style.stationRadius;
+        var stationStrokeWidthA = this.stationA.style.strokeWidth;
+        var stationStrokeWidthB = this.stationB.style.strokeWidth;
+        var stationStrokeWidth = Math.min(stationStrokeWidthA, stationStrokeWidthB);
+        var stationRadius = Math.min(stationRadiusA, stationRadiusB);
+        var difference = this.stationB.position - this.stationA.position;
+        var size = new Size(difference.length-stationRadius, stationRadius-stationStrokeWidth/2);
+        var offset = new Point(-stationRadius/2, stationRadius/2-stationStrokeWidth/4);
+        var rectangle = new Path.Rectangle(this.stationA.position - offset, size);
+        rectangle.fillColor = styles.rgbToHex(255, 255, 255);
+        rectangle.strokeWidth = 0;
+        rectangle.rotate(difference.angle, this.stationA.position);
+        var offset = difference.normalize().rotate(90) * stationRadius/2;
+        var offsetA1 = offset + difference.normalize()*(stationRadiusA-stationStrokeWidthA/2);
+        var offsetB1 = offset - difference.normalize()*(stationRadiusB-stationStrokeWidthB/2);
+        var offsetA2 = offset - difference.normalize()*(stationRadiusA-stationStrokeWidthA/2);
+        var offsetB2 = offset + difference.normalize()*(stationRadiusB-stationStrokeWidthB/2);
+        var line1 = new Path(this.stationA.position + offsetA1, this.stationB.position + offsetB1);
+        var line2 = new Path(this.stationA.position - offsetA2, this.stationB.position - offsetB2);
+        line1.strokeColor = this.stationA.style.strokeColor;
+        line2.strokeColor = this.stationA.style.strokeColor;
+        line1.strokeWidth = stationStrokeWidth;
+        line2.strokeWidth = stationStrokeWidth;
+        this.paths = [];
+        this.paths.push(rectangle);
+        this.paths.push(line1);
+        this.paths.push(line2);
+    },
+};
+
+
+function createConnection(stationA, stationB) {
+    var observable = Object.create(core.Observable).Observable();
+    var connection = Object.assign(observable, Connection);
+    connection = connection.Connection(stationA, stationB);
+    return connection;
+}
+
+
+
+module.exports = {
+    createConnection: createConnection,
+};
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
 var core = __webpack_require__(0);
 
 
@@ -930,7 +1114,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 core = __webpack_require__(0);
@@ -977,7 +1161,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var metromap = __webpack_require__(5);
@@ -986,9 +1170,14 @@ var metromap = __webpack_require__(5);
 function saveMap(map) {
     var mapData = {};
     mapData.tracks = [];
+    mapData.connections = [];
     for (var i in map.tracks) {
         var trackData = createTrackData(map.tracks[i]);
         mapData.tracks.push(trackData);
+    }
+    for (var i in map.connections) {
+        var connectionData = createConnectionData(map.connections[i]);
+        mapData.connections.push(connectionData);
     }
     console.log(mapData);
     var mapJSONString = JSON.stringify(mapData);
@@ -1000,17 +1189,38 @@ function createTrackData(track) {
     var trackData = {};
     trackData.id = track.id;
     trackData.segmentStyle = track.segmentStyle;
-    trackData.stations = [];
+    trackData.stationStyle = track.stationStyle;
+    trackData.segments = [];
     trackData.stationsMinor = [];
-    for (var j in track.stations) {
-        var stationData = createStationData(track.stations[j]);
-        trackData.stations.push(stationData)
+    for (var j in track.segments) {
+        var segmentData = createSegmentData(track.segments[j]);
+        trackData.segments.push(segmentData)
     }
     for (var j in track.stationsMinor) {
         var stationData = createStationMinorData(track.stationsMinor[j]);
         trackData.stationsMinor.push(stationData)
     }
     return trackData;
+}
+
+
+function createConnectionData(connection) {
+    var connectionData = {
+        stationA: connection.stationA.id,
+        stationB: connection.stationB.id,
+        id: connection.id,
+    };
+    return connectionData;
+}
+
+
+function createSegmentData(segment) {
+    var segmentData = {
+        stationA: createStationData(segment.stationA),
+        stationB: createStationData(segment.stationB),
+        id: segment.id,
+    };
+    return segmentData;
 }
 
 
@@ -1035,6 +1245,7 @@ function createStationMinorData(station) {
     return stationData;
 }
 
+
 function loadMap(mapJSON) {
     console.log('loadMap');
     if (!mapJSON) {
@@ -1046,23 +1257,58 @@ function loadMap(mapJSON) {
     for (var i in mapJSON.tracks) {
         var track = loadTrack(map, mapJSON.tracks[i]);
     }
+    for (var i in mapJSON.connections) {
+        var connection = loadConnections(map, mapJSON.connections[i]);
+    }
     return map;
 }
 
 
+function loadConnections(map, connectionData) {
+    var stationA = map.findStation(connectionData.stationA);
+    var stationB = map.findStation(connectionData.stationB);
+    var connection = map.createConnection(stationA, stationB);
+    if (connection) {
+        connection.id = connectionData.id;
+    }
+    return connection;
+}
+
+
 function loadTrack(map, trackData) {
+    console.log('load track');
     var track = map.createTrack();
     track.id = trackData.id;
     track.setSegmentStyle(trackData.segmentStyle);
-    var previousStation = null;
-    for (var j in trackData.stations) {
-        var stationData = trackData.stations[j];
-        var station = track.createStation(new Point(stationData.position.x, stationData.position.y), previousStation);
-        station.id = stationData.id;
-        previousStation = station;
+    track.setStationStyle(trackData.stationStyle);
+    // track.stationStyle = trackData.stationStyle;
+    for (var i in trackData.segments) {
+        var segmentData = trackData.segments[i];
+        var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y)
+        var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y)
+        stationA = track.findStation(segmentData.stationA.id);
+        stationB = track.findStation(segmentData.stationB.id);
+        var segment = null;
+        if (stationA && stationB) {
+            segment = track.createSegment(stationA, stationB);
+        } else if (stationA) {
+            stationB = track.createStation(stationBPoint, stationA);
+            stationB.id = segmentData.stationB.id;
+        } else if (stationB) {
+            stationA = track.createStation(stationAPoint);
+            stationA.id = segmentData.stationA.id;
+            segment = track.createSegment(stationA, stationB);
+        } else {
+            stationA = track.createStation(stationAPoint);
+            stationA.id = segmentData.stationA.id;
+            stationB = track.createStation(stationBPoint);
+            stationB.id = segmentData.stationB.id;
+            segment = track.createSegment(stationA, stationB);
+        }
+        // segment.id = segmentData.id;
     }
-    for (var j in trackData.stationsMinor) {
-        var stationData = trackData.stationsMinor[j];
+    for (var i in trackData.stationsMinor) {
+        var stationData = trackData.stationsMinor[i];
         var stationA = track.findStation(stationData.stationA);
         var stationB = track.findStation(stationData.stationB);
         var station = track.createStationMinorBetweenStations(stationA, stationB);
@@ -1078,12 +1324,12 @@ module.exports = {
 };
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
 var core = __webpack_require__(0);
-var contextmenu = __webpack_require__(7);
+var contextmenu = __webpack_require__(8);
 
 
 function showStationContextMenu(stationId) {
@@ -1197,7 +1443,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports) {
 
 
@@ -1235,6 +1481,19 @@ function setNewTrackButtonAction(callback) {
     buttonNewTrack.bind("click", callback);
 }
 
+function setNewConnectionAction(callback) {
+    var buttonNewConnection = $("#button-new-connection");
+    buttonNewConnection.bind("click", callback);
+}
+
+function setCalcTextPositionsAction(callback) {
+    $("#button-calc-text-positions").bind("click", callback);
+}
+
+function setToggleSnapAction(callback) {
+    $("#checkbox-snap").bind("click", callback);
+}
+
 function setSaveMapAction(callback) {
     var button = $("#button-save-map");
     button.bind("click", callback);
@@ -1251,19 +1510,37 @@ module.exports = {
     setMinorStationButtonAction: setMinorStationButtonAction,
     setSelectButtonAction: setSelectButtonAction,
     setNewTrackButtonAction: setNewTrackButtonAction,
+    setNewConnectionAction: setNewConnectionAction,
+    setToggleSnapAction: setToggleSnapAction,
+    setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,
     setLoadMapAction: setLoadMapAction
 };
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
 var core = __webpack_require__(0);
-var metrosketcher = __webpack_require__(13);
+var metrosketcher = __webpack_require__(14);
+
+var currentTrack = null;
 
 
+function setCurrentTrack(track) {
+    if (currentTrack && currentTrack.id === track.id) {
+        return;
+    }
+    currentTrack = track;
+    var colorPicker = document.getElementById("track-color-picker");
+    colorPicker.value = track.segmentStyle.strokeColor;
+    document.getElementById("station-stroke-color-picker").value = track.stationStyle.strokeColor;
+
+    $("#track-width-slider").slider('value', track.segmentStyle.strokeWidth);
+    $("#station-radius-slider").slider('value', track.stationStyle.stationRadius);
+    $("#station-stroke-width-slider").slider('value', track.stationStyle.strokeWidth);
+}
 
 
 function setExampleMapAction(callback) {
@@ -1284,13 +1561,11 @@ function setTrackColorChangeAction(callback) {
 
 
 function setTrackWidthSliderChangeAction(callback) {
-    $(function() {
-        $("#track-width-slider").slider({
-            slide: watchSlider,
-            change: watchSlider,
-            min: 0,
-            max: 20,
-        });
+    $("#track-width-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
     });
 
     function watchSlider(event, ui) {
@@ -1298,18 +1573,43 @@ function setTrackWidthSliderChangeAction(callback) {
     }
 }
 
+
 function setStationRadiusSliderChangeAction(callback) {
-    $(function() {
-        $("#station-radius-slider").slider({
-            slide: watchSlider,
-            change: watchSlider,
-            min: 0,
-            max: 20,
-        });
+    $("#station-radius-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
     });
 
     function watchSlider(event, ui) {
         callback(ui.value);
+    }
+}
+
+function setStationStrokeWidthSliderChangeAction(callback) {
+    $("#station-stroke-width-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
+    });
+
+    function watchSlider(event, ui) {
+        callback(ui.value);
+    }
+}
+
+
+
+function setStationStrokeColorChangeAction(callback) {
+    var colorPicker = document.getElementById("station-stroke-color-picker");
+    colorPicker.addEventListener("input", watchColorPicker, false);
+    colorPicker.addEventListener("change", watchColorPicker, false);
+
+    function watchColorPicker(event) {
+        var color = event.target.value;
+        callback(color);
     }
 }
 
@@ -1348,36 +1648,73 @@ function notifyNewStation(station, track) {
 module.exports = {
     notifyNewStation: notifyNewStation,
     setExampleMapAction: setExampleMapAction,
+    setCurrentTrack: setCurrentTrack,
     setTrackColorChangeAction: setTrackColorChangeAction,
     setTrackWidthSliderChangeAction: setTrackWidthSliderChangeAction,
     setStationRadiusSliderChangeAction: setStationRadiusSliderChangeAction,
+    setStationStrokeWidthSliderChangeAction: setStationStrokeWidthSliderChangeAction,
+    setStationStrokeColorChangeAction: setStationStrokeColorChangeAction,
 };
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
 var core = __webpack_require__(0);
 var metromap = __webpack_require__(5);
-var snap = __webpack_require__(8);
-var interaction = __webpack_require__(10);
-var sidebar = __webpack_require__(12);
-var toolbar = __webpack_require__(11);
-var serialize = __webpack_require__(9);
+var snap = __webpack_require__(9);
+var interaction = __webpack_require__(11);
+var sidebar = __webpack_require__(13);
+var toolbar = __webpack_require__(12);
+var serialize = __webpack_require__(10);
 
+$(initialise);
 
-var map = metromap.createMap();
-
-var currentTrack = map.createTrack();
+var map = null;
+var currentTrack = null;
 var segmentClicked = null;
 var selectedStation = null;
+var connectionStationA = null;
+var connectionStationB = null;
+var drawSettings = null;
+var drawSettingsDrag = null;
+var drawSettingsFull = null;
+var dragging = false;
+var doSnap = true;
+
+
+function resetState() {
+    map = null;
+    currentTrack = null;
+    segmentClicked = null;
+    selectedStation = null;
+    connectionStationA = null;
+    connectionStationB = null;
+    dragging = false;
+}
+
+
+function initialise() {
+    drawSettings = metromap.createDrawSettings();
+    drawSettingsDrag = metromap.createDrawSettings();
+    drawSettingsDrag.text = false;
+    drawSettingsDrag.fast = true;
+    drawSettingsFull = metromap.createDrawSettings();
+    drawSettingsFull.text = true;
+    drawSettingsFull.fast = false;
+    drawSettingsFull.calcTextPositions = true;
+    initialiseToolbarActions();
+    map = metromap.createMap();
+    setCurrentTrack(map.createTrack());
+}
 
 
 var modes = {
     majorstation: "majorstation",
     minorstation: "minorstation",
-    select: "select"
+    select: "select",
+    createConnection: "createConnection"
 };
 
 var mode = modes.majorstation;
@@ -1396,6 +1733,8 @@ function setCurrentTrack(track) {
         return;
     }
     currentTrack = track;
+    selectedStation = null;
+    sidebar.setCurrentTrack(track);
 }
 
 
@@ -1411,6 +1750,9 @@ function getStationClicked(hitResult) {
 function getSegmentClicked(hitResult) {
     var path = hitResult.item;
     var segments = path.segments;
+    if (!segments) {
+        return null;
+    }
     var result = map.findSegmentByPathId(segments[0].path.id);
     var segmentClicked = result.segment;
     setCurrentTrack(result.track);
@@ -1448,14 +1790,19 @@ function onClickMajorStationMode(event) {
             selectedStation = stationClicked;
         }
     } else {
+        if (!selectedStation) {
+            selectedStation = currentTrack.lastAddedStation();
+        }
         var stationNew = currentTrack.createStation(event.point, selectedStation);
-        var position = snap.snapPosition(currentTrack, stationNew, event.point);
-        stationNew.setPosition(position);
+        if (doSnap) {
+            var position = snap.snapPosition(currentTrack, stationNew, event.point);
+            stationNew.setPosition(position);
+        }
         selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
         interaction.createSegmentElements(currentTrack);
-        map.draw();
+        map.draw(drawSettings);
     }
 }
 
@@ -1470,7 +1817,7 @@ function onClickMinorStationMode(event) {
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
                 currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
-                map.draw();
+                map.draw(drawSettings);
             } else {
                 console.log('warning: no segment clicked');
             }
@@ -1486,13 +1833,46 @@ function onClickSelectMode(event) {
         if (stationClicked) {
             stationClicked.toggleSelect();
             selectedStation = stationClicked;
+            map.draw(drawSettings);
             return;
         }
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
             segmentClicked.toggleSelect();
+            map.draw(drawSettings);
             return;
         }
+    }
+}
+
+
+function onClickCreateConnectionMode(event) {
+    console.log('onClickCreateConnectionMode');
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (!hitResult) {
+        return;
+    }
+    var stationClicked = getStationClicked(hitResult);
+    if (!stationClicked) {
+        return
+    }
+
+    if (!connectionStationA) {
+        connectionStationA = stationClicked;
+        connectionStationA.select();
+        map.draw(drawSettings);
+    } else {
+        connectionStationB = stationClicked;
+        if (connectionStationA.id === connectionStationB.id) {
+            connectionStationB = null;
+            return;
+        }
+        console.log('create new connection', connectionStationA.id, connectionStationB.id);
+        map.createConnection(connectionStationA, connectionStationB);
+        connectionStationA.unselect();
+        map.draw(drawSettings);
+        connectionStationA = null;
+        connectionStationB = null;
     }
 }
 
@@ -1510,15 +1890,29 @@ function onMouseDown(event) {
         onClickMinorStationMode(event);
     } else if (mode === modes.select) {
         onClickSelectMode(event);
+    } else if (mode === modes.createConnection) {
+        onClickCreateConnectionMode(event);
+    }
+}
+
+
+function onMouseUp(event) {
+    if (dragging) {
+        map.draw(drawSettings);
+        dragging = false;
     }
 }
 
 
 function onMouseDrag(event) {
+    dragging = true;
 	if (selectedStation) {
-	    var position = snap.snapPosition(currentTrack, selectedStation, event.point);
+        var position = event.point;
+	    if (doSnap) {
+	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
+        }
         selectedStation.setPosition(position);
-	    map.draw();
+	    map.draw(drawSettingsDrag);
 	}
 }
 
@@ -1527,7 +1921,7 @@ function onKeyDown(event) {
     if (event.key === 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-        map.draw();
+        map.draw(drawSettings);
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
@@ -1541,6 +1935,24 @@ function onKeyDown(event) {
 
 function initialiseToolbarActions() {
     console.log('initialiseToolbarActions');
+
+    toolbar.setMajorStationButtonAction(majorStationButtonClicked);
+    toolbar.setMinorStationButtonAction(minorStationButtonClicked);
+    toolbar.setSelectButtonAction(selectButtonClicked);
+    toolbar.setNewTrackButtonAction(newTrackButtonClicked);
+    toolbar.setNewConnectionAction(newConnectionButtionClicked);
+    toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
+    toolbar.setToggleSnapAction(snapCheckboxClicked);
+    toolbar.setSaveMapAction(saveMapClicked);
+    toolbar.setLoadMapAction(loadMapClicked);
+
+    sidebar.setExampleMapAction(loadExampleMapClicked);
+    sidebar.setTrackColorChangeAction(onTrackColorChanged);
+    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
+    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
+    sidebar.setStationStrokeWidthSliderChangeAction(onStationStrokeWidthChanged);
+    sidebar.setStationStrokeColorChangeAction(onStationStrokeColorChanged);
+
     function majorStationButtonClicked() {
         console.log('major station drawing selected');
         mode = modes.majorstation;
@@ -1560,9 +1972,27 @@ function initialiseToolbarActions() {
         console.log('new track button clicked');
         var newTrack = map.createTrack();
         var segmentStyle = styles.createSegmentStyle();
-        segmentStyle.strokeColor = "blue";
+        segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
         newTrack.segmentStyle = segmentStyle;
-        currentTrack = newTrack;
+        setCurrentTrack(newTrack);
+    }
+
+    function newConnectionButtionClicked() {
+        console.log('new connection button clicked');
+        connectionStationA = null;
+        connectionStationB = null;
+        mode = modes.createConnection;
+    }
+
+    function calcTextPositionButtonClicked() {
+        console.log('calc text position button clicked');
+        map.draw(drawSettingsFull);
+    }
+
+    function snapCheckboxClicked(event) {
+        console.log('snap clicked', event.target.checked);
+        doSnap = event.target.checked;
+        map.draw(drawSettingsFull);
     }
 
     function saveMapClicked() {
@@ -1581,6 +2011,8 @@ function initialiseToolbarActions() {
 
     function loadMapClicked(event) {
         console.log('load map button clicked');
+        project.clear();
+        resetState();
         readSingleFile(event);
 
         function readSingleFile(event) {
@@ -1597,21 +2029,27 @@ function initialiseToolbarActions() {
         }
 
         function displayContents(contents) {
-            map = serialize.loadMap(JSON.parse(contents));
-            map.draw();
+            loadMapJson(JSON.parse(contents));
         }
     }
 
-    function loadJSONMap(filepath) {
+    function loadMapJson(json) {
+        map = serialize.loadMap(json);
+        if (map.tracks.length > 0) {
+            setCurrentTrack(map.tracks[0]);
+        }
+        map.draw(drawSettingsFull);
+    }
+
+    function loadMapFile(filepath) {
+        project.clear();
         $.getJSON(filepath, function(json) {
-            console.log(json);
-            map = serialize.loadMap(json);
-            map.draw();
+            loadMapJson(json);
         });
     }
 
     function loadExampleMapClicked() {
-        loadJSONMap("src/maps/test1.json");
+        loadMapFile("src/maps/test1.json");
     }
 
     function onTrackColorChanged(color) {
@@ -1619,39 +2057,36 @@ function initialiseToolbarActions() {
         var segmentStyle = currentTrack.segmentStyle;
         segmentStyle.strokeColor = color;
         currentTrack.setSegmentStyle(segmentStyle);
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onTrackWidthChanged(value) {
         var segmentStyle = currentTrack.segmentStyle;
         segmentStyle.strokeWidth = value;
         currentTrack.setSegmentStyle(segmentStyle);
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onStationRadiusChanged(radius) {
-        currentTrack.setStationRadius(radius);
-        map.draw();
+        console.log('onStationRadiusChanged', radius);
+        currentTrack.stationStyle.stationRadius = radius;
+        map.draw(drawSettings);
     }
 
-    toolbar.setMajorStationButtonAction(majorStationButtonClicked);
-    toolbar.setMinorStationButtonAction(minorStationButtonClicked);
-    toolbar.setSelectButtonAction(selectButtonClicked);
-    toolbar.setNewTrackButtonAction(newTrackButtonClicked);
-    toolbar.setSaveMapAction(saveMapClicked);
-    toolbar.setLoadMapAction(loadMapClicked);
+    function onStationStrokeWidthChanged(strokeWidth) {
+        currentTrack.stationStyle.strokeWidth = strokeWidth;
+        map.draw(drawSettings);
+    }
 
-    sidebar.setExampleMapAction(loadExampleMapClicked);
-    sidebar.setTrackColorChangeAction(onTrackColorChanged);
-    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
-    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
+    function onStationStrokeColorChanged(color) {
+        currentTrack.stationStyle.strokeColor = color;
+        map.draw(drawSettings);
+    }
 }
 
 
-$(initialiseToolbarActions);
-
-
 tool.onMouseDown = onMouseDown;
+tool.onMouseUp = onMouseUp;
 tool.onMouseDrag = onMouseDrag;
 tool.onKeyDown = onKeyDown;
 

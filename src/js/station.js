@@ -12,6 +12,7 @@ var BaseStation = {
         this.path = null;
         this.isSelected = false;
         this.name = "station";
+        this.textPositionRel = null;
         return this;
     },
     toggleSelect: function() {
@@ -23,14 +24,13 @@ var BaseStation = {
     },
     select: function() {
         this.isSelected = true;
-        this.path.strokeColor = this.style.selectionColor;
     },
     unselect: function() {
         this.isSelected = false;
-        this.path.strokeColor = this.style.strokeColor;
     },
     setPosition: function(position) {
         this.position = position;
+        this.textPositionRel = null;
         this.notifyAllObservers();
     },
 };
@@ -39,7 +39,11 @@ var BaseStation = {
 var Station = {
     draw: function() {
         this.path = new Path.Circle(this.position, this.style.stationRadius);
-        this.path.strokeColor = this.style.strokeColor;
+        if (this.isSelected) {
+            this.path.strokeColor = this.style.selectionColor;
+        } else {
+            this.path.strokeColor = this.style.strokeColor;
+        }
         this.path.strokeWidth = this.style.strokeWidth;
         this.path.fillColor = this.style.fillColor;
     },

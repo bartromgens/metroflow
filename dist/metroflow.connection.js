@@ -1,4 +1,4 @@
-var MetroFlow = MetroFlow || {}; MetroFlow["interaction"] =
+var MetroFlow = MetroFlow || {}; MetroFlow["connection"] =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -61,7 +61,7 @@ var MetroFlow = MetroFlow || {}; MetroFlow["interaction"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 11);
+/******/ 	return __webpack_require__(__webpack_require__.s = 7);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -232,178 +232,69 @@ module.exports = {
 /* 4 */,
 /* 5 */,
 /* 6 */,
-/* 7 */,
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var core = __webpack_require__(0);
-
-
-function createStationContextMenu(stationElementId, track) {
-    $.contextMenu({
-        selector: '#' + stationElementId,
-        trigger: 'none',
-        callback: function(key, options) {
-            if (key === "delete") {
-                var stationId = $(options.selector).data('station-id');
-                track.removeStation(stationId);
-            }
-        },
-        items: {
-            "delete": {name: "Delete", icon: "delete"},
-        }
-    });
-}
-
-
-function createSegmentContextMenu(segmentElementId, track) {
-    $.contextMenu({
-        selector: '#' + segmentElementId,
-        trigger: 'none',
-        callback: function(key, options) {
-            var segmentId = $(options.selector).data('segment-id');
-            if (key === "create minor station") {
-                var position = $(options.selector).data('position');
-                track.createStationMinorOnSegmentId(position, segmentId);
-            } else if (key === "switchdirection") {
-                var stationId = $(options.selector).data('station-id');
-                var segment = track.findSegment(segmentId);
-                segment.switchDirection();
-                track.draw();
-            }
-        },
-        items: {
-            "create minor station": {name: "Add minor station", icon: "new"},
-            "switchdirection": {name: "Switch direction", icon: ""},
-        }
-    });
-}
-
-
-module.exports = {
-    createStationContextMenu: createStationContextMenu,
-    createSegmentContextMenu: createSegmentContextMenu,
-};
-
-/***/ }),
-/* 9 */,
-/* 10 */,
-/* 11 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-var core = __webpack_require__(0);
-var contextmenu = __webpack_require__(8);
+core = __webpack_require__(0);
+styles = __webpack_require__(2);
 
 
-function showStationContextMenu(stationId) {
-    $('#station-' + stationId).contextMenu();
+var Connection = {
+    Connection: function(stationA, stationB) {
+        this.stationA = stationA;
+        this.stationB = stationB;
+        this.id = core.uuidv4();
+        this.paths = [];
+        return this;
+    },
+    allPaths: function() {
+        return this.paths;
+    },
+    draw: function() {
+        var stationRadiusA = this.stationA.style.stationRadius;
+        var stationRadiusB = this.stationB.style.stationRadius;
+        var stationStrokeWidthA = this.stationA.style.strokeWidth;
+        var stationStrokeWidthB = this.stationB.style.strokeWidth;
+        var stationStrokeWidth = Math.min(stationStrokeWidthA, stationStrokeWidthB);
+        var stationRadius = Math.min(stationRadiusA, stationRadiusB);
+        var difference = this.stationB.position - this.stationA.position;
+        var size = new Size(difference.length-stationRadius, stationRadius-stationStrokeWidth/2);
+        var offset = new Point(-stationRadius/2, stationRadius/2-stationStrokeWidth/4);
+        var rectangle = new Path.Rectangle(this.stationA.position - offset, size);
+        rectangle.fillColor = styles.rgbToHex(255, 255, 255);
+        rectangle.strokeWidth = 0;
+        rectangle.rotate(difference.angle, this.stationA.position);
+        var offset = difference.normalize().rotate(90) * stationRadius/2;
+        var offsetA1 = offset + difference.normalize()*(stationRadiusA-stationStrokeWidthA/2);
+        var offsetB1 = offset - difference.normalize()*(stationRadiusB-stationStrokeWidthB/2);
+        var offsetA2 = offset - difference.normalize()*(stationRadiusA-stationStrokeWidthA/2);
+        var offsetB2 = offset + difference.normalize()*(stationRadiusB-stationStrokeWidthB/2);
+        var line1 = new Path(this.stationA.position + offsetA1, this.stationB.position + offsetB1);
+        var line2 = new Path(this.stationA.position - offsetA2, this.stationB.position - offsetB2);
+        line1.strokeColor = this.stationA.style.strokeColor;
+        line2.strokeColor = this.stationA.style.strokeColor;
+        line1.strokeWidth = stationStrokeWidth;
+        line2.strokeWidth = stationStrokeWidth;
+        this.paths = [];
+        this.paths.push(rectangle);
+        this.paths.push(line1);
+        this.paths.push(line2);
+    },
+};
+
+
+function createConnection(stationA, stationB) {
+    var observable = Object.create(core.Observable).Observable();
+    var connection = Object.assign(observable, Connection);
+    connection = connection.Connection(stationA, stationB);
+    return connection;
 }
 
-
-function showSegmentContextMenu(segmentId, position) {
-    $('#segment-' + segmentId).data('position', position);
-    $('#segment-' + segmentId).contextMenu();
-}
-
-
-function createStationMinorElement(station, track) {
-    var stationElementId = "station-" + station.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
-}
-
-
-function createStationElement(station, track) {
-	var stationElementId = "station-" + station.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
-    var stationElement = $("#" + stationElementId);
-
-	contextmenu.createStationContextMenu(stationElementId, track);
-    updateElementPosition(stationElement, station);
-    updateStyle();
-    createStationObserver();
-
-    function updateElementPosition(stationElement, station) {
-	    stationElement.css('top', (station.position.y - stationElement.width()/2) + 'px');
-	    stationElement.css('left', (station.position.x - stationElement.height()/2) + 'px');
-    }
-
-    function updateStyle() {
-        if (core.DisplaySettings.isDebug) {
-            stationElement.css('border-width', '1px');
-        } else {
-            stationElement.css('border-width', '0px');
-        }
-    }
-
-    function createStationObserver() {
-        var stationObserver = new core.Observer(
-            function(station) {
-                updateElementPosition(this.stationElement, station);
-            },
-            function(station) {
-                this.stationElement.remove();
-            }
-        );
-        stationObserver.stationElement = stationElement;
-        station.registerObserver(stationObserver);
-    }
-}
-
-
-function createSegmentElements(track) {
-    console.log('createSegmentElements');
-    $(".segment").empty();
-    for (var i in track.segments) {
-        var segment = track.segments[i];
-        createSegmentElement(segment, track);
-    }
-}
-
-
-function createSegmentElement(segment, track) {
-	var segmentElementId = "segment-" + segment.id;
-	$("#overlay").append("<div class=\"segment\" id=\"" + segmentElementId + "\" data-segment-id=\"" + segment.id + "\"></div>")
-    var segmentElement = $("#" + segmentElementId);
-
-	contextmenu.createSegmentContextMenu(segmentElementId, track);
-    updateSegmentElementPosition(segmentElement, segment);
-    updateStyle();
-    createSegmentObserver();
-
-    function updateSegmentElementPosition(segmentElement, segment) {
-	    segmentElement.css('top', (segment.center().y - segmentElement.width()/2) + 'px');
-	    segmentElement.css('left', (segment.center().x - segmentElement.height()/2) + 'px');
-    }
-
-    function updateStyle() {
-        if (core.DisplaySettings.isDebug) {
-            segmentElement.css('border-width', '1px');
-        } else {
-            segmentElement.css('border-width', '0px');
-        }
-    }
-
-    function createSegmentObserver() {
-        var segmentObserver = new core.Observer(
-            function(segment) {
-                updateSegmentElementPosition(this.segmentElement, segment);
-            },
-            function(segment) {
-                this.segmentElement.remove();
-            }
-        );
-        segmentObserver.segmentElement = segmentElement;
-        segment.registerObserver(segmentObserver);
-    }
-}
 
 
 module.exports = {
-    createStationElement: createStationElement,
-    showStationContextMenu: showStationContextMenu,
-    showSegmentContextMenu: showSegmentContextMenu,
-    createSegmentElements: createSegmentElements,
+    createConnection: createConnection,
 };
 
 /***/ })

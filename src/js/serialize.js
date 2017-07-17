@@ -4,9 +4,14 @@ var metromap = require("./map.js");
 function saveMap(map) {
     var mapData = {};
     mapData.tracks = [];
+    mapData.connections = [];
     for (var i in map.tracks) {
         var trackData = createTrackData(map.tracks[i]);
         mapData.tracks.push(trackData);
+    }
+    for (var i in map.connections) {
+        var connectionData = createConnectionData(map.connections[i]);
+        mapData.connections.push(connectionData);
     }
     console.log(mapData);
     var mapJSONString = JSON.stringify(mapData);
@@ -18,17 +23,38 @@ function createTrackData(track) {
     var trackData = {};
     trackData.id = track.id;
     trackData.segmentStyle = track.segmentStyle;
-    trackData.stations = [];
+    trackData.stationStyle = track.stationStyle;
+    trackData.segments = [];
     trackData.stationsMinor = [];
-    for (var j in track.stations) {
-        var stationData = createStationData(track.stations[j]);
-        trackData.stations.push(stationData)
+    for (var j in track.segments) {
+        var segmentData = createSegmentData(track.segments[j]);
+        trackData.segments.push(segmentData)
     }
     for (var j in track.stationsMinor) {
         var stationData = createStationMinorData(track.stationsMinor[j]);
         trackData.stationsMinor.push(stationData)
     }
     return trackData;
+}
+
+
+function createConnectionData(connection) {
+    var connectionData = {
+        stationA: connection.stationA.id,
+        stationB: connection.stationB.id,
+        id: connection.id,
+    };
+    return connectionData;
+}
+
+
+function createSegmentData(segment) {
+    var segmentData = {
+        stationA: createStationData(segment.stationA),
+        stationB: createStationData(segment.stationB),
+        id: segment.id,
+    };
+    return segmentData;
 }
 
 
@@ -53,6 +79,7 @@ function createStationMinorData(station) {
     return stationData;
 }
 
+
 function loadMap(mapJSON) {
     console.log('loadMap');
     if (!mapJSON) {
@@ -64,23 +91,58 @@ function loadMap(mapJSON) {
     for (var i in mapJSON.tracks) {
         var track = loadTrack(map, mapJSON.tracks[i]);
     }
+    for (var i in mapJSON.connections) {
+        var connection = loadConnections(map, mapJSON.connections[i]);
+    }
     return map;
 }
 
 
+function loadConnections(map, connectionData) {
+    var stationA = map.findStation(connectionData.stationA);
+    var stationB = map.findStation(connectionData.stationB);
+    var connection = map.createConnection(stationA, stationB);
+    if (connection) {
+        connection.id = connectionData.id;
+    }
+    return connection;
+}
+
+
 function loadTrack(map, trackData) {
+    console.log('load track');
     var track = map.createTrack();
     track.id = trackData.id;
     track.setSegmentStyle(trackData.segmentStyle);
-    var previousStation = null;
-    for (var j in trackData.stations) {
-        var stationData = trackData.stations[j];
-        var station = track.createStation(new Point(stationData.position.x, stationData.position.y), previousStation);
-        station.id = stationData.id;
-        previousStation = station;
+    track.setStationStyle(trackData.stationStyle);
+    // track.stationStyle = trackData.stationStyle;
+    for (var i in trackData.segments) {
+        var segmentData = trackData.segments[i];
+        var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y)
+        var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y)
+        stationA = track.findStation(segmentData.stationA.id);
+        stationB = track.findStation(segmentData.stationB.id);
+        var segment = null;
+        if (stationA && stationB) {
+            segment = track.createSegment(stationA, stationB);
+        } else if (stationA) {
+            stationB = track.createStation(stationBPoint, stationA);
+            stationB.id = segmentData.stationB.id;
+        } else if (stationB) {
+            stationA = track.createStation(stationAPoint);
+            stationA.id = segmentData.stationA.id;
+            segment = track.createSegment(stationA, stationB);
+        } else {
+            stationA = track.createStation(stationAPoint);
+            stationA.id = segmentData.stationA.id;
+            stationB = track.createStation(stationBPoint);
+            stationB.id = segmentData.stationB.id;
+            segment = track.createSegment(stationA, stationB);
+        }
+        // segment.id = segmentData.id;
     }
-    for (var j in trackData.stationsMinor) {
-        var stationData = trackData.stationsMinor[j];
+    for (var i in trackData.stationsMinor) {
+        var stationData = trackData.stationsMinor[i];
         var stationA = track.findStation(stationData.stationA);
         var stationB = track.findStation(stationData.stationB);
         var station = track.createStationMinorBetweenStations(stationA, stationB);
