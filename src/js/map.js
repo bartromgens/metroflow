@@ -37,6 +37,15 @@ var Map = {
             this.tracks[i].drawStationNames();
         }
     },
+    findStation: function(id) {
+        for (var i in this.tracks) {
+            var station = this.tracks[i].findStation(id);
+            if (station) {
+                return station;
+            }
+        }
+        return null;
+    },
     findStationByPathId: function(id) {
         for (var i in this.tracks) {
             var track = this.tracks[i];
