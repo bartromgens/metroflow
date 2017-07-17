@@ -9,6 +9,9 @@ var serialize = require("./serialize.js");
 
 $(initialise);
 
+// disable browser context menu
+$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
+
 var map = null;
 var currentTrack = null;
 var segmentClicked = null;
@@ -106,7 +109,9 @@ function onRightClick(event) {
 
     var stationClicked = getStationClicked(hitResult);
     if (stationClicked) {  // right mouse
-        interaction.showStationContextMenu(stationClicked.id);
+        // interaction.showStationContextMenu(stationClicked.id);
+        interaction.hideStationInfoAll();
+        interaction.showStationInfo(stationClicked);
         return;
     }
     var segmentClicked = getSegmentClicked(hitResult);
@@ -377,6 +382,7 @@ function initialiseToolbarActions() {
             setCurrentTrack(map.tracks[0]);
         }
         map.draw(drawSettingsFull);
+        interaction.createMapElements(map);
     }
 
     function loadMapFile(filepath) {

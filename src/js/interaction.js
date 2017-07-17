@@ -8,6 +8,19 @@ function showStationContextMenu(stationId) {
 }
 
 
+function showStationInfo(station) {
+    var $div = $('<div class="station-info">id:' + station.id + '</div>');
+    $div.css('top', $('#station-' + station.id).css("top"));
+    $div.css('left', $('#station-' + station.id).css("left"));
+    $('#overlay-content').append($div);
+}
+
+
+function hideStationInfoAll() {
+    $(".station-info").hide();
+}
+
+
 function showSegmentContextMenu(segmentId, position) {
     $('#segment-' + segmentId).data('position', position);
     $('#segment-' + segmentId).contextMenu();
@@ -17,6 +30,24 @@ function showSegmentContextMenu(segmentId, position) {
 function createStationMinorElement(station, track) {
     var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
+}
+
+
+function createMapElements(map) {
+    for (var i in map.tracks) {
+        createTrackElements(map.tracks[i]);
+    }
+}
+
+
+function createTrackElements(track) {
+    for (var i in track.stations) {
+        createStationElement(track.stations[i], track);
+    }
+    createSegmentElements(track);
+    // for (var i in track.stationsMinor) {
+    //     createStationMinorElement(track.stationsMinor[i], track);
+    // }
 }
 
 
@@ -107,7 +138,11 @@ function createSegmentElement(segment, track) {
 
 
 module.exports = {
+    createMapElements: createMapElements,
+    createTrackElements: createTrackElements,
     createStationElement: createStationElement,
+    showStationInfo: showStationInfo,
+    hideStationInfoAll: hideStationInfoAll,
     showStationContextMenu: showStationContextMenu,
     showSegmentContextMenu: showSegmentContextMenu,
     createSegmentElements: createSegmentElements,
