@@ -4,9 +4,14 @@ var metromap = require("./map.js");
 function saveMap(map) {
     var mapData = {};
     mapData.tracks = [];
+    mapData.connections = [];
     for (var i in map.tracks) {
         var trackData = createTrackData(map.tracks[i]);
         mapData.tracks.push(trackData);
+    }
+    for (var i in map.connections) {
+        var connectionData = createConnectionData(map.connections[i]);
+        mapData.connections.push(connectionData);
     }
     console.log(mapData);
     var mapJSONString = JSON.stringify(mapData);
@@ -29,6 +34,15 @@ function createTrackData(track) {
         trackData.stationsMinor.push(stationData)
     }
     return trackData;
+}
+
+
+function createConnectionData(connection) {
+    var connectionData = {
+        stationA: connection.stationA.id,
+        stationB: connection.stationB.id,
+    };
+    return connectionData;
 }
 
 
@@ -64,7 +78,17 @@ function loadMap(mapJSON) {
     for (var i in mapJSON.tracks) {
         var track = loadTrack(map, mapJSON.tracks[i]);
     }
+    for (var i in mapJSON.connections) {
+        var connection = loadConnections(map, mapJSON.connections[i]);
+    }
     return map;
+}
+
+
+function loadConnections(map, connectionData) {
+    var stationA = map.findStation(connectionData.stationA);
+    var stationB = map.findStation(connectionData.stationB);
+    return map.createConnection(stationA, stationB);
 }
 
 
