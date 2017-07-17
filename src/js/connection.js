@@ -8,7 +8,11 @@ var Connection = {
         this.stationA = stationA;
         this.stationB = stationB;
         this.id = core.uuidv4();
+        this.paths = [];
         return this;
+    },
+    allPaths: function() {
+        return this.paths;
     },
     draw: function() {
         var stationRadiusA = this.stationA.style.stationRadius;
@@ -21,7 +25,7 @@ var Connection = {
         var size = new Size(difference.length-stationRadius, stationRadius-stationStrokeWidth/2);
         var offset = new Point(-stationRadius/2, stationRadius/2-stationStrokeWidth/4);
         var rectangle = new Path.Rectangle(this.stationA.position - offset, size);
-        rectangle.fillColor = styles.rgbToHex(255, 0, 255);
+        rectangle.fillColor = styles.rgbToHex(255, 255, 255);
         rectangle.strokeWidth = 0;
         rectangle.rotate(difference.angle, this.stationA.position);
         var offset = difference.normalize().rotate(90) * stationRadius/2;
@@ -35,6 +39,9 @@ var Connection = {
         line2.strokeColor = this.stationA.style.strokeColor;
         line1.strokeWidth = stationStrokeWidth;
         line2.strokeWidth = stationStrokeWidth;
+        this.paths.push(rectangle);
+        this.paths.push(line1);
+        this.paths.push(line2);
     },
 };
 

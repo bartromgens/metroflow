@@ -17,11 +17,15 @@ var Map = {
     },
     createConnection: function(stationA, stationB) {
         console.log('map.createConnection()');
+        if (stationA.id === stationB.id) {
+            return null
+        }
         var newConnection = metroconnection.createConnection(stationA, stationB);
         this.connections.push(newConnection);
         return newConnection;
     },
-    draw: function() {
+    draw: function(fast, text) {
+        console.log("map.draw() - BEGIN, fast:", fast);
         project.clear();
         for (var i in this.tracks) {
             this.tracks[i].draw();
@@ -29,15 +33,32 @@ var Map = {
         for (var i in this.connections) {
             this.connections[i].draw();
         }
-        this.drawStationNames();
+        if (text) {
+            var paths = [];
+            if (!fast) {
+                paths = this.allPaths();
+            }
+            this.drawStationNames(paths);
+        }
+        console.log("map.draw() - END, fast:", fast);
     },
     clear: function() {
         this.tracks = [];
     },
-    drawStationNames: function() {
+    drawStationNames: function(paths) {
         for (var i in this.tracks) {
-            this.tracks[i].drawStationNames();
+            this.tracks[i].drawStationNames(paths);
         }
+    },
+    allPaths: function() {
+        var paths = [];
+        for (var i in this.tracks) {
+            paths = paths.concat(this.tracks[i].allPaths());
+        }
+        for (var i in this.connections) {
+            paths = paths.concat(this.connections[i].allPaths());
+        }
+        return paths;
     },
     findStation: function(id) {
         for (var i in this.tracks) {
