@@ -10,22 +10,30 @@ var Connection = {
         return this;
     },
     draw: function() {
+        var stationRadiusA = this.stationA.style.stationRadius;
+        var stationRadiusB = this.stationB.style.stationRadius;
+        var stationStrokeWidthA = this.stationA.style.strokeWidth;
+        var stationStrokeWidthB = this.stationB.style.strokeWidth;
+        var stationStrokeWidth = Math.min(stationStrokeWidthA, stationStrokeWidthB);
+        var stationRadius = Math.min(stationRadiusA, stationRadiusB);
         var difference = this.stationB.position - this.stationA.position;
-        var size = new Size(difference.length, this.stationA.style.stationRadius-this.stationA.style.strokeWidth/2);
-        var offset = new Point(0, this.stationA.style.stationRadius/2-this.stationA.style.strokeWidth/4);
+        var size = new Size(difference.length, stationRadius-stationStrokeWidth/2);
+        var offset = new Point(0, stationRadius/2-stationStrokeWidth/4);
         var rectangle = new Path.Rectangle(this.stationA.position - offset, size);
         rectangle.fillColor = styles.rgbToHex(255, 255, 255);
         rectangle.strokeWidth = 0;
         rectangle.rotate(difference.angle, this.stationA.position);
-        var offset = difference.normalize().rotate(90) * this.stationA.style.stationRadius/2;
-        var offset1 = offset + difference.normalize()*(this.stationA.style.stationRadius-this.stationA.style.strokeWidth/2);
-        var offset2 = offset - difference.normalize()*(this.stationA.style.stationRadius-this.stationA.style.strokeWidth/2);
-        var line1 = new Path(this.stationA.position + offset1, this.stationB.position + offset2);
-        var line2 = new Path(this.stationA.position - offset2, this.stationB.position - offset1);
+        var offset = difference.normalize().rotate(90) * stationRadius/2;
+        var offsetA1 = offset + difference.normalize()*(stationRadiusA-stationStrokeWidthA/2);
+        var offsetB1 = offset - difference.normalize()*(stationRadiusB-stationStrokeWidthB/2);
+        var offsetA2 = offset - difference.normalize()*(stationRadiusA-stationStrokeWidthA/2);
+        var offsetB2 = offset + difference.normalize()*(stationRadiusB-stationStrokeWidthB/2);
+        var line1 = new Path(this.stationA.position + offsetA1, this.stationB.position + offsetB1);
+        var line2 = new Path(this.stationA.position - offsetA2, this.stationB.position - offsetB2);
         line1.strokeColor = this.stationA.style.strokeColor;
         line2.strokeColor = this.stationA.style.strokeColor;
-        line1.strokeWidth = this.stationA.style.strokeWidth;
-        line2.strokeWidth = this.stationA.style.strokeWidth;
+        line1.strokeWidth = stationStrokeWidth;
+        line2.strokeWidth = stationStrokeWidth;
     },
 };
 
