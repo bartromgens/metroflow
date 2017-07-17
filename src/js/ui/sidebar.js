@@ -43,9 +43,11 @@ function setTrackWidthSliderChangeAction(callback) {
         change: watchSlider,
         min: 0,
         max: 20,
+        step: 0.5,
     });
 
     function watchSlider(event, ui) {
+        console.log(ui.value);
         callback(ui.value);
     }
 }
@@ -57,6 +59,7 @@ function setStationRadiusSliderChangeAction(callback) {
         change: watchSlider,
         min: 0,
         max: 20,
+        step: 0.5,
     });
 
     function watchSlider(event, ui) {
@@ -70,6 +73,7 @@ function setStationStrokeWidthSliderChangeAction(callback) {
         change: watchSlider,
         min: 0,
         max: 20,
+        step: 0.5,
     });
 
     function watchSlider(event, ui) {

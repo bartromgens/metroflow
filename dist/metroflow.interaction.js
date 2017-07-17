@@ -61,7 +61,7 @@ var MetroFlow = MetroFlow || {}; MetroFlow["interaction"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 11);
+/******/ 	return __webpack_require__(__webpack_require__.s = 12);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -233,7 +233,8 @@ module.exports = {
 /* 5 */,
 /* 6 */,
 /* 7 */,
-/* 8 */
+/* 8 */,
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(0);
@@ -286,18 +287,31 @@ module.exports = {
 };
 
 /***/ }),
-/* 9 */,
 /* 10 */,
-/* 11 */
+/* 11 */,
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
 var core = __webpack_require__(0);
-var contextmenu = __webpack_require__(8);
+var contextmenu = __webpack_require__(9);
 
 
 function showStationContextMenu(stationId) {
     $('#station-' + stationId).contextMenu();
+}
+
+
+function showStationInfo(station) {
+    var $div = $('<div class="station-info">id:' + station.id + '</div>');
+    $div.css('top', $('#station-' + station.id).css("top"));
+    $div.css('left', $('#station-' + station.id).css("left"));
+    $('#overlay-content').append($div);
+}
+
+
+function hideStationInfoAll() {
+    $(".station-info").hide();
 }
 
 
@@ -310,6 +324,24 @@ function showSegmentContextMenu(segmentId, position) {
 function createStationMinorElement(station, track) {
     var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
+}
+
+
+function createMapElements(map) {
+    for (var i in map.tracks) {
+        createTrackElements(map.tracks[i]);
+    }
+}
+
+
+function createTrackElements(track) {
+    for (var i in track.stations) {
+        createStationElement(track.stations[i], track);
+    }
+    createSegmentElements(track);
+    // for (var i in track.stationsMinor) {
+    //     createStationMinorElement(track.stationsMinor[i], track);
+    // }
 }
 
 
@@ -400,7 +432,11 @@ function createSegmentElement(segment, track) {
 
 
 module.exports = {
+    createMapElements: createMapElements,
+    createTrackElements: createTrackElements,
     createStationElement: createStationElement,
+    showStationInfo: showStationInfo,
+    hideStationInfoAll: hideStationInfoAll,
     showStationContextMenu: showStationContextMenu,
     showSegmentContextMenu: showSegmentContextMenu,
     createSegmentElements: createSegmentElements,

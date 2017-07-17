@@ -6,6 +6,7 @@
   "css.js": "metroflow.css.js",
   "interaction.js": "metroflow.interaction.js",
   "map.js": "metroflow.map.js",
+  "revision.js": "metroflow.revision.js",
   "segment.js": "metroflow.segment.js",
   "serialize.js": "metroflow.serialize.js",
   "sidebar.js": "metroflow.sidebar.js",

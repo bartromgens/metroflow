@@ -188,9 +188,11 @@ var Track = {
             positions.push(new Point(0, -stationRadius * 1.2));
             positions.push(new Point(stationRadius, -stationRadius * 0.8));
             positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
+            positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
             positions.push(new Point(0, stationRadius * 2.2));
             positions.push(new Point(stationRadius, stationRadius * 1.4));
             positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
+            positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
             var pathsToUse = paths;
             if (paths.length === 0) {
                 pathsToUse = this.stationSegmentPaths(station);

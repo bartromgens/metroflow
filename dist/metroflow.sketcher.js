@@ -61,7 +61,7 @@ var MetroFlow = MetroFlow || {}; MetroFlow["sketcher"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 14);
+/******/ 	return __webpack_require__(__webpack_require__.s = 15);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -279,27 +279,24 @@ var Segment = {
     },
     toggleSelect: function() {
         if (this.isSelected) {
-            this.unselect();
+            this.deselect();
         } else {
             this.select();
         }
     },
     select: function() {
         this.isSelected = true;
-        for (var i in this.paths){
-            this.paths[i].strokeColor = this.style.selectionColor;
-        }
     },
-    unselect: function() {
+    deselect: function() {
         this.isSelected = false;
-        for (var i in this.paths){
-            this.paths[i].strokeColor = this.style.strokeColor;
-        }
     },
     createPath: function() {
         var path = new Path();
         this.paths.push(path);
         path.strokeColor = this.style.strokeColor;
+        if (this.isSelected) {
+            path.strokeColor = this.style.selectionColor;
+        }
         path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
@@ -351,7 +348,8 @@ var Segment = {
                 arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
             }
         }
-        var needsArc = Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
+        var differenceXY = Math.abs(Math.abs(stationVector.normalize().x) - Math.abs(stationVector.normalize().y));  // is almost diagonal line?
+        var needsArc = (differenceXY > 0.02) && Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
         if (needsArc) {
             var arcEnd = this.end() - arcEndRel;
             var arcBegin = this.begin() + arcBeginRel;
@@ -475,7 +473,7 @@ var BaseStation = {
     },
     toggleSelect: function() {
         if (this.isSelected) {
-            this.unselect();
+            this.deselect();
         } else {
             this.select();
         }
@@ -483,7 +481,7 @@ var BaseStation = {
     select: function() {
         this.isSelected = true;
     },
-    unselect: function() {
+    deselect: function() {
         this.isSelected = false;
     },
     setPosition: function(position) {
@@ -563,7 +561,7 @@ var DrawSettings = {
     text: true,
     fast: true,
     calcTextPositions: false,
-    minorStationText: true,
+    minorStationText: false,
 };
 
 
@@ -662,6 +660,14 @@ var Map = {
             }
         }
         return {segment: null, track: null};
+    },
+    findTrack: function(id) {
+        for (var i in this.tracks) {
+            if (this.tracks[i].id === id) {
+                return this.tracks[i];
+            }
+        }
+        return null;
     }
 };
 
@@ -873,9 +879,11 @@ var Track = {
             positions.push(new Point(0, -stationRadius * 1.2));
             positions.push(new Point(stationRadius, -stationRadius * 0.8));
             positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
+            positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
             positions.push(new Point(0, stationRadius * 2.2));
             positions.push(new Point(stationRadius, stationRadius * 1.4));
             positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
+            positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
             var pathsToUse = paths;
             if (paths.length === 0) {
                 pathsToUse = this.stationSegmentPaths(station);
@@ -1064,106 +1072,6 @@ module.exports = {
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var core = __webpack_require__(0);
-
-
-function createStationContextMenu(stationElementId, track) {
-    $.contextMenu({
-        selector: '#' + stationElementId,
-        trigger: 'none',
-        callback: function(key, options) {
-            if (key === "delete") {
-                var stationId = $(options.selector).data('station-id');
-                track.removeStation(stationId);
-            }
-        },
-        items: {
-            "delete": {name: "Delete", icon: "delete"},
-        }
-    });
-}
-
-
-function createSegmentContextMenu(segmentElementId, track) {
-    $.contextMenu({
-        selector: '#' + segmentElementId,
-        trigger: 'none',
-        callback: function(key, options) {
-            var segmentId = $(options.selector).data('segment-id');
-            if (key === "create minor station") {
-                var position = $(options.selector).data('position');
-                track.createStationMinorOnSegmentId(position, segmentId);
-            } else if (key === "switchdirection") {
-                var stationId = $(options.selector).data('station-id');
-                var segment = track.findSegment(segmentId);
-                segment.switchDirection();
-                track.draw();
-            }
-        },
-        items: {
-            "create minor station": {name: "Add minor station", icon: "new"},
-            "switchdirection": {name: "Switch direction", icon: ""},
-        }
-    });
-}
-
-
-module.exports = {
-    createStationContextMenu: createStationContextMenu,
-    createSegmentContextMenu: createSegmentContextMenu,
-};
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-core = __webpack_require__(0);
-metrosegment = __webpack_require__(3);
-
-
-function snapPosition(track, station, position) {
-    var snapDistance = metrosegment.minStraight+metrosegment.arcRadius*2.0;
-    var stations = track.connectedStations(station);
-    if (stations.length === 0 && track.lastAddedStation()) {
-        stations.push(track.lastAddedStation());
-    }
-    var nearestX = null;
-    var nearestY = null;
-    var minDistanceX = 1e99;
-    var minDistanceY = 1e99;
-    for (var i in stations) {
-        var stationVector = position - stations[i].position;
-        var deltaX = Math.abs(stationVector.x);
-        if (deltaX < minDistanceX) {
-            nearestX = stations[i];
-            minDistanceX = deltaX;
-        }
-        var deltaY = Math.abs(stationVector.y);
-        if (deltaY < minDistanceY) {
-            nearestY = stations[i];
-            minDistanceY = deltaY;
-        }
-    }
-    var snapX = position.x;
-    if (minDistanceX < snapDistance) {
-        snapX = nearestX.position.x;
-    }
-    var snapY = position.y;
-    if (minDistanceY < snapDistance) {
-        snapY = nearestY.position.y;
-    }
-    return new Point(snapX, snapY);
-}
-
-
-module.exports = {
-    snapPosition: snapPosition,
-};
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
 var metromap = __webpack_require__(5);
 
 
@@ -1324,16 +1232,200 @@ module.exports = {
 };
 
 /***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var core = __webpack_require__(0);
+
+
+function createStationContextMenu(stationElementId, track) {
+    $.contextMenu({
+        selector: '#' + stationElementId,
+        trigger: 'none',
+        callback: function(key, options) {
+            if (key === "delete") {
+                var stationId = $(options.selector).data('station-id');
+                track.removeStation(stationId);
+            }
+        },
+        items: {
+            "delete": {name: "Delete", icon: "delete"},
+        }
+    });
+}
+
+
+function createSegmentContextMenu(segmentElementId, track) {
+    $.contextMenu({
+        selector: '#' + segmentElementId,
+        trigger: 'none',
+        callback: function(key, options) {
+            var segmentId = $(options.selector).data('segment-id');
+            if (key === "create minor station") {
+                var position = $(options.selector).data('position');
+                track.createStationMinorOnSegmentId(position, segmentId);
+            } else if (key === "switchdirection") {
+                var stationId = $(options.selector).data('station-id');
+                var segment = track.findSegment(segmentId);
+                segment.switchDirection();
+                track.draw();
+            }
+        },
+        items: {
+            "create minor station": {name: "Add minor station", icon: "new"},
+            "switchdirection": {name: "Switch direction", icon: ""},
+        }
+    });
+}
+
+
+module.exports = {
+    createStationContextMenu: createStationContextMenu,
+    createSegmentContextMenu: createSegmentContextMenu,
+};
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+core = __webpack_require__(0);
+metrosegment = __webpack_require__(3);
+
+
+function snapPosition(track, station, position) {
+    var snapDistance = metrosegment.minStraight+metrosegment.arcRadius*2.0;
+    var stations = track.connectedStations(station);
+    if (stations.length === 0 && track.lastAddedStation()) {
+        stations.push(track.lastAddedStation());
+    }
+    var nearestX = null;
+    var nearestY = null;
+    var minDistanceX = 1e99;
+    var minDistanceY = 1e99;
+    for (var i in stations) {
+        var stationVector = position - stations[i].position;
+        var deltaX = Math.abs(stationVector.x);
+        if (deltaX < minDistanceX) {
+            nearestX = stations[i];
+            minDistanceX = deltaX;
+        }
+        var deltaY = Math.abs(stationVector.y);
+        if (deltaY < minDistanceY) {
+            nearestY = stations[i];
+            minDistanceY = deltaY;
+        }
+    }
+    var snapX = position.x;
+    if (minDistanceX < snapDistance) {
+        snapX = nearestX.position.x;
+    }
+    var snapY = position.y;
+    if (minDistanceY < snapDistance) {
+        snapY = nearestY.position.y;
+    }
+    return new Point(snapX, snapY);
+}
+
+
+module.exports = {
+    snapPosition: snapPosition,
+};
+
+/***/ }),
 /* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
+core = __webpack_require__(0);
+serialize = __webpack_require__(8);
+
+var maxRevisions = 100;
+var revisions = [];
+var currentRevision = -1;
+
+
+function createRevision(map) {
+    currentRevision++;
+    var mapDataString = serialize.saveMap(map);
+    if (currentRevision >= revisions.length) {
+        revisions.push(mapDataString);
+    } else {
+        revisions[currentRevision] = mapDataString;
+        revisions.splice(currentRevision+1, revisions.length-currentRevision-1);
+    }
+    while (revisions.length > maxRevisions) {
+        revisions.shift();
+        currentRevision--;
+    }
+    console.log('currentRevision', currentRevision);
+}
+
+
+function undo(map) {
+    if (currentRevision <= 0) {
+        return map;
+    }
+    currentRevision--;
+    var last = revisions[currentRevision];
+    map = serialize.loadMap(JSON.parse(last));
+    return map;
+}
+
+
+function redo(map) {
+    if (currentRevision+1 >= revisions.length) {
+        return map;
+    }
+    currentRevision++;
+    var next = revisions[currentRevision];
+    map = serialize.loadMap(JSON.parse(next));
+    return map;
+}
+
+
+function hasUndo() {
+    return currentRevision > 0;
+}
+
+
+function hasRedo() {
+    return currentRevision+1 < revisions.length;
+}
+
+
+
+module.exports = {
+    createRevision: createRevision,
+    undo: undo,
+    redo: redo,
+    hasUndo: hasUndo,
+    hasRedo: hasRedo
+};
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
 var core = __webpack_require__(0);
-var contextmenu = __webpack_require__(8);
+var contextmenu = __webpack_require__(9);
 
 
 function showStationContextMenu(stationId) {
     $('#station-' + stationId).contextMenu();
+}
+
+
+function showStationInfo(station) {
+    var $div = $('<div class="station-info">id:' + station.id + '</div>');
+    $div.css('top', $('#station-' + station.id).css("top"));
+    $div.css('left', $('#station-' + station.id).css("left"));
+    $('#overlay-content').append($div);
+}
+
+
+function hideStationInfoAll() {
+    $(".station-info").hide();
 }
 
 
@@ -1346,6 +1438,24 @@ function showSegmentContextMenu(segmentId, position) {
 function createStationMinorElement(station, track) {
     var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
+}
+
+
+function createMapElements(map) {
+    for (var i in map.tracks) {
+        createTrackElements(map.tracks[i]);
+    }
+}
+
+
+function createTrackElements(track) {
+    for (var i in track.stations) {
+        createStationElement(track.stations[i], track);
+    }
+    createSegmentElements(track);
+    // for (var i in track.stationsMinor) {
+    //     createStationMinorElement(track.stationsMinor[i], track);
+    // }
 }
 
 
@@ -1436,14 +1546,18 @@ function createSegmentElement(segment, track) {
 
 
 module.exports = {
+    createMapElements: createMapElements,
+    createTrackElements: createTrackElements,
     createStationElement: createStationElement,
+    showStationInfo: showStationInfo,
+    hideStationInfoAll: hideStationInfoAll,
     showStationContextMenu: showStationContextMenu,
     showSegmentContextMenu: showSegmentContextMenu,
     createSegmentElements: createSegmentElements,
 };
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 
@@ -1486,6 +1600,14 @@ function setNewConnectionAction(callback) {
     buttonNewConnection.bind("click", callback);
 }
 
+function setUndoAction(callback) {
+    $("#button-undo").bind("click", callback);
+}
+
+function setRedoAction(callback) {
+    $("#button-redo").bind("click", callback);
+}
+
 function setCalcTextPositionsAction(callback) {
     $("#button-calc-text-positions").bind("click", callback);
 }
@@ -1511,6 +1633,8 @@ module.exports = {
     setSelectButtonAction: setSelectButtonAction,
     setNewTrackButtonAction: setNewTrackButtonAction,
     setNewConnectionAction: setNewConnectionAction,
+    setUndoAction: setUndoAction,
+    setRedoAction: setRedoAction,
     setToggleSnapAction: setToggleSnapAction,
     setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,
@@ -1518,12 +1642,12 @@ module.exports = {
 };
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
 var core = __webpack_require__(0);
-var metrosketcher = __webpack_require__(14);
+var metrosketcher = __webpack_require__(15);
 
 var currentTrack = null;
 
@@ -1566,9 +1690,11 @@ function setTrackWidthSliderChangeAction(callback) {
         change: watchSlider,
         min: 0,
         max: 20,
+        step: 0.5,
     });
 
     function watchSlider(event, ui) {
+        console.log(ui.value);
         callback(ui.value);
     }
 }
@@ -1580,6 +1706,7 @@ function setStationRadiusSliderChangeAction(callback) {
         change: watchSlider,
         min: 0,
         max: 20,
+        step: 0.5,
     });
 
     function watchSlider(event, ui) {
@@ -1593,6 +1720,7 @@ function setStationStrokeWidthSliderChangeAction(callback) {
         change: watchSlider,
         min: 0,
         max: 20,
+        step: 0.5,
     });
 
     function watchSlider(event, ui) {
@@ -1657,19 +1785,23 @@ module.exports = {
 };
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
 var core = __webpack_require__(0);
 var metromap = __webpack_require__(5);
-var snap = __webpack_require__(9);
-var interaction = __webpack_require__(11);
-var sidebar = __webpack_require__(13);
-var toolbar = __webpack_require__(12);
-var serialize = __webpack_require__(10);
+var snap = __webpack_require__(10);
+var revision = __webpack_require__(11);
+var interaction = __webpack_require__(12);
+var sidebar = __webpack_require__(14);
+var toolbar = __webpack_require__(13);
+var serialize = __webpack_require__(8);
 
 $(initialise);
+
+// disable browser context menu
+$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
 
 var map = null;
 var currentTrack = null;
@@ -1729,11 +1861,14 @@ var hitOptions = {
 
 
 function setCurrentTrack(track) {
-    if (!track) {
+    if (!track || (currentTrack && currentTrack.id === track.id)) {
         return;
     }
-    currentTrack = track;
+    if (selectedStation) {
+        selectedStation.deselect();
+    }
     selectedStation = null;
+    currentTrack = track;
     sidebar.setCurrentTrack(track);
 }
 
@@ -1768,7 +1903,9 @@ function onRightClick(event) {
 
     var stationClicked = getStationClicked(hitResult);
     if (stationClicked) {  // right mouse
-        interaction.showStationContextMenu(stationClicked.id);
+        // interaction.showStationContextMenu(stationClicked.id);
+        interaction.hideStationInfoAll();
+        interaction.showStationInfo(stationClicked);
         return;
     }
     var segmentClicked = getSegmentClicked(hitResult);
@@ -1779,6 +1916,16 @@ function onRightClick(event) {
 }
 
 
+function selectStation(stationClicked) {
+    if (selectedStation && stationClicked.id !== selectedStation.id) {
+        selectedStation.deselect();
+    }
+    stationClicked.toggleSelect();
+    selectedStation = stationClicked;
+    map.draw(drawSettings);
+}
+
+
 function onClickMajorStationMode(event) {
     console.log('onClickMajorStation');
     var hitResult = project.hitTest(event.point, hitOptions);
@@ -1786,8 +1933,8 @@ function onClickMajorStationMode(event) {
         var stationClicked = getStationClicked(hitResult);
         if (stationClicked) {
             console.log('station clicked');
-            stationClicked.select();
-            selectedStation = stationClicked;
+            selectStation(stationClicked);
+            return;
         }
     } else {
         if (!selectedStation) {
@@ -1798,11 +1945,12 @@ function onClickMajorStationMode(event) {
             var position = snap.snapPosition(currentTrack, stationNew, event.point);
             stationNew.setPosition(position);
         }
-        selectedStation = stationNew;
+        selectStation(stationNew);
         sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
         interaction.createSegmentElements(currentTrack);
-        map.draw(drawSettings);
+        revision.createRevision(map);
+        return;
     }
 }
 
@@ -1818,6 +1966,7 @@ function onClickMinorStationMode(event) {
             if (segmentClicked) {
                 currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
                 map.draw(drawSettings);
+                revision.createRevision(map);
             } else {
                 console.log('warning: no segment clicked');
             }
@@ -1831,13 +1980,13 @@ function onClickSelectMode(event) {
     if (hitResult) {
         var stationClicked = getStationClicked(hitResult);
         if (stationClicked) {
-            stationClicked.toggleSelect();
-            selectedStation = stationClicked;
-            map.draw(drawSettings);
+            console.log('selectedStation', selectedStation);
+            selectStation(stationClicked);
             return;
         }
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
+            console.log('segment clicked');
             segmentClicked.toggleSelect();
             map.draw(drawSettings);
             return;
@@ -1869,8 +2018,9 @@ function onClickCreateConnectionMode(event) {
         }
         console.log('create new connection', connectionStationA.id, connectionStationB.id);
         map.createConnection(connectionStationA, connectionStationB);
-        connectionStationA.unselect();
+        connectionStationA.deselect();
         map.draw(drawSettings);
+        revision.createRevision(map);
         connectionStationA = null;
         connectionStationB = null;
     }
@@ -1899,6 +2049,7 @@ function onMouseDown(event) {
 function onMouseUp(event) {
     if (dragging) {
         map.draw(drawSettings);
+        revision.createRevision(map);
         dragging = false;
     }
 }
@@ -1912,6 +2063,7 @@ function onMouseDrag(event) {
 	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
         }
         selectedStation.setPosition(position);
+        selectedStation.select();
 	    map.draw(drawSettingsDrag);
 	}
 }
@@ -1943,6 +2095,8 @@ function initialiseToolbarActions() {
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
     toolbar.setToggleSnapAction(snapCheckboxClicked);
+    toolbar.setUndoAction(onUndoButtonClicked);
+    toolbar.setRedoAction(onRedoButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
@@ -1971,6 +2125,7 @@ function initialiseToolbarActions() {
     function newTrackButtonClicked() {
         console.log('new track button clicked');
         var newTrack = map.createTrack();
+        revision.createRevision(map);
         var segmentStyle = styles.createSegmentStyle();
         segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
         newTrack.segmentStyle = segmentStyle;
@@ -2039,6 +2194,7 @@ function initialiseToolbarActions() {
             setCurrentTrack(map.tracks[0]);
         }
         map.draw(drawSettingsFull);
+        interaction.createMapElements(map);
     }
 
     function loadMapFile(filepath) {
@@ -2050,6 +2206,51 @@ function initialiseToolbarActions() {
 
     function loadExampleMapClicked() {
         loadMapFile("src/maps/test1.json");
+    }
+
+    function prepareUndoRedo() {
+        var currentTrackId = null;
+        if (currentTrack) {
+            currentTrackId = currentTrack.id;
+        }
+        project.clear();
+        resetState();
+        return currentTrackId;
+    }
+
+    function finaliseUndoRedo(currentTrackId) {
+        var track = null;
+        if (currentTrackId) {
+            track = map.findTrack(currentTrackId);
+        }
+        if (track && map.tracks) {
+            track = map.tracks[map.tracks.length-1];
+        } else {
+            track = map.createTrack();
+        }
+        setCurrentTrack(track);
+        map.draw(drawSettingsFull);
+    }
+
+    function onUndoButtonClicked() {
+        if (!revision.hasUndo()) {
+            console.log('NO UNDO AVAILABLE');
+            return;
+        }
+        var currentTrackId = prepareUndoRedo();
+        map = revision.undo(map);
+        finaliseUndoRedo(currentTrackId);
+    }
+
+
+    function onRedoButtonClicked() {
+        if (!revision.hasRedo()) {
+            console.log('NO REDO AVAILABLE');
+            return;
+        }
+        var currentTrackId = prepareUndoRedo();
+        map = revision.redo(map);
+        finaliseUndoRedo(currentTrackId);
     }
 
     function onTrackColorChanged(color) {
@@ -2089,10 +2290,6 @@ tool.onMouseDown = onMouseDown;
 tool.onMouseUp = onMouseUp;
 tool.onMouseDrag = onMouseDrag;
 tool.onKeyDown = onKeyDown;
-
-
-
-
 
 
 /***/ })

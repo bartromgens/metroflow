@@ -279,27 +279,24 @@ var Segment = {
     },
     toggleSelect: function() {
         if (this.isSelected) {
-            this.unselect();
+            this.deselect();
         } else {
             this.select();
         }
     },
     select: function() {
         this.isSelected = true;
-        for (var i in this.paths){
-            this.paths[i].strokeColor = this.style.selectionColor;
-        }
     },
-    unselect: function() {
+    deselect: function() {
         this.isSelected = false;
-        for (var i in this.paths){
-            this.paths[i].strokeColor = this.style.strokeColor;
-        }
     },
     createPath: function() {
         var path = new Path();
         this.paths.push(path);
         path.strokeColor = this.style.strokeColor;
+        if (this.isSelected) {
+            path.strokeColor = this.style.selectionColor;
+        }
         path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
@@ -351,7 +348,8 @@ var Segment = {
                 arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
             }
         }
-        var needsArc = Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
+        var differenceXY = Math.abs(Math.abs(stationVector.normalize().x) - Math.abs(stationVector.normalize().y));  // is almost diagonal line?
+        var needsArc = (differenceXY > 0.02) && Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
         if (needsArc) {
             var arcEnd = this.end() - arcEndRel;
             var arcBegin = this.begin() + arcBeginRel;

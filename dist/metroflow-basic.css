@@ -32,6 +32,15 @@ canvas[resize] {
     pointer-events: none;
 }
 
+#overlay-content {
+    position: absolute;
+    top: 40px;
+    width: 80%;
+    height: 95%;
+    z-index: 10;
+    pointer-events: none;
+}
+
 .station {
     position: absolute;
     top: 0;
@@ -86,4 +95,12 @@ canvas[resize] {
 
 .station-style-widget {
     margin: 10px;
+}
+
+.station-info {
+    position: absolute;
+    z-index: 100;
+    background-color: white;
+    border: solid 1px;
+    padding: 20px;
 }
