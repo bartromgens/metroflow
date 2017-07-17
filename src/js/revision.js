@@ -2,6 +2,7 @@ require("paper");
 core = require("./core.js");
 serialize = require("./serialize.js");
 
+var maxRevisions = 100;
 var revisions = [];
 var currentRevision = -1;
 
@@ -15,6 +16,10 @@ function createRevision(map) {
         console.log('clear future');
         revisions[currentRevision] = mapDataString;
         revisions.splice(currentRevision+1, revisions.length-currentRevision-1);
+    }
+    while (revisions.length > maxRevisions) {
+        revisions.shift();
+        currentRevision--;
     }
     console.log('currentRevision', currentRevision);
 }
