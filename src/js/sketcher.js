@@ -169,22 +169,24 @@ function onClickSelectMode(event) {
 function onClickCreateConnectionMode(event) {
     console.log('onClickCreateConnectionMode');
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult) {
-        var stationClicked = getStationClicked(hitResult);
-        if (stationClicked) {
-            if (!connectionStationA) {
-                connectionStationA = stationClicked;
-                connectionStationA.select();
-            } else {
-                connectionStationB = stationClicked;
-                console.log('create new connection', connectionStationA.id, connectionStationB.id);
-                map.createConnection(connectionStationA, connectionStationB);
-                map.draw();
-                connectionStationA = null;
-                connectionStationB = null;
-            }
-            return;
-        }
+    if (!hitResult) {
+        return;
+    }
+    var stationClicked = getStationClicked(hitResult);
+    if (!stationClicked) {
+        return
+    }
+
+    if (!connectionStationA) {
+        connectionStationA = stationClicked;
+        connectionStationA.select();
+    } else {
+        connectionStationB = stationClicked;
+        console.log('create new connection', connectionStationA.id, connectionStationB.id);
+        map.createConnection(connectionStationA, connectionStationB);
+        map.draw();
+        connectionStationA = null;
+        connectionStationB = null;
     }
 }
 
@@ -277,6 +279,8 @@ function initialiseToolbarActions() {
 
     function newConnectionButtionClicked() {
         console.log('new connection button clicked');
+        connectionStationA = null;
+        connectionStationB = null;
         mode = modes.createConnection;
     }
 
