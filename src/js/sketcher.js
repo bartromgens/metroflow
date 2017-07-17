@@ -3,8 +3,8 @@ var core = require("./core.js");
 var metromap = require("./map.js");
 var snap = require("./snap.js");
 var interaction = require("./interaction.js");
-var sidebar = require("./sidebar.js");
-var toolbar = require("./toolbar.js");
+var sidebar = require("./ui/sidebar.js");
+var toolbar = require("./ui/toolbar.js");
 var serialize = require("./serialize.js");
 
 

@@ -1,6 +1,6 @@
 require("paper");
-var core = require("./core.js");
-var metrosketcher = require("./sketcher.js");
+var core = require("../core.js");
+var metrosketcher = require("../sketcher.js");
 
 
 

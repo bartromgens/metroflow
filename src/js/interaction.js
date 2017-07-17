@@ -1,6 +1,6 @@
 require("paper");
 var core = require("./core.js");
-var contextmenu = require("./contextmenu.js");
+var contextmenu = require("./ui/contextmenu.js");
 
 
 function showStationContextMenu(stationId) {

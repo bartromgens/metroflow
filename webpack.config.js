@@ -16,9 +16,9 @@ module.exports = {
         snap: "./src/js/snap.js",
         serialize: "./src/js/serialize.js",
         interaction: "./src/js/interaction.js",
-        sidebar: "./src/js/sidebar.js",
-        toolbar: "./src/js/toolbar.js",
-        contextmenu: "./src/js/contextmenu.js",
+        sidebar: "./src/js/ui/sidebar.js",
+        toolbar: "./src/js/ui/toolbar.js",
+        contextmenu: "./src/js/ui/contextmenu.js",
         sketcher: "./src/js/sketcher.js",
         css: ["./src/css/basic.css"]
     },
