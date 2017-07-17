@@ -118,7 +118,8 @@ var Segment = {
                 arcEndRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
             }
         }
-        var needsArc = Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
+        var differenceXY = Math.abs(Math.abs(stationVector.normalize().x) - Math.abs(stationVector.normalize().y));  // is almost diagonal line?
+        var needsArc = (differenceXY > 0.02) && Math.abs(stationVector.x) > minStraight+arcRadius*2 && Math.abs(stationVector.y) > minStraight+arcRadius*2;
         if (needsArc) {
             var arcEnd = this.end() - arcEndRel;
             var arcBegin = this.begin() + arcBeginRel;
