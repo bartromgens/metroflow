@@ -2,8 +2,14 @@ require("paper");
 var core = require("../core.js");
 var metrosketcher = require("../sketcher.js");
 
+var currentTrack = null;
+
 
 function setCurrentTrack(track) {
+    if (currentTrack && currentTrack.id === track.id) {
+        return;
+    }
+    currentTrack = track;
     var colorPicker = document.getElementById("track-color-picker");
     colorPicker.value = track.segmentStyle.strokeColor;
     document.getElementById("station-stroke-color-picker").value = track.stationStyle.strokeColor;
