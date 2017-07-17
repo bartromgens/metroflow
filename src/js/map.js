@@ -1,10 +1,12 @@
 core = require("./core.js");
 metrotrack = require("./track.js");
+metroconnection = require("./connection.js");
 
 
 var Map = {
     Map: function() {
         this.tracks = [];
+        this.connections = [];
         return this;
     },
     createTrack: function() {
@@ -12,10 +14,18 @@ var Map = {
         this.tracks.push(newTrack);
         return newTrack;
     },
+    createConnection: function(stationA, stationB) {
+        var newConnection = metroconnection.createConnection(stationA, stationB);
+        this.connections.push(newConnection);
+        return newConnection;
+    },
     draw: function() {
         project.clear();
         for (var i in this.tracks) {
             this.tracks[i].draw();
+        }
+        for (var i in this.connections) {
+            this.connections[i].draw();
         }
         this.drawStationNames();
     },

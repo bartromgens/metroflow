@@ -33,6 +33,11 @@ function setNewTrackButtonAction(callback) {
     buttonNewTrack.bind("click", callback);
 }
 
+function setNewConnectionAction(callback) {
+    var buttonNewConnection = $("#button-new-connection");
+    buttonNewConnection.bind("click", callback);
+}
+
 function setSaveMapAction(callback) {
     var button = $("#button-save-map");
     button.bind("click", callback);
@@ -49,6 +54,7 @@ module.exports = {
     setMinorStationButtonAction: setMinorStationButtonAction,
     setSelectButtonAction: setSelectButtonAction,
     setNewTrackButtonAction: setNewTrackButtonAction,
+    setNewConnectionAction: setNewConnectionAction,
     setSaveMapAction: setSaveMapAction,
     setLoadMapAction: setLoadMapAction
 };

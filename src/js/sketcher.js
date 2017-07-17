@@ -13,6 +13,8 @@ var map = null;
 var currentTrack = null;
 var segmentClicked = null;
 var selectedStation = null;
+var connectionStationA = null;
+var connectionStationB = null;
 
 
 function initialise() {
@@ -25,7 +27,8 @@ function initialise() {
 var modes = {
     majorstation: "majorstation",
     minorstation: "minorstation",
-    select: "select"
+    select: "select",
+    createConnection: "createConnection"
 };
 
 var mode = modes.majorstation;
@@ -149,6 +152,29 @@ function onClickSelectMode(event) {
 }
 
 
+function onClickCreateConnectionMode(event) {
+    console.log('onClickCreateConnectionMode');
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult) {
+        var stationClicked = getStationClicked(hitResult);
+        if (stationClicked) {
+            if (!connectionStationA) {
+                connectionStationA = stationClicked;
+                connectionStationA.select();
+            } else {
+                connectionStationB = stationClicked;
+                console.log('create new connection', connectionStationA.id, connectionStationB.id);
+                map.createConnection(connectionStationA, connectionStationB);
+                map.draw();
+                connectionStationA = null;
+                connectionStationB = null;
+            }
+            return;
+        }
+    }
+}
+
+
 function onMouseDown(event) {
     if (event.event.which === 3) {  // right mouse
         onRightClick(event);
@@ -162,6 +188,8 @@ function onMouseDown(event) {
         onClickMinorStationMode(event);
     } else if (mode === modes.select) {
         onClickSelectMode(event);
+    } else if (mode === modes.createConnection) {
+        onClickCreateConnectionMode(event);
     }
 }
 
@@ -198,6 +226,7 @@ function initialiseToolbarActions() {
     toolbar.setMinorStationButtonAction(minorStationButtonClicked);
     toolbar.setSelectButtonAction(selectButtonClicked);
     toolbar.setNewTrackButtonAction(newTrackButtonClicked);
+    toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
@@ -230,6 +259,11 @@ function initialiseToolbarActions() {
         segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
         newTrack.segmentStyle = segmentStyle;
         setCurrentTrack(newTrack);
+    }
+
+    function newConnectionButtionClicked() {
+        console.log('new connection button clicked');
+        mode = modes.createConnection;
     }
 
     function saveMapClicked() {

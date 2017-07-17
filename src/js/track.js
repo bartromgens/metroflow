@@ -1,3 +1,4 @@
+require("paper");
 var core = require("./core.js");
 var metrosegment = require("./segment.js");
 var metrostation = require("./station.js");

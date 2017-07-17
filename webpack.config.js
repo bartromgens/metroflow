@@ -12,6 +12,7 @@ module.exports = {
         track: "./src/js/track.js",
         segment: "./src/js/segment.js",
         station: "./src/js/station.js",
+        connection: "./src/js/connection.js",
         styles: "./src/js/styles.js",
         snap: "./src/js/snap.js",
         serialize: "./src/js/serialize.js",
