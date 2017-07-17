@@ -13,7 +13,6 @@ function createRevision(map) {
     if (currentRevision >= revisions.length) {
         revisions.push(mapDataString);
     } else {
-        console.log('clear future');
         revisions[currentRevision] = mapDataString;
         revisions.splice(currentRevision+1, revisions.length-currentRevision-1);
     }
@@ -26,13 +25,10 @@ function createRevision(map) {
 
 
 function undo(map) {
-    console.log('revision.undo');
     if (currentRevision <= 0) {
         return map;
     }
     currentRevision--;
-    console.log('revisions.length', revisions.length);
-    console.log('undo.currentRevision', currentRevision);
     var last = revisions[currentRevision];
     map = serialize.loadMap(JSON.parse(last));
     return map;
@@ -40,9 +36,7 @@ function undo(map) {
 
 
 function redo(map) {
-    console.log('revision.redo');
     if (currentRevision+1 >= revisions.length) {
-        console.log('revision.redo - NOTHING TO REDO');
         return map;
     }
     currentRevision++;
