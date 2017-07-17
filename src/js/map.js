@@ -2,6 +2,21 @@ core = require("./core.js");
 metrotrack = require("./track.js");
 metroconnection = require("./connection.js");
 
+var DrawSettings = {
+    text: true,
+    fast: true,
+    calcTextPositions: false
+};
+
+
+function createDrawSettings() {
+    var drawSettings = {};
+    Object.keys(DrawSettings).forEach(function(key) {
+        drawSettings[key] = DrawSettings[key];
+    });
+    return drawSettings;
+}
+
 
 var Map = {
     Map: function() {
@@ -24,8 +39,8 @@ var Map = {
         this.connections.push(newConnection);
         return newConnection;
     },
-    draw: function(fast, text) {
-        console.log("map.draw() - BEGIN, fast:", fast);
+    draw: function(drawSettings) {
+        console.time("map.draw");
         project.clear();
         for (var i in this.tracks) {
             this.tracks[i].draw();
@@ -33,21 +48,22 @@ var Map = {
         for (var i in this.connections) {
             this.connections[i].draw();
         }
-        if (text) {
+        if (drawSettings.text) {
             var paths = [];
-            if (!fast) {
+            if (!drawSettings.fast) {
                 paths = this.allPaths();
+                console.log("map.draw() paths.length", paths.length);
             }
-            this.drawStationNames(paths);
+            this.drawStationNames(paths, drawSettings.calcTextPositions);
         }
-        console.log("map.draw() - END, fast:", fast);
+        console.timeEnd("map.draw");
     },
     clear: function() {
         this.tracks = [];
     },
-    drawStationNames: function(paths) {
+    drawStationNames: function(paths, calcTextPositions) {
         for (var i in this.tracks) {
-            this.tracks[i].drawStationNames(paths);
+            this.tracks[i].drawStationNames(paths, calcTextPositions);
         }
     },
     allPaths: function() {
@@ -102,4 +118,5 @@ function createMap() {
 
 module.exports = {
     createMap: createMap,
+    createDrawSettings: createDrawSettings,
 };

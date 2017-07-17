@@ -12,6 +12,7 @@ var BaseStation = {
         this.path = null;
         this.isSelected = false;
         this.name = "station";
+        this.textPositionRel = null;
         return this;
     },
     toggleSelect: function() {
@@ -31,6 +32,7 @@ var BaseStation = {
     },
     setPosition: function(position) {
         this.position = position;
+        this.textPositionRel = null;
         this.notifyAllObservers();
     },
 };

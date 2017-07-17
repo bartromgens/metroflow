@@ -38,6 +38,10 @@ function setNewConnectionAction(callback) {
     buttonNewConnection.bind("click", callback);
 }
 
+function setCalcTextPositionsAction(callback) {
+    $("#button-calc-text-positions").bind("click", callback);
+}
+
 function setSaveMapAction(callback) {
     var button = $("#button-save-map");
     button.bind("click", callback);
@@ -55,6 +59,7 @@ module.exports = {
     setSelectButtonAction: setSelectButtonAction,
     setNewTrackButtonAction: setNewTrackButtonAction,
     setNewConnectionAction: setNewConnectionAction,
+    setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,
     setLoadMapAction: setLoadMapAction
 };

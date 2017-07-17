@@ -15,10 +15,13 @@ var segmentClicked = null;
 var selectedStation = null;
 var connectionStationA = null;
 var connectionStationB = null;
+var drawSettings = null;
+var drawSettingsDrag = null;
 
 
 function resetState() {
     map = null;
+    drawSettings = null;
     currentTrack = null;
     segmentClicked = null;
     selectedStation = null;
@@ -28,6 +31,10 @@ function resetState() {
 
 
 function initialise() {
+    drawSettings = metromap.createDrawSettings();
+    drawSettingsDrag = metromap.createDrawSettings();
+    drawSettingsDrag.text = false;
+    drawSettingsDrag.fast = true;
     initialiseToolbarActions();
     map = metromap.createMap();
     setCurrentTrack(map.createTrack());
@@ -124,7 +131,7 @@ function onClickMajorStationMode(event) {
         sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
         interaction.createSegmentElements(currentTrack);
-        map.draw();
+        map.draw(drawSettings);
     }
 }
 
@@ -139,7 +146,7 @@ function onClickMinorStationMode(event) {
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
                 currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
-                map.draw();
+                map.draw(drawSettings);
             } else {
                 console.log('warning: no segment clicked');
             }
@@ -182,9 +189,13 @@ function onClickCreateConnectionMode(event) {
         connectionStationA.select();
     } else {
         connectionStationB = stationClicked;
+        if (connectionStationA.id === connectionStationB.id) {
+            connectionStationB = null;
+            return;
+        }
         console.log('create new connection', connectionStationA.id, connectionStationB.id);
         map.createConnection(connectionStationA, connectionStationB);
-        map.draw();
+        map.draw(drawSettings);
         connectionStationA = null;
         connectionStationB = null;
     }
@@ -210,11 +221,16 @@ function onMouseDown(event) {
 }
 
 
+function onMouseUp(event) {
+    map.draw(drawSettings);
+}
+
+
 function onMouseDrag(event) {
 	if (selectedStation) {
 	    var position = snap.snapPosition(currentTrack, selectedStation, event.point);
         selectedStation.setPosition(position);
-	    map.draw();
+	    map.draw(drawSettingsDrag);
 	}
 }
 
@@ -223,7 +239,7 @@ function onKeyDown(event) {
     if (event.key === 'd') {
         console.log('d key pressed');
         core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-        map.draw();
+        map.draw(drawSettings);
         if (core.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
@@ -243,6 +259,7 @@ function initialiseToolbarActions() {
     toolbar.setSelectButtonAction(selectButtonClicked);
     toolbar.setNewTrackButtonAction(newTrackButtonClicked);
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
+    toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
@@ -284,6 +301,15 @@ function initialiseToolbarActions() {
         mode = modes.createConnection;
     }
 
+    function calcTextPositionButtonClicked() {
+        console.log('calc text position button clicked');
+        var drawSettings = metromap.createDrawSettings();
+        drawSettings.fast = false;
+        drawSettings.text = true;
+        drawSettings.calcTextPositions = true;
+        map.draw(drawSettings);
+    }
+
     function saveMapClicked() {
         console.log('save map button clicked');
         var mapJSONString = serialize.saveMap(map);
@@ -300,6 +326,7 @@ function initialiseToolbarActions() {
 
     function loadMapClicked(event) {
         console.log('load map button clicked');
+        project.clear();
         resetState();
         readSingleFile(event);
 
@@ -326,10 +353,11 @@ function initialiseToolbarActions() {
         if (map.tracks.length > 0) {
             setCurrentTrack(map.tracks[0]);
         }
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function loadMapFile(filepath) {
+        project.clear();
         $.getJSON(filepath, function(json) {
             loadMapJson(json);
         });
@@ -344,35 +372,36 @@ function initialiseToolbarActions() {
         var segmentStyle = currentTrack.segmentStyle;
         segmentStyle.strokeColor = color;
         currentTrack.setSegmentStyle(segmentStyle);
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onTrackWidthChanged(value) {
         var segmentStyle = currentTrack.segmentStyle;
         segmentStyle.strokeWidth = value;
         currentTrack.setSegmentStyle(segmentStyle);
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onStationRadiusChanged(radius) {
         console.log('onStationRadiusChanged', radius);
         currentTrack.stationStyle.stationRadius = radius;
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onStationStrokeWidthChanged(strokeWidth) {
         currentTrack.stationStyle.strokeWidth = strokeWidth;
-        map.draw();
+        map.draw(drawSettings);
     }
 
     function onStationStrokeColorChanged(color) {
         currentTrack.stationStyle.strokeColor = color;
-        map.draw();
+        map.draw(drawSettings);
     }
 }
 
 
 tool.onMouseDown = onMouseDown;
+tool.onMouseUp = onMouseUp;
 tool.onMouseDrag = onMouseDrag;
 tool.onKeyDown = onKeyDown;
 

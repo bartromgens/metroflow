@@ -138,13 +138,16 @@ var Track = {
     },
     preventIntersectionSegments: function(text, station, paths, positions) {
         if (!paths) {
-            return;
+            return positions[0];
         }
         var positionsTried = 0;
         var intersects = true;
         while (intersects && positionsTried < positions.length) {
             intersects = false;
             for (var j in paths) {
+                if (positionsTried >= positions.length-1) {
+                    break;
+                }
                 var path = paths[j];
                 intersects = text.intersects(path);
                 if (intersects) {
@@ -157,16 +160,23 @@ var Track = {
                 }
             }
         }
+        return positions[positionsTried];
     },
-    drawStationNames: function(paths) {
+    drawStationNames: function(paths, calcTextPositions) {
         var fontSize = 18;
-        this.drawMajorStationNames(paths, fontSize);
+        this.drawMajorStationNames(paths, fontSize, calcTextPositions);
         fontSize = 12;
         this.drawMinorStationNames(fontSize);
     },
-    drawMajorStationNames: function(paths, fontSize) {
+    drawMajorStationNames: function(paths, fontSize, calcTextPositions) {
         for (var i in this.stations) {
             var station = this.stations[i];
+            if (!calcTextPositions && station.textPositionRel) {
+                text = this.createText(station, station.textPositionRel);
+                text.fontSize = fontSize;
+                continue;
+            }
+            console.log('recalc best text position');
             var stationRadius = station.style.stationRadius + station.style.strokeWidth;
             var positions = [];
             positions.push(new Point(stationRadius, fontSize / 4.0));
@@ -179,26 +189,28 @@ var Track = {
             positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
             var pathsToUse = paths;
             if (paths.length === 0) {
-                var segmentTo = this.segmentToStation(station);
-                var segmentFrom = this.segmentFromStation(station);
-                var segments = [];
-                if (segmentTo) {
-                    segments.push(segmentTo);
-                }
-                if (segmentFrom) {
-                    segments.push(segmentFrom);
-                }
-                var pathsLocal = [];
-                for (var i in segments) {
-                    for (var j in segments[i].paths) {
-                        pathsLocal.push(segments[i].paths[j]);
-                    }
-                }
-                pathsToUse = pathsLocal;
+                pathsToUse = this.stationSegmentPaths(station);
             }
-            this.preventIntersectionSegments(text, station, pathsToUse, positions);
-            // console.log(paths.length);
+            station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
         }
+    },
+    stationSegmentPaths: function(station) {
+        var segmentTo = this.segmentToStation(station);
+        var segmentFrom = this.segmentFromStation(station);
+        var segments = [];
+        if (segmentTo) {
+            segments.push(segmentTo);
+        }
+        if (segmentFrom) {
+            segments.push(segmentFrom);
+        }
+        var pathsLocal = [];
+        for (var i in segments) {
+            for (var j in segments[i].paths) {
+                pathsLocal.push(segments[i].paths[j]);
+            }
+        }
+        return pathsLocal;
     },
     drawMinorStationNames: function(fontSize) {
         for (var i in this.stationsMinor) {
@@ -241,7 +253,6 @@ var Track = {
             console.log('removeStation: station not found');
             return null;
         }
-        this.draw();
         return removedStation;
     },
     findSegmentByPathId: function(id) {
