@@ -23,11 +23,11 @@ function createTrackData(track) {
     var trackData = {};
     trackData.id = track.id;
     trackData.segmentStyle = track.segmentStyle;
-    trackData.stations = [];
+    trackData.segments = [];
     trackData.stationsMinor = [];
-    for (var j in track.stations) {
-        var stationData = createStationData(track.stations[j]);
-        trackData.stations.push(stationData)
+    for (var j in track.segments) {
+        var segmentData = createSegmentData(track.segments[j]);
+        trackData.segments.push(segmentData)
     }
     for (var j in track.stationsMinor) {
         var stationData = createStationMinorData(track.stationsMinor[j]);
@@ -43,6 +43,15 @@ function createConnectionData(connection) {
         stationB: connection.stationB.id,
     };
     return connectionData;
+}
+
+
+function createSegmentData(segment) {
+    var segmentData = {
+        stationA: createStationData(segment.stationA),
+        stationB: createStationData(segment.stationB),
+    };
+    return segmentData;
 }
 
 
@@ -93,15 +102,33 @@ function loadConnections(map, connectionData) {
 
 
 function loadTrack(map, trackData) {
+    console.log('load track');
     var track = map.createTrack();
     track.id = trackData.id;
     track.setSegmentStyle(trackData.segmentStyle);
-    var previousStation = null;
-    for (var j in trackData.stations) {
-        var stationData = trackData.stations[j];
-        var station = track.createStation(new Point(stationData.position.x, stationData.position.y), previousStation);
-        station.id = stationData.id;
-        previousStation = station;
+    console.log('trackData.segments', trackData.segments);
+    for (var j in trackData.segments) {
+        var segmentData = trackData.segments[j];
+        var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y)
+        var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y)
+        stationA = track.findStation(segmentData.stationA.id);
+        stationB = track.findStation(segmentData.stationB.id);
+        if (stationA && stationB) {
+            track.createSegment(stationA, stationB);
+        } else if (stationA) {
+            stationB = track.createStation(stationBPoint, stationA);
+            stationB.id = segmentData.stationB.id;
+        } else if (stationB) {
+            stationA = track.createStation(stationAPoint);
+            stationA.id = segmentData.stationA.id;
+            track.createSegment(stationA, stationB);
+        } else {
+            stationA = track.createStation(stationAPoint);
+            stationA.id = segmentData.stationA.id;
+            stationB = track.createStation(stationBPoint);
+            stationB.id = segmentData.stationB.id;
+            track.createSegment(stationA, stationB);
+        }
     }
     for (var j in trackData.stationsMinor) {
         var stationData = trackData.stationsMinor[j];

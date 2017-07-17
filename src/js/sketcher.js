@@ -47,6 +47,7 @@ function setCurrentTrack(track) {
         return;
     }
     currentTrack = track;
+    selectedStation = null;
     sidebar.setCurrentTrack(track);
 }
 
@@ -103,6 +104,9 @@ function onClickMajorStationMode(event) {
             selectedStation = stationClicked;
         }
     } else {
+        if (!selectedStation) {
+            selectedStation = currentTrack.lastAddedStation();
+        }
         var stationNew = currentTrack.createStation(event.point, selectedStation);
         var position = snap.snapPosition(currentTrack, stationNew, event.point);
         stationNew.setPosition(position);

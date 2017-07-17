@@ -31,16 +31,18 @@ var Track = {
     },
     createStation: function(position, previousStation) {
         var station = metrostation.createStation(position, this.stationStyle);
-        if (this.stations.length > 0) {
-            if (!previousStation) {
-                previousStation = this.lastAddedStation();
-            }
-            var segment = metrosegment.createSegment(previousStation, station, this.segmentStyle);
-            this.segments.push(segment);
+        if (previousStation) {
+            this.createSegment(previousStation, station)
         }
         this.stations.push(station);
         console.log('create station', station.id);
         return station;
+    },
+    createSegment: function(stationA, stationB) {
+        console.log('track.createSegment', stationA.id, stationB.id);
+        var segment = metrosegment.createSegment(stationA, stationB, this.segmentStyle);
+        this.segments.push(segment);
+        return segment;
     },
     createStationMinorOnSegmentId: function(position, segmentId) {
         var segment = this.findSegment(segmentId);

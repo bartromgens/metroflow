@@ -10,11 +10,13 @@ var Map = {
         return this;
     },
     createTrack: function() {
+        console.log('map.createTrack()');
         var newTrack = metrotrack.createTrack();
         this.tracks.push(newTrack);
         return newTrack;
     },
     createConnection: function(stationA, stationB) {
+        console.log('map.createConnection()');
         var newConnection = metroconnection.createConnection(stationA, stationB);
         this.connections.push(newConnection);
         return newConnection;
