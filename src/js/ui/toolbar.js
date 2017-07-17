@@ -38,6 +38,14 @@ function setNewConnectionAction(callback) {
     buttonNewConnection.bind("click", callback);
 }
 
+function setUndoAction(callback) {
+    $("#button-undo").bind("click", callback);
+}
+
+function setRedoAction(callback) {
+    $("#button-redo").bind("click", callback);
+}
+
 function setCalcTextPositionsAction(callback) {
     $("#button-calc-text-positions").bind("click", callback);
 }
@@ -63,6 +71,8 @@ module.exports = {
     setSelectButtonAction: setSelectButtonAction,
     setNewTrackButtonAction: setNewTrackButtonAction,
     setNewConnectionAction: setNewConnectionAction,
+    setUndoAction: setUndoAction,
+    setRedoAction: setRedoAction,
     setToggleSnapAction: setToggleSnapAction,
     setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,

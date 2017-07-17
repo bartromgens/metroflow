@@ -6,7 +6,7 @@ var DrawSettings = {
     text: true,
     fast: true,
     calcTextPositions: false,
-    minorStationText: true,
+    minorStationText: false,
 };
 
 
@@ -105,6 +105,14 @@ var Map = {
             }
         }
         return {segment: null, track: null};
+    },
+    findTrack: function(id) {
+        for (var i in this.tracks) {
+            if (this.tracks[i].id === id) {
+                return this.tracks[i];
+            }
+        }
+        return null;
     }
 };
 

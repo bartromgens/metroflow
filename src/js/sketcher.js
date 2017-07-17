@@ -2,6 +2,7 @@ require("paper");
 var core = require("./core.js");
 var metromap = require("./map.js");
 var snap = require("./snap.js");
+var revision = require("./revision.js");
 var interaction = require("./interaction.js");
 var sidebar = require("./ui/sidebar.js");
 var toolbar = require("./ui/toolbar.js");
@@ -158,6 +159,7 @@ function onClickMajorStationMode(event) {
         sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
         interaction.createSegmentElements(currentTrack);
+        revision.createRevision(map);
         return;
     }
 }
@@ -174,6 +176,7 @@ function onClickMinorStationMode(event) {
             if (segmentClicked) {
                 currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
                 map.draw(drawSettings);
+                revision.createRevision(map);
             } else {
                 console.log('warning: no segment clicked');
             }
@@ -227,6 +230,7 @@ function onClickCreateConnectionMode(event) {
         map.createConnection(connectionStationA, connectionStationB);
         connectionStationA.unselect();
         map.draw(drawSettings);
+        revision.createRevision(map);
         connectionStationA = null;
         connectionStationB = null;
     }
@@ -255,6 +259,7 @@ function onMouseDown(event) {
 function onMouseUp(event) {
     if (dragging) {
         map.draw(drawSettings);
+        revision.createRevision(map);
         dragging = false;
     }
 }
@@ -300,6 +305,8 @@ function initialiseToolbarActions() {
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
     toolbar.setToggleSnapAction(snapCheckboxClicked);
+    toolbar.setUndoAction(onUndoButtonClicked);
+    toolbar.setRedoAction(onRedoButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
@@ -328,6 +335,7 @@ function initialiseToolbarActions() {
     function newTrackButtonClicked() {
         console.log('new track button clicked');
         var newTrack = map.createTrack();
+        revision.createRevision(map);
         var segmentStyle = styles.createSegmentStyle();
         segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
         newTrack.segmentStyle = segmentStyle;
@@ -408,6 +416,35 @@ function initialiseToolbarActions() {
 
     function loadExampleMapClicked() {
         loadMapFile("src/maps/test1.json");
+    }
+
+    function onUndoButtonClicked() {
+        if (!revision.hasUndo()) {
+            console.log('NO UNDO AVAILABLE');
+            return;
+        }
+        var currentTrackId = currentTrack.id;
+        project.clear();
+        resetState();
+        map = revision.undo(map);
+        var track = map.findTrack(currentTrackId);
+        setCurrentTrack(track);
+        map.draw(drawSettingsFull);
+    }
+
+
+    function onRedoButtonClicked() {
+        if (!revision.hasRedo()) {
+            console.log('NO REDO AVAILABLE');
+            return;
+        }
+        var currentTrackId = currentTrack.id;
+        project.clear();
+        resetState();
+        map = revision.redo(map);
+        var track = map.findTrack(currentTrackId);
+        setCurrentTrack(track);
+        map.draw(drawSettingsFull);
     }
 
     function onTrackColorChanged(color) {
