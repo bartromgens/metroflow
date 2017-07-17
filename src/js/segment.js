@@ -54,7 +54,7 @@ var Segment = {
     select: function() {
         this.isSelected = true;
         for (var i in this.paths){
-            this.paths[i].strokeColor = "green";
+            this.paths[i].strokeColor = this.style.selectionColor;
         }
     },
     unselect: function() {

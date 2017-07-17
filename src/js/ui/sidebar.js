@@ -3,6 +3,13 @@ var core = require("../core.js");
 var metrosketcher = require("../sketcher.js");
 
 
+function setCurrentTrack(track) {
+    var colorPicker = document.getElementById("track-color-picker");
+    colorPicker.value = track.segmentStyle.strokeColor;
+
+    $("#track-width-slider").slider('value', track.segmentStyle.strokeWidth);
+    $("#station-radius-slider").slider('value', track.stationStyle.stationRadius);
+}
 
 
 function setExampleMapAction(callback) {
@@ -23,13 +30,11 @@ function setTrackColorChangeAction(callback) {
 
 
 function setTrackWidthSliderChangeAction(callback) {
-    $(function() {
-        $("#track-width-slider").slider({
-            slide: watchSlider,
-            change: watchSlider,
-            min: 0,
-            max: 20,
-        });
+    $("#track-width-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
     });
 
     function watchSlider(event, ui) {
@@ -37,14 +42,13 @@ function setTrackWidthSliderChangeAction(callback) {
     }
 }
 
+
 function setStationRadiusSliderChangeAction(callback) {
-    $(function() {
-        $("#station-radius-slider").slider({
-            slide: watchSlider,
-            change: watchSlider,
-            min: 0,
-            max: 20,
-        });
+    $("#station-radius-slider").slider({
+        slide: watchSlider,
+        change: watchSlider,
+        min: 0,
+        max: 20,
     });
 
     function watchSlider(event, ui) {
@@ -87,6 +91,7 @@ function notifyNewStation(station, track) {
 module.exports = {
     notifyNewStation: notifyNewStation,
     setExampleMapAction: setExampleMapAction,
+    setCurrentTrack: setCurrentTrack,
     setTrackColorChangeAction: setTrackColorChangeAction,
     setTrackWidthSliderChangeAction: setTrackWidthSliderChangeAction,
     setStationRadiusSliderChangeAction: setStationRadiusSliderChangeAction,
