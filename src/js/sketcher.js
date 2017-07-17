@@ -18,6 +18,8 @@ var connectionStationB = null;
 var drawSettings = null;
 var drawSettingsDrag = null;
 var drawSettingsFull = null;
+var dragging = false;
+var doSnap = true;
 
 
 function resetState() {
@@ -27,6 +29,7 @@ function resetState() {
     selectedStation = null;
     connectionStationA = null;
     connectionStationB = null;
+    dragging = false;
 }
 
 
@@ -129,8 +132,10 @@ function onClickMajorStationMode(event) {
             selectedStation = currentTrack.lastAddedStation();
         }
         var stationNew = currentTrack.createStation(event.point, selectedStation);
-        var position = snap.snapPosition(currentTrack, stationNew, event.point);
-        stationNew.setPosition(position);
+        if (doSnap) {
+            var position = snap.snapPosition(currentTrack, stationNew, event.point);
+            stationNew.setPosition(position);
+        }
         selectedStation = stationNew;
         sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
@@ -166,11 +171,13 @@ function onClickSelectMode(event) {
         if (stationClicked) {
             stationClicked.toggleSelect();
             selectedStation = stationClicked;
+            map.draw(drawSettings);
             return;
         }
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
             segmentClicked.toggleSelect();
+            map.draw(drawSettings);
             return;
         }
     }
@@ -191,6 +198,7 @@ function onClickCreateConnectionMode(event) {
     if (!connectionStationA) {
         connectionStationA = stationClicked;
         connectionStationA.select();
+        map.draw(drawSettings);
     } else {
         connectionStationB = stationClicked;
         if (connectionStationA.id === connectionStationB.id) {
@@ -199,6 +207,7 @@ function onClickCreateConnectionMode(event) {
         }
         console.log('create new connection', connectionStationA.id, connectionStationB.id);
         map.createConnection(connectionStationA, connectionStationB);
+        connectionStationA.unselect();
         map.draw(drawSettings);
         connectionStationA = null;
         connectionStationB = null;
@@ -226,13 +235,20 @@ function onMouseDown(event) {
 
 
 function onMouseUp(event) {
-    map.draw(drawSettings);
+    if (dragging) {
+        map.draw(drawSettings);
+        dragging = false;
+    }
 }
 
 
 function onMouseDrag(event) {
+    dragging = true;
 	if (selectedStation) {
-	    var position = snap.snapPosition(currentTrack, selectedStation, event.point);
+        var position = event.point;
+	    if (doSnap) {
+	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
+        }
         selectedStation.setPosition(position);
 	    map.draw(drawSettingsDrag);
 	}
@@ -264,6 +280,7 @@ function initialiseToolbarActions() {
     toolbar.setNewTrackButtonAction(newTrackButtonClicked);
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
+    toolbar.setToggleSnapAction(snapCheckboxClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
@@ -307,6 +324,12 @@ function initialiseToolbarActions() {
 
     function calcTextPositionButtonClicked() {
         console.log('calc text position button clicked');
+        map.draw(drawSettingsFull);
+    }
+
+    function snapCheckboxClicked(event) {
+        console.log('snap clicked', event.target.checked);
+        doSnap = event.target.checked;
         map.draw(drawSettingsFull);
     }
 
