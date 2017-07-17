@@ -39,6 +39,7 @@ var Connection = {
         line2.strokeColor = this.stationA.style.strokeColor;
         line1.strokeWidth = stationStrokeWidth;
         line2.strokeWidth = stationStrokeWidth;
+        this.paths = [];
         this.paths.push(rectangle);
         this.paths.push(line1);
         this.paths.push(line2);
