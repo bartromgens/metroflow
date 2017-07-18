@@ -140,7 +140,7 @@ function selectStation(stationClicked) {
 function onClickMajorStationMode(event) {
     console.log('onClickMajorStation');
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult) {
+    if (hitResult && selectedStation) {
         var stationClicked = getStationClicked(hitResult, false);
         if (stationClicked) {
             console.log('station clicked');
