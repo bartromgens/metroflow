@@ -143,8 +143,8 @@ function loadTrack(map, trackData) {
     }
     for (var i in trackData.stationsMinor) {
         var stationData = trackData.stationsMinor[i];
-        var stationA = track.findStation(stationData.stationA);
-        var stationB = track.findStation(stationData.stationB);
+        var stationA = map.findStation(stationData.stationA);
+        var stationB = map.findStation(stationData.stationB);
         var station = track.createStationMinorBetweenStations(stationA, stationB);
         station.id = stationData.id;
     }
