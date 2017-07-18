@@ -77,17 +77,18 @@ function setCurrentTrack(track) {
     if (selectedStation) {
         selectedStation.deselect();
     }
-    selectedStation = null;
     currentTrack = track;
     sidebar.setCurrentTrack(track);
 }
 
 
-function getStationClicked(hitResult) {
+function getStationClicked(hitResult, allowSwitchTrack) {
     var path = hitResult.item;
     var result = map.findStationByPathId(path.id);
     var stationClicked = result.station;
-    setCurrentTrack(result.track);
+    if (allowSwitchTrack) {
+        setCurrentTrack(result.track);
+    }
     return stationClicked;
 }
 
@@ -140,10 +141,13 @@ function onClickMajorStationMode(event) {
     console.log('onClickMajorStation');
     var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult) {
-        var stationClicked = getStationClicked(hitResult);
+        var stationClicked = getStationClicked(hitResult, false);
         if (stationClicked) {
             console.log('station clicked');
-            selectStation(stationClicked);
+            if (stationClicked.id !== selectedStation.id) {
+                currentTrack.createSegment(stationClicked, selectedStation);
+            }
+            map.draw(drawSettings);
             return;
         }
     } else {
@@ -188,7 +192,7 @@ function onClickMinorStationMode(event) {
 function onClickSelectMode(event) {
     var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult) {
-        var stationClicked = getStationClicked(hitResult);
+        var stationClicked = getStationClicked(hitResult, true);
         if (stationClicked) {
             console.log('selectedStation', selectedStation);
             selectStation(stationClicked);
@@ -211,7 +215,7 @@ function onClickCreateConnectionMode(event) {
     if (!hitResult) {
         return;
     }
-    var stationClicked = getStationClicked(hitResult);
+    var stationClicked = getStationClicked(hitResult, false);
     if (!stationClicked) {
         return
     }
@@ -334,6 +338,7 @@ function initialiseToolbarActions() {
 
     function newTrackButtonClicked() {
         console.log('new track button clicked');
+        selectedStation = null;
         var newTrack = map.createTrack();
         revision.createRevision(map);
         var segmentStyle = styles.createSegmentStyle();
