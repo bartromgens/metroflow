@@ -429,6 +429,7 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.notifyAllObservers(this);
+        this.paths.forEach(function(element) {element.sendToBack()});
 //        path.fullySelected = true;
 //        return path;
     },
@@ -502,6 +503,7 @@ var Station = {
         }
         this.path.strokeWidth = this.style.strokeWidth;
         this.path.fillColor = this.style.fillColor;
+        this.path.bringToFront();
     },
 };
 
@@ -1194,8 +1196,8 @@ function loadTrack(map, trackData) {
         var segmentData = trackData.segments[i];
         var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y)
         var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y)
-        stationA = track.findStation(segmentData.stationA.id);
-        stationB = track.findStation(segmentData.stationB.id);
+        stationA = map.findStation(segmentData.stationA.id);
+        stationB = map.findStation(segmentData.stationB.id);
         var segment = null;
         if (stationA && stationB) {
             segment = track.createSegment(stationA, stationB);
@@ -1217,8 +1219,8 @@ function loadTrack(map, trackData) {
     }
     for (var i in trackData.stationsMinor) {
         var stationData = trackData.stationsMinor[i];
-        var stationA = track.findStation(stationData.stationA);
-        var stationB = track.findStation(stationData.stationB);
+        var stationA = map.findStation(stationData.stationA);
+        var stationB = map.findStation(stationData.stationB);
         var station = track.createStationMinorBetweenStations(stationA, stationB);
         station.id = stationData.id;
     }

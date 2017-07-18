@@ -429,6 +429,7 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.notifyAllObservers(this);
+        this.paths.forEach(function(element) {element.sendToBack()});
 //        path.fullySelected = true;
 //        return path;
     },

@@ -429,6 +429,7 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.notifyAllObservers(this);
+        this.paths.forEach(function(element) {element.sendToBack()});
 //        path.fullySelected = true;
 //        return path;
     },
@@ -502,6 +503,7 @@ var Station = {
         }
         this.path.strokeWidth = this.style.strokeWidth;
         this.path.fillColor = this.style.fillColor;
+        this.path.bringToFront();
     },
 };
 
@@ -1194,8 +1196,8 @@ function loadTrack(map, trackData) {
         var segmentData = trackData.segments[i];
         var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y)
         var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y)
-        stationA = track.findStation(segmentData.stationA.id);
-        stationB = track.findStation(segmentData.stationB.id);
+        stationA = map.findStation(segmentData.stationA.id);
+        stationB = map.findStation(segmentData.stationB.id);
         var segment = null;
         if (stationA && stationB) {
             segment = track.createSegment(stationA, stationB);
@@ -1217,8 +1219,8 @@ function loadTrack(map, trackData) {
     }
     for (var i in trackData.stationsMinor) {
         var stationData = trackData.stationsMinor[i];
-        var stationA = track.findStation(stationData.stationA);
-        var stationB = track.findStation(stationData.stationB);
+        var stationA = map.findStation(stationData.stationA);
+        var stationB = map.findStation(stationData.stationB);
         var station = track.createStationMinorBetweenStations(stationA, stationB);
         station.id = stationData.id;
     }
@@ -1867,17 +1869,18 @@ function setCurrentTrack(track) {
     if (selectedStation) {
         selectedStation.deselect();
     }
-    selectedStation = null;
     currentTrack = track;
     sidebar.setCurrentTrack(track);
 }
 
 
-function getStationClicked(hitResult) {
+function getStationClicked(hitResult, allowSwitchTrack) {
     var path = hitResult.item;
     var result = map.findStationByPathId(path.id);
     var stationClicked = result.station;
-    setCurrentTrack(result.track);
+    if (allowSwitchTrack) {
+        setCurrentTrack(result.track);
+    }
     return stationClicked;
 }
 
@@ -1929,11 +1932,14 @@ function selectStation(stationClicked) {
 function onClickMajorStationMode(event) {
     console.log('onClickMajorStation');
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult) {
-        var stationClicked = getStationClicked(hitResult);
+    if (hitResult && selectedStation) {
+        var stationClicked = getStationClicked(hitResult, false);
         if (stationClicked) {
             console.log('station clicked');
-            selectStation(stationClicked);
+            if (stationClicked.id !== selectedStation.id) {
+                currentTrack.createSegment(stationClicked, selectedStation);
+            }
+            map.draw(drawSettings);
             return;
         }
     } else {
@@ -1978,7 +1984,7 @@ function onClickMinorStationMode(event) {
 function onClickSelectMode(event) {
     var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult) {
-        var stationClicked = getStationClicked(hitResult);
+        var stationClicked = getStationClicked(hitResult, true);
         if (stationClicked) {
             console.log('selectedStation', selectedStation);
             selectStation(stationClicked);
@@ -2001,7 +2007,7 @@ function onClickCreateConnectionMode(event) {
     if (!hitResult) {
         return;
     }
-    var stationClicked = getStationClicked(hitResult);
+    var stationClicked = getStationClicked(hitResult, false);
     if (!stationClicked) {
         return
     }
@@ -2124,6 +2130,7 @@ function initialiseToolbarActions() {
 
     function newTrackButtonClicked() {
         console.log('new track button clicked');
+        selectedStation = null;
         var newTrack = map.createTrack();
         revision.createRevision(map);
         var segmentStyle = styles.createSegmentStyle();
@@ -2284,6 +2291,41 @@ function initialiseToolbarActions() {
         map.draw(drawSettings);
     }
 }
+
+
+// $("canvas").bind("wheel", function(event) {
+//     var point = new Point(event.clientX, event.clientY);
+//     zoom(-event.originalEvent.deltaY, point);
+//
+//     function allowedZoom(zoom) {
+//         console.log(zoom);
+//         if (zoom !== paper.view.zoom)
+//         {
+//             paper.view.zoom = zoom;
+//             return zoom;
+//         }
+//         return null;
+//     }
+//
+//     function zoom(delta, point) {
+//         if (!delta) return;
+//
+//         var oldZoom = paper.view.zoom;
+//         var oldCenter = paper.view.center;
+//         var viewPos = paper.view.viewToProject(point);
+//         var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
+//
+//         if (!allowedZoom(newZoom)) {
+//             return;
+//         }
+//
+//         var zoomScale = oldZoom / newZoom;
+//         var centerAdjust = viewPos.subtract(oldCenter);
+//         var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
+//
+//         paper.view.center = view.center.add(offset);
+//     }
+// });
 
 
 tool.onMouseDown = onMouseDown;

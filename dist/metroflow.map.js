@@ -429,6 +429,7 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.notifyAllObservers(this);
+        this.paths.forEach(function(element) {element.sendToBack()});
 //        path.fullySelected = true;
 //        return path;
     },
@@ -502,6 +503,7 @@ var Station = {
         }
         this.path.strokeWidth = this.style.strokeWidth;
         this.path.fillColor = this.style.fillColor;
+        this.path.bringToFront();
     },
 };
 

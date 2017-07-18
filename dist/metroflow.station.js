@@ -280,6 +280,7 @@ var Station = {
         }
         this.path.strokeWidth = this.style.strokeWidth;
         this.path.fillColor = this.style.fillColor;
+        this.path.bringToFront();
     },
 };
 
