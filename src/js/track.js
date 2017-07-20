@@ -32,8 +32,8 @@ var Track = {
     setStationStyle: function(style) {
         this.stationStyle = style;
     },
-    createStation: function(position, previousStation) {
-        var station = metrostation.createStation(position, this.stationStyle);
+    createStationFree: function(position, previousStation) {
+        var station = metrostation.createStationFree(position, this.stationStyle);
         if (previousStation) {
             this.createSegment(previousStation, station)
         }
@@ -57,7 +57,7 @@ var Track = {
     },
     createStationMinor: function(position, segment) {
         var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, this.stationMinorStyle);
-        segment.stationsMinor.push(station);
+        segment.addStationMinor(station);
         this.stationsMinor.push(station);
         this.draw();
         return station;
@@ -112,6 +112,12 @@ var Track = {
             }
         }
         return paths;
+    },
+    updatePositions: function() {
+        for (var i in this.segments) {
+            var segment = this.segments[i];
+            segment.updatePositions();
+        }
     },
     draw: function() {
         for (var i in this.segments) {

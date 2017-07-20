@@ -53,10 +53,8 @@ var StationPainter = {
 
 var StationMinorPainter = {
     draw: function(segment) {
-        var position = segment.calcStationPosition(this);
-        this.position = position.centerPointOnLine;
         var minorStationSize = this.style.minorStationSize;
-        this.path = new Path.Line(position.centerPointOnLine, position.centerPointOnLine + position.normalUnitVector*minorStationSize);
+        this.path = new Path.Line(this.position, this.position + this.normalUnit*minorStationSize);
         this.path.strokeColor = this.style.strokeColor;
         this.path.strokeWidth = this.style.strokeWidth;
         // this.path.fillColor = this.style.fillColor;
@@ -67,9 +65,41 @@ var StationMinorPainter = {
 };
 
 
-function createStation(position, style) {
+var StationPositionSegment = {
+    updatePosition: function(segment, orderNr) {
+        var nStations = segment.stationsMinor.length + 1; // including main station
+        var totalLength = segment.lengthStraight();
+        var distanceBetweenStations = totalLength/nStations;
+        var distanceStation = distanceBetweenStations * (orderNr+1);
+        var currentLength = 0;
+        var lengthDone = 0;
+        var path = null;
+        for (var i in segment.pathsStraight) {
+            currentLength += segment.pathsStraight[i].length;
+            if (currentLength > distanceStation) {
+                path = segment.pathsStraight[i];
+                break;
+            }
+            lengthDone += currentLength;
+        }
+        var middleLine = path.lastSegment.point - path.firstSegment.point;
+        this.position = path.firstSegment.point + middleLine.normalize()*(distanceStation-lengthDone);
+        this.normalUnit = path.getNormalAt(path.length/2.0);
+        return this.position;
+    }
+};
+
+
+var StationPositionFree = {
+    updatePosition: function() {
+        return this.position;
+    }
+};
+
+
+function createStationFree(position, style) {
     var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPainter);
+    var station = Object.assign(observable, Station, StationPositionFree, StationPainter);
     if (!style) {
         style = styles.createStationStyle();
     }
@@ -78,10 +108,19 @@ function createStation(position, style) {
 }
 
 
+function createStationSegment(position, stationA, stationB, style) {
+    console.log('createStationMinor');
+    var observable = Object.create(core.Observable).Observable();
+    var station = Object.assign(observable, Station, StationPositionSegment, StationPainter);
+    station = station.Station(position, style);
+    return station;
+}
+
+
 function createStationMinor(position, stationA, stationB, style) {
     console.log('createStationMinor');
     var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationMinorPainter);
+    var station = Object.assign(observable, Station, StationPositionSegment, StationMinorPainter);
     station = station.Station(position, style);
     station.stationA = stationA;
     station.stationB = stationB;
@@ -90,6 +129,7 @@ function createStationMinor(position, stationA, stationB, style) {
 
 
 module.exports = {
-    createStation: createStation,
+    createStationFree: createStationFree,
+    createStationSegment: createStationSegment,
     createStationMinor: createStationMinor,
 };

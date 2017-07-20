@@ -7,8 +7,9 @@ var Segment = {
     Segment: function(stationA, stationB, style) {
         this.stationA = stationA;
         this.stationB = stationB;
-        this.style = style;
+        this.stations = [stationA, stationB];
         this.stationsMinor = [];
+        this.style = style;
         this.id = core.uuidv4();
         this.paths = [];
         this.directionBegin = null;
@@ -16,6 +17,10 @@ var Segment = {
         this.pathsStraight = [];
         this.isSelected = false;
         return this;
+    },
+    addStationMinor: function(stationMinor) {
+        this.stations.push(stationMinor);
+        this.stationsMinor.push(stationMinor);
     },
     begin: function() {
         return this.stationA.position;
@@ -70,25 +75,11 @@ var Segment = {
         path.fullySelected = core.DisplaySettings.isDebug;
         return path;
     },
-    calcStationPosition: function(station) {
-        var pos = this.stationsMinor.indexOf(station);
-        var nStations = this.stationsMinor.length + 1; // including main station
-        var totalLength = this.lengthStraight();
-        var distanceBetweenStations = totalLength/nStations;
-        var distanceStation = distanceBetweenStations * (pos+1);
-        var currentLength = 0;
-        var lengthDone = 0;
-        for (var i in this.pathsStraight) {
-            currentLength += this.pathsStraight[i].length;
-            if (currentLength > distanceStation) {
-                path = this.pathsStraight[i];
-                break;
-            }
-            lengthDone += currentLength;
+    updatePositions: function() {
+        for (var i in this.stations) {
+            var station = this.stations[i];
+            station.updatePosition(this, this.stationsMinor.indexOf(station));
         }
-        var middleLine = path.lastSegment.point - path.firstSegment.point;
-        var centerPointOnLine = path.firstSegment.point + middleLine.normalize()*(distanceStation-lengthDone);
-        return {centerPointOnLine: centerPointOnLine, normalUnitVector: path.getNormalAt(path.length/2.0)};
     },
     draw: function(previous) {
         this.paths = [];

@@ -126,16 +126,16 @@ function loadTrack(map, trackData) {
         if (stationA && stationB) {
             segment = track.createSegment(stationA, stationB);
         } else if (stationA) {
-            stationB = track.createStation(stationBPoint, stationA);
+            stationB = track.createStationFree(stationBPoint, stationA);
             stationB.id = segmentData.stationB.id;
         } else if (stationB) {
-            stationA = track.createStation(stationAPoint);
+            stationA = track.createStationFree(stationAPoint);
             stationA.id = segmentData.stationA.id;
             segment = track.createSegment(stationA, stationB);
         } else {
-            stationA = track.createStation(stationAPoint);
+            stationA = track.createStationFree(stationAPoint);
             stationA.id = segmentData.stationA.id;
-            stationB = track.createStation(stationBPoint);
+            stationB = track.createStationFree(stationBPoint);
             stationB.id = segmentData.stationB.id;
             segment = track.createSegment(stationA, stationB);
         }

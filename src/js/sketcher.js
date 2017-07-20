@@ -154,7 +154,7 @@ function onClickMajorStationMode(event) {
         if (!selectedStation) {
             selectedStation = currentTrack.lastAddedStation();
         }
-        var stationNew = currentTrack.createStation(event.point, selectedStation);
+        var stationNew = currentTrack.createStationFree(event.point, selectedStation);
         if (doSnap) {
             var position = snap.snapPosition(currentTrack, stationNew, event.point);
             stationNew.setPosition(position);
