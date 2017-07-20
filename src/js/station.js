@@ -3,7 +3,7 @@ core = require("./core.js");
 styles = require("./styles.js");
 
 
-var BaseStation = {
+var Station = {
     Station: function(position, style) {
         console.log('new station for point', position);
         this.position = position;
@@ -36,7 +36,7 @@ var BaseStation = {
 };
 
 
-var Station = {
+var StationPainter = {
     draw: function() {
         this.path = new Path.Circle(this.position, this.style.stationRadius);
         if (this.isSelected) {
@@ -51,7 +51,7 @@ var Station = {
 };
 
 
-var StationMinor = {
+var StationMinorPainter = {
     draw: function(segment) {
         var position = segment.calcStationPosition(this);
         this.position = position.centerPointOnLine;
@@ -69,7 +69,7 @@ var StationMinor = {
 
 function createStation(position, style) {
     var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, BaseStation, Station);
+    var station = Object.assign(observable, Station, StationPainter);
     if (!style) {
         style = styles.createStationStyle();
     }
@@ -81,7 +81,7 @@ function createStation(position, style) {
 function createStationMinor(position, stationA, stationB, style) {
     console.log('createStationMinor');
     var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, BaseStation, StationMinor);
+    var station = Object.assign(observable, Station, StationMinorPainter);
     station = station.Station(position, style);
     station.stationA = stationA;
     station.stationB = stationB;
