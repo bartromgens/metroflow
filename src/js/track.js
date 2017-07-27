@@ -42,8 +42,8 @@ var Track = {
         return station;
     },
     createStationOnSegment: function(segment, position) {
-        var distanceFactor = segment.getOffsetOf(position) / segment.length();
-        var station = metrostation.createStationSegment(distanceFactor, this.stationStyle);
+        var offsetFactor = segment.getOffsetOf(position) / segment.length();
+        var station = metrostation.createStationSegment(offsetFactor, this.stationStyle);
         this.stations.push(station);
         segment.addStationUser(station);
     },
@@ -118,12 +118,6 @@ var Track = {
             }
         }
         return paths;
-    },
-    updatePositions: function() {
-        for (var i in this.segments) {
-            var segment = this.segments[i];
-            segment.updatePositions();
-        }
     },
     draw: function() {
         for (var i in this.segments) {

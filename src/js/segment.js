@@ -116,13 +116,15 @@ var Segment = {
         path.fullySelected = core.DisplaySettings.isDebug;
         return path;
     },
-    updatePositions: function() {
-        for (var i in this.stations) {
-            var station = this.stations[i];
-            station.updatePosition(this, this.stations.indexOf(station));
-        }
-    },
     draw: function(previous) {
+        // update positions of
+        this.stationA.updatePosition(this, 0);
+        this.stationB.updatePosition(this, 0);
+        for (var i in this.stationsUser) {
+            var station = this.stationsUser[i];
+            station.updatePosition(this, 0);
+        }
+
         this.paths = [];
         this.pathsStraight = [];
         var stationVector = this.end() - this.begin();
@@ -229,6 +231,11 @@ var Segment = {
         }
         this.notifyAllObservers(this);
         this.paths.forEach(function(element) {element.sendToBack()});
+
+        for (var i in this.stationsAuto) {
+            var station = this.stationsAuto[i];
+            station.updatePosition(this, this.stations.indexOf(station));
+        }
 //        path.fullySelected = true;
 //        return path;
     },

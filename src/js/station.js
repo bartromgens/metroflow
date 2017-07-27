@@ -72,38 +72,12 @@ var StationPositionSegmentAuto = {
     },
     updatePosition: function(segment, orderNr) {
         var nStations = segment.stations.length - 1;
-        var totalLength = segment.lengthStraight();
+        var offsetA = segment.getOffsetOf(this.stationA.position);
+        var offsetB = segment.getOffsetOf(this.stationB.position);
+        var totalLength = offsetB - offsetA;
         var distanceBetweenStations = totalLength/nStations;
         var distanceStation = distanceBetweenStations * (orderNr-1);
         var currentLength = 0;
-        var lengthDone = 0;
-        var path = null;
-        for (var i in segment.pathsStraight) {
-            currentLength += segment.pathsStraight[i].length;
-            if (currentLength > distanceStation) {
-                path = segment.pathsStraight[i];
-                break;
-            }
-            lengthDone += currentLength;
-        }
-        var middleLine = path.lastSegment.point - path.firstSegment.point;
-        this.position = path.firstSegment.point + middleLine.normalize()*(distanceStation-lengthDone);
-        this.normalUnit = path.getNormalAt(path.length/2.0);
-        return this.position;
-    }
-};
-
-
-var StationPositionSegmentUser = {
-    doSetPosition: function(position, segment) {
-        var distanceFactor = segment.getOffsetOf(position) / segment.length();
-        this.distanceFactor = distanceFactor;
-    },
-    updatePosition: function(segment, orderNr) {
-        var totalLength = segment.length();
-        var distanceStation = totalLength * this.distanceFactor;
-        var currentLength = 0;
-        var lengthDone = 0;
         var path = null;
         for (var i in segment.paths) {
             currentLength += segment.paths[i].length;
@@ -111,7 +85,31 @@ var StationPositionSegmentUser = {
                 path = segment.paths[i];
                 break;
             }
-            lengthDone += currentLength;
+        }
+        var offset = path.length-(currentLength-distanceStation);
+        this.position = path.getPointAt(offset);
+        this.normalUnit = path.getNormalAt(offset);
+        return this.position;
+    }
+};
+
+
+var StationPositionSegmentUser = {
+    doSetPosition: function(position, segment) {
+        var offsetFactor = segment.getOffsetOf(position) / segment.length();
+        this.offsetFactor = offsetFactor;
+    },
+    updatePosition: function(segment, orderNr) {
+        var totalLength = segment.length();
+        var distanceStation = totalLength * this.offsetFactor;
+        var currentLength = 0;
+        var path = null;
+        for (var i in segment.paths) {
+            currentLength += segment.paths[i].length;
+            if (currentLength >= distanceStation) {
+                path = segment.paths[i];
+                break;
+            }
         }
         var offset = path.length-(currentLength-distanceStation);
         this.position = path.getPointAt(offset);
@@ -141,12 +139,12 @@ function createStationFree(position, style) {
 }
 
 
-function createStationSegment(distanceFactor, style) {
+function createStationSegment(offsetFactor, style) {
     console.log('createStationMinor');
     var observable = Object.create(core.Observable).Observable();
     var station = Object.assign(observable, Station, StationPositionSegmentUser, StationPainter);
     station = station.Station(new Point(0, 0), style);
-    station.distanceFactor = distanceFactor;
+    station.offsetFactor = offsetFactor;
     station.doSnap = false;
     return station;
 }
