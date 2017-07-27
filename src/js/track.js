@@ -131,13 +131,13 @@ var Track = {
             var previous = this.segmentToStation(segment.stationA);
             segment.draw(previous);
         }
-        for (var i in this.stations) {
-            this.stations[i].draw();
-        }
         for (var i in this.stationsMinor) {
             var stationMinor = this.stationsMinor[i];
             var segment = this.findSegmentForStationMinor(stationMinor);
             this.stationsMinor[i].draw(segment);
+        }
+        for (var i in this.stations) {
+            this.stations[i].draw();
         }
         this.notifyAllObservers(this);
     },
