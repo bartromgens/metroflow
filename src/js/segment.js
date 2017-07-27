@@ -1,7 +1,7 @@
 core = require("./core.js");
 
-var minStraight = 30;
-var arcRadius = 10.0;
+var arcRadius = 8.0;
+var minStraight = 4.0*arcRadius;
 
 
 var Segment = {
@@ -10,13 +10,10 @@ var Segment = {
         this.stationB = stationB;
         this.stations = [stationA, stationB];
         this.stationsAuto = [];
-        this.stationsUser = [];
+        this.stationsUser = [stationA, stationB];
         this.style = style;
         this.id = core.uuidv4();
-        this.paths = [];
-        this.directionBegin = null;
-        this.directionEnd = null;
-        this.pathsStraight = [];
+        this.path = null;
         this.isSelected = false;
         return this;
     },
@@ -40,47 +37,13 @@ var Segment = {
     center: function() {
         return this.begin() + (this.end() - this.begin())/2;
     },
-    getNearestPoint: function(point) {
-        var nearestPoint = null;
-        var minDistance = 1.0e99;
-        var path = null;
-        for (var i in this.paths) {
-            var nearest = this.paths[i].getNearestPoint(point);
-            var distance = (nearest-point).length;
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestPoint = nearest;
-                path = this.paths[i];
-            }
-        }
-        return nearestPoint;
-    },
-    getOffsetOf: function(point) {
-        var offset = 0;
-        var pointOnSegment = this.getNearestPoint(point);
-        for (var i in this.paths) {
-            if (this.paths[i].hitTest(pointOnSegment)) {
-                var offsetLocal = this.paths[i].getOffsetOf(pointOnSegment);
-                offset += this.paths[i].getOffsetOf(pointOnSegment);
-                return offset;
-            }
-            offset += this.paths[i].length;
-        }
-        return offset;
-    },
     length: function() {
-        var length = 0;
-        for (var i in this.paths) {
-            length += this.paths[i].length;
-        }
-        return length;
+        return this.path.length;
     },
-    lengthStraight: function() {
-        var length = 0.0;
-        for (var i in this.pathsStraight) {
-            length += this.pathsStraight[i].length;
-        }
-        return length;
+    getOffsetOf: function(position) {
+        console.assert(position.x);
+        var position = this.path.getNearestPoint(position);
+        return this.path.getOffsetOf(position);
     },
     switchDirection: function() {
         console.log('switchDirection');
@@ -105,7 +68,6 @@ var Segment = {
     },
     createPath: function() {
         var path = new Path();
-        this.paths.push(path);
         path.strokeColor = this.style.strokeColor;
         if (this.isSelected) {
             path.strokeColor = this.style.selectionColor;
@@ -116,17 +78,62 @@ var Segment = {
         path.fullySelected = core.DisplaySettings.isDebug;
         return path;
     },
+    getNearestStation: function(position, direction) {
+        console.assert(position.x);
+        var offsetPosition = this.getOffsetOf(position);
+        var differenceMin = 1.0e99;
+        var station = null;
+        var stationOffset = null;
+        for (var i in this.stationsUser) {
+            var offset = this.getOffsetOf(this.stationsUser[i].position);
+            var difference = (offset - offsetPosition) * direction;
+            if (difference > 0 && difference < differenceMin) {
+                differenceMin = difference;
+                station = this.stationsUser[i];
+                stationOffset = offset;
+            }
+        }
+        return {station: station, offset: stationOffset};
+    },
+    getNextStation: function(position) {
+        var direction = 1;
+        var stationInfo = this.getNearestStation(position, direction);
+        if (!stationInfo.station) {
+            stationInfo.station = this.stationB;
+        }
+        return stationInfo;
+    },
+    getPreviousStation: function(position) {
+        var direction = -1;
+        var stationInfo = this.getNearestStation(position, direction);
+        if (!stationInfo.station) {
+            stationInfo.station = this.stationA;
+        }
+        return stationInfo;
+    },
+    getStationsBetween: function(stationA, stationB) {
+        var offsetA = this.path.getOffsetOf(stationA.position);
+        var offsetB = this.path.getOffsetOf(stationB.position);
+        var stations = [];
+        for (var i in this.stationsAuto) {
+            var station = this.stationsAuto[i];
+            var offset = this.path.getOffsetOf(station.position);
+            if (offset > offsetA && offset < offsetB) {
+                stations.push(station);
+            }
+        }
+        return stations;
+    },
     draw: function(previous) {
-        // update positions of
-        this.stationA.updatePosition(this, 0);
-        this.stationB.updatePosition(this, 0);
+        // console.log('segment.draw()');
+        this.stationA.updatePosition(this);
+        this.stationB.updatePosition(this);
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];
-            station.updatePosition(this, 0);
+            station.updatePosition(this);
         }
 
-        this.paths = [];
-        this.pathsStraight = [];
+        this.path = null;
         var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
         var straightBegin = Math.abs(stationVector.y) - maxDistance;
@@ -137,8 +144,7 @@ var Segment = {
         var arcBeginRel = new Point(0, straightBegin)*Math.sign(stationVector.y);
         var arcEndRel = new Point(straightEnd, 0)*Math.sign(stationVector.x);
         if (previous) {
-            var previousLastPath = previous.pathsStraight[previous.pathsStraight.length-1];
-            var tangentEndLastPath = previousLastPath.getTangentAt(previousLastPath.length);
+            var tangentEndLastPath = previous.path.getTangentAt(previous.path.length);
             var inSameDirectionOutX = (Math.sign(stationVector.x) - tangentEndLastPath.x) !== 0;
             var inSameDirectionOutY = (Math.sign(stationVector.y) - tangentEndLastPath.y) !== 0;
             if (tangentEndLastPath.x !== 0 && !inSameDirectionOutX) {
@@ -154,64 +160,30 @@ var Segment = {
         if (needsArc) {
             var arcEnd = this.end() - arcEndRel;
             var arcBegin = this.begin() + arcBeginRel;
-            var beginPoint0 = arcBegin - arcBeginRel.normalize()*arcRadius*2;
             var beginPoint1 = arcBegin - arcBeginRel.normalize()*arcRadius;
             var beginPoint2 = arcBegin + (arcEnd-arcBegin).normalize()*arcRadius;
-            var beginPoint3 = arcBegin + (arcEnd-arcBegin).normalize()*arcRadius*2;
-            var centerArc1 = beginPoint1 + (beginPoint2-beginPoint1)/2;
-            var beginCenter = centerArc1 + (arcBegin-centerArc1)/1.7;
 
-            var pathBegin = this.createPath();
-            this.pathsStraight.push(pathBegin);
+            this.path = this.createPath();
             var beginA = this.begin();
-            var beginB = beginPoint0;
-            pathBegin.add(beginA);
-            pathBegin.add(beginB);
-            this.directionBegin = (beginB - beginA).normalize();
+            var beginB = beginPoint1;
 
-            var endPoint0 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius*2;
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
             var endPoint2 = arcEnd + arcEndRel.normalize()*arcRadius;
-            var endPoint3 = arcEnd + arcEndRel.normalize()*arcRadius*2
-            var centerArc2 = endPoint2 + (endPoint1-endPoint2)/2;
-            var endCenter = centerArc2 + (arcEnd-centerArc2)/1.7;
 
-            var pathArc1 = this.createPath();
-            pathArc1.add(beginPoint0);
-            pathArc1.add(beginPoint1);
-            pathArc1.add(beginCenter);
-            pathArc1.add(beginPoint2);
-            pathArc1.add(beginPoint3);
-            pathArc1.smooth();
+            this.path.add(this.begin());
+            this.path.add(beginPoint1);
+            this.path.quadraticCurveTo(arcBegin, beginPoint2);
+            this.path.add(endPoint1);
+            this.path.quadraticCurveTo(arcEnd, endPoint2);
+            this.path.add(this.end());
 
-            var pathMiddle = this.createPath();
-            this.pathsStraight.push(pathMiddle);
-            pathMiddle.add(beginPoint3);
-            pathMiddle.add(endPoint0);
-
-            var pathArc2 = this.createPath();
-            pathArc2.add(endPoint0);
-            pathArc2.add(endPoint1);
-            pathArc2.add(endCenter);
-            pathArc2.add(endPoint2);
-            pathArc2.add(endPoint3);
-            pathArc2.smooth();
-
-            var pathEnd = this.createPath();
-            this.pathsStraight.push(pathEnd);
-            var endA = arcEnd + arcEndRel.normalize()*arcRadius*2;
+            var endA = endPoint2;
             var endB = this.end();
-            pathEnd.add(endA);
-            pathEnd.add(endB);
-            this.directionEnd = (endB - endA).normalize();
         } else {
-            var pathMiddle = this.createPath();
-            this.pathsStraight.push(pathMiddle);
-            pathMiddle.add(this.begin());
-            pathMiddle.add(this.end());
-            pathMiddle.smooth();
-            this.directionBegin = (this.end() - this.begin()).normalize();
-            this.directionEnd = (this.begin() - this.end()).normalize();
+            this.path = this.createPath();
+            this.path.add(this.begin());
+            this.path.add(this.end());
+            // this.path.smooth();
         }
 
         if (core.DisplaySettings.isDebug) {
@@ -230,11 +202,11 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.notifyAllObservers(this);
-        this.paths.forEach(function(element) {element.sendToBack()});
+        this.path.sendToBack();
 
         for (var i in this.stationsAuto) {
             var station = this.stationsAuto[i];
-            station.updatePosition(this, this.stations.indexOf(station));
+            station.updatePosition(this);
         }
 //        path.fullySelected = true;
 //        return path;

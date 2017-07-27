@@ -55,6 +55,7 @@ var Track = {
     },
     createStationMinorOnSegmentId: function(position, segmentId) {
         var segment = this.findSegment(segmentId);
+        position = segment.path.getNearestPoint(position);
         return this.createStationMinor(position, segment);
     },
     createStationMinorBetweenStations: function(stationA, stationB) {
@@ -113,13 +114,12 @@ var Track = {
     allPaths: function() {
         var paths = [];
         for (var i in this.segments) {
-            for (var j in this.segments[i].paths) {
-                paths.push(this.segments[i].paths[j]);
-            }
+            paths.push(this.segments[i].path);
         }
         return paths;
     },
     draw: function() {
+        // console.log('track.draw()');
         for (var i in this.segments) {
             var segment = this.segments[i];
             var previous = this.segmentToStation(segment.stationA);
@@ -273,11 +273,8 @@ var Track = {
     },
     findSegmentByPathId: function(id) {
         for (var i in this.segments) {
-            for (var j in this.segments[i].paths) {
-                var path = this.segments[i].paths[j];
-                if (path.id === id) {
-                    return this.segments[i];
-                }
+            if (this.segments[i].path.id === id) {
+                return this.segments[i];
             }
         }
         return null;
