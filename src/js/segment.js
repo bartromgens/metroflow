@@ -3,12 +3,14 @@ core = require("./core.js");
 var minStraight = 30;
 var arcRadius = 10.0;
 
+
 var Segment = {
     Segment: function(stationA, stationB, style) {
         this.stationA = stationA;
         this.stationB = stationB;
         this.stations = [stationA, stationB];
-        this.stationsMinor = [];
+        this.stationsAuto = [];
+        this.stationsUser = [];
         this.style = style;
         this.id = core.uuidv4();
         this.paths = [];
@@ -18,9 +20,13 @@ var Segment = {
         this.isSelected = false;
         return this;
     },
-    addStationMinor: function(stationMinor) {
-        this.stations.push(stationMinor);
-        this.stationsMinor.push(stationMinor);
+    addStationAuto: function(station) {
+        this.stationsAuto.push(station);
+        this.stations.push(station);
+    },
+    addStationUser: function(station) {
+        this.stationsUser.push(station);
+        this.stations.push(station);
     },
     begin: function() {
         return this.stationA.position;
@@ -33,6 +39,41 @@ var Segment = {
     },
     center: function() {
         return this.begin() + (this.end() - this.begin())/2;
+    },
+    getNearestPoint: function(point) {
+        var nearestPoint = null;
+        var minDistance = 1.0e99;
+        var path = null;
+        for (var i in this.paths) {
+            var nearest = this.paths[i].getNearestPoint(point);
+            var distance = (nearest-point).length;
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestPoint = nearest;
+                path = this.paths[i];
+            }
+        }
+        return nearestPoint;
+    },
+    getOffsetOf: function(point) {
+        var offset = 0;
+        var pointOnSegment = this.getNearestPoint(point);
+        for (var i in this.paths) {
+            if (this.paths[i].hitTest(pointOnSegment)) {
+                var offsetLocal = this.paths[i].getOffsetOf(pointOnSegment);
+                offset += this.paths[i].getOffsetOf(pointOnSegment);
+                return offset;
+            }
+            offset += this.paths[i].length;
+        }
+        return offset;
+    },
+    length: function() {
+        var length = 0;
+        for (var i in this.paths) {
+            length += this.paths[i].length;
+        }
+        return length;
     },
     lengthStraight: function() {
         var length = 0.0;
@@ -78,7 +119,7 @@ var Segment = {
     updatePositions: function() {
         for (var i in this.stations) {
             var station = this.stations[i];
-            station.updatePosition(this, this.stationsMinor.indexOf(station));
+            station.updatePosition(this, this.stations.indexOf(station));
         }
     },
     draw: function(previous) {
@@ -197,7 +238,7 @@ var Segment = {
 function createSegment(stationA, stationB, style) {
     console.log('createSegment');
     var observable = Object.create(core.Observable).Observable();
-    segment = Object.assign(observable, Segment);
+    var segment = Object.assign(observable, Segment);
     segment = segment.Segment(stationA, stationB, style);
     return segment;
 }

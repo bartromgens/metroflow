@@ -13,6 +13,7 @@ var Station = {
         this.isSelected = false;
         this.name = "station";
         this.textPositionRel = null;
+        this.doSnap = true;
         return this;
     },
     toggleSelect: function() {
@@ -28,8 +29,8 @@ var Station = {
     deselect: function() {
         this.isSelected = false;
     },
-    setPosition: function(position) {
-        this.position = position;
+    setPosition: function(position, segment) {
+        this.doSetPosition(position, segment);
         this.textPositionRel = null;
         this.notifyAllObservers();
     },
@@ -65,12 +66,15 @@ var StationMinorPainter = {
 };
 
 
-var StationPositionSegment = {
+var StationPositionSegmentAuto = {
+    doSetPosition: function(position, segment) {
+        this.position = position;
+    },
     updatePosition: function(segment, orderNr) {
-        var nStations = segment.stationsMinor.length + 1; // including main station
+        var nStations = segment.stations.length - 1;
         var totalLength = segment.lengthStraight();
         var distanceBetweenStations = totalLength/nStations;
-        var distanceStation = distanceBetweenStations * (orderNr+1);
+        var distanceStation = distanceBetweenStations * (orderNr-1);
         var currentLength = 0;
         var lengthDone = 0;
         var path = null;
@@ -90,7 +94,36 @@ var StationPositionSegment = {
 };
 
 
+var StationPositionSegmentUser = {
+    doSetPosition: function(position, segment) {
+        var distanceFactor = segment.getOffsetOf(position) / segment.length();
+        this.distanceFactor = distanceFactor;
+    },
+    updatePosition: function(segment, orderNr) {
+        var totalLength = segment.length();
+        var distanceStation = totalLength * this.distanceFactor;
+        var currentLength = 0;
+        var lengthDone = 0;
+        var path = null;
+        for (var i in segment.paths) {
+            currentLength += segment.paths[i].length;
+            if (currentLength >= distanceStation) {
+                path = segment.paths[i];
+                break;
+            }
+            lengthDone += currentLength;
+        }
+        var offset = path.length-(currentLength-distanceStation);
+        this.position = path.getPointAt(offset);
+        return this.position;
+    }
+};
+
+
 var StationPositionFree = {
+    doSetPosition: function(position, segment) {
+        this.position = position;
+    },
     updatePosition: function() {
         return this.position;
     }
@@ -108,11 +141,13 @@ function createStationFree(position, style) {
 }
 
 
-function createStationSegment(position, stationA, stationB, style) {
+function createStationSegment(distanceFactor, style) {
     console.log('createStationMinor');
     var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionSegment, StationPainter);
-    station = station.Station(position, style);
+    var station = Object.assign(observable, Station, StationPositionSegmentUser, StationPainter);
+    station = station.Station(new Point(0, 0), style);
+    station.distanceFactor = distanceFactor;
+    station.doSnap = false;
     return station;
 }
 
@@ -120,10 +155,11 @@ function createStationSegment(position, stationA, stationB, style) {
 function createStationMinor(position, stationA, stationB, style) {
     console.log('createStationMinor');
     var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionSegment, StationMinorPainter);
+    var station = Object.assign(observable, Station, StationPositionSegmentAuto, StationMinorPainter);
     station = station.Station(position, style);
     station.stationA = stationA;
     station.stationB = stationB;
+    station.doSnap = false;
     return station;
 }
 
