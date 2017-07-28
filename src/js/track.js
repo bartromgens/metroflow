@@ -41,6 +41,12 @@ var Track = {
         console.log('create station', station.id);
         return station;
     },
+    createStationOnSegment: function(segment, offsetFactor) {
+        var station = metrostation.createStationSegment(offsetFactor, this.stationStyle);
+        this.stations.push(station);
+        segment.addStationUser(station);
+        return station;
+    },
     createSegment: function(stationA, stationB) {
         console.log('track.createSegment', stationA.id, stationB.id);
         var segment = metrosegment.createSegment(stationA, stationB, this.segmentStyle);
@@ -49,15 +55,13 @@ var Track = {
     },
     createStationMinorOnSegmentId: function(position, segmentId) {
         var segment = this.findSegment(segmentId);
+        position = segment.path.getNearestPoint(position);
         return this.createStationMinor(position, segment);
-    },
-    createStationMinorBetweenStations: function(stationA, stationB) {
-        var segment = this.findSegmentBetweenStations(stationA, stationB);
-        return this.createStationMinor(segment.center(), segment);
     },
     createStationMinor: function(position, segment) {
         var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, this.stationMinorStyle);
-        segment.addStationMinor(station);
+        segment.addStationAuto(station);
+        station.setPosition(position, segment);
         this.stationsMinor.push(station);
         this.draw();
         return station;
@@ -107,31 +111,24 @@ var Track = {
     allPaths: function() {
         var paths = [];
         for (var i in this.segments) {
-            for (var j in this.segments[i].paths) {
-                paths.push(this.segments[i].paths[j]);
-            }
+            paths.push(this.segments[i].path);
         }
         return paths;
     },
-    updatePositions: function() {
-        for (var i in this.segments) {
-            var segment = this.segments[i];
-            segment.updatePositions();
-        }
-    },
     draw: function() {
+        // console.log('track.draw()');
         for (var i in this.segments) {
             var segment = this.segments[i];
             var previous = this.segmentToStation(segment.stationA);
             segment.draw(previous);
         }
-        for (var i in this.stations) {
-            this.stations[i].draw();
-        }
         for (var i in this.stationsMinor) {
             var stationMinor = this.stationsMinor[i];
             var segment = this.findSegmentForStationMinor(stationMinor);
             this.stationsMinor[i].draw(segment);
+        }
+        for (var i in this.stations) {
+            this.stations[i].draw();
         }
         this.notifyAllObservers(this);
     },
@@ -273,11 +270,8 @@ var Track = {
     },
     findSegmentByPathId: function(id) {
         for (var i in this.segments) {
-            for (var j in this.segments[i].paths) {
-                var path = this.segments[i].paths[j];
-                if (path.id === id) {
-                    return this.segments[i];
-                }
+            if (this.segments[i].path.id === id) {
+                return this.segments[i];
             }
         }
         return null;
@@ -301,6 +295,15 @@ var Track = {
     },
     findSegmentForStationMinor: function(stationMinor) {
         return this.findSegmentBetweenStations(stationMinor.stationA, stationMinor.stationB);
+    },
+    findSegmentForStation: function(station) {
+        for (var i in this.segments) {
+            var index = this.segments[i].stations.indexOf(station);
+            if (index != -1) {
+                return this.segments[i];
+            }
+        }
+        return null;
     }
 };
 

@@ -40,12 +40,8 @@ var Map = {
         this.connections.push(newConnection);
         return newConnection;
     },
-    updatePositions: function() {
-        this.tracks.forEach(function(element) {element.updatePositions()});
-    },
     draw: function(drawSettings) {
         console.time("map.draw");
-        this.updatePositions();
         project.clear();
         for (var i in this.tracks) {
             this.tracks[i].draw(drawSettings);

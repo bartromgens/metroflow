@@ -140,14 +140,23 @@ function selectStation(stationClicked) {
 function onClickMajorStationMode(event) {
     console.log('onClickMajorStation');
     var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult && selectedStation) {
+    if (hitResult) {
         var stationClicked = getStationClicked(hitResult, false);
-        if (stationClicked) {
+        if (stationClicked && selectedStation) {
             console.log('station clicked');
             if (stationClicked.id !== selectedStation.id) {
                 currentTrack.createSegment(stationClicked, selectedStation);
             }
             map.draw(drawSettings);
+            revision.createRevision(map);
+            return;
+        }
+        var segmentClicked = getSegmentClicked(hitResult);
+        if (segmentClicked) {
+            var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
+            currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
+            map.draw(drawSettings);
+            revision.createRevision(map);
             return;
         }
     } else {
@@ -273,10 +282,12 @@ function onMouseDrag(event) {
     dragging = true;
 	if (selectedStation) {
         var position = event.point;
-	    if (doSnap) {
+	    if (doSnap && selectedStation.doSnap) {
 	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
         }
-        selectedStation.setPosition(position);
+        var segment = currentTrack.findSegmentForStation(selectedStation);
+	    console.assert(segment);
+        selectedStation.setPosition(position, segment);
         selectedStation.select();
 	    map.draw(drawSettingsDrag);
 	}
