@@ -95,8 +95,12 @@ var StationPositionSegmentAuto = {
         // console.log('stationsAuto', stationsAuto);
         // console.log('orderNr', orderNr);
         // console.log('stationOffset', stationOffset);
-        this.position = segment.path.getPointAt(stationOffset);
-        this.offsetFactor = segment.getOffsetOf(this.position) / segment.length();
+        var position = segment.path.getPointAt(stationOffset);
+        console.assert(position);
+        if (position) {
+            this.position = position;
+        }
+        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
         // console.log('segment.getOffsetOf(this.position)', segment.getOffsetOf(this.position));
         // console.log('offsetFactor', this.offsetFactor);
         this.normalUnit = segment.path.getNormalAt(stationOffset);

@@ -282,6 +282,7 @@ function onMouseDrag(event) {
 	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
         }
         var segment = currentTrack.findSegmentForStation(selectedStation);
+	    console.assert(segment);
         selectedStation.setPosition(position, segment);
         selectedStation.select();
 	    map.draw(drawSettingsDrag);
