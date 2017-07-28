@@ -30,10 +30,6 @@ function createTrackData(track) {
         var segmentData = createSegmentData(track.segments[j]);
         trackData.segments.push(segmentData)
     }
-    for (var j in track.stationsMinor) {
-        var stationData = createStationMinorData(track.stationsMinor[j]);
-        trackData.stationsMinor.push(stationData)
-    }
     return trackData;
 }
 
@@ -49,9 +45,19 @@ function createConnectionData(connection) {
 
 
 function createSegmentData(segment) {
+    var stationsUserData = [];
+    for (var i in segment.stationsUser) {
+        stationsUserData.push(createStationData(segment.stationsUser[i]));
+    }
+    var stationsAutoData = [];
+    for (var i in segment.stationsAuto) {
+        stationsAutoData.push(createStationData(segment.stationsAuto[i]));
+    }
     var segmentData = {
         stationA: createStationData(segment.stationA),
         stationB: createStationData(segment.stationB),
+        stationsUser: stationsUserData,
+        stationsAuto: stationsAutoData,
         id: segment.id,
     };
     return segmentData;
@@ -63,6 +69,7 @@ function createStationData(station) {
         position: {x: station.position.x, y: station.position.y},
         id: station.id,
         name: station.name,
+        offsetFactor: station.offsetFactor,
     };
     return stationData;
 }
@@ -115,40 +122,55 @@ function loadTrack(map, trackData) {
     track.id = trackData.id;
     track.setSegmentStyle(trackData.segmentStyle);
     track.setStationStyle(trackData.stationStyle);
-    // track.stationStyle = trackData.stationStyle;
     for (var i in trackData.segments) {
         var segmentData = trackData.segments[i];
-        var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y)
-        var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y)
-        stationA = map.findStation(segmentData.stationA.id);
-        stationB = map.findStation(segmentData.stationB.id);
-        var segment = null;
-        if (stationA && stationB) {
-            segment = track.createSegment(stationA, stationB);
-        } else if (stationA) {
-            stationB = track.createStationFree(stationBPoint, stationA);
-            stationB.id = segmentData.stationB.id;
-        } else if (stationB) {
-            stationA = track.createStationFree(stationAPoint);
-            stationA.id = segmentData.stationA.id;
-            segment = track.createSegment(stationA, stationB);
-        } else {
-            stationA = track.createStationFree(stationAPoint);
-            stationA.id = segmentData.stationA.id;
-            stationB = track.createStationFree(stationBPoint);
-            stationB.id = segmentData.stationB.id;
-            segment = track.createSegment(stationA, stationB);
-        }
-        // segment.id = segmentData.id;
-    }
-    for (var i in trackData.stationsMinor) {
-        var stationData = trackData.stationsMinor[i];
-        var stationA = map.findStation(stationData.stationA);
-        var stationB = map.findStation(stationData.stationB);
-        var station = track.createStationMinorBetweenStations(stationA, stationB);
-        station.id = stationData.id;
+        loadSegment(map, track, segmentData);
     }
     return track;
+}
+
+
+function loadSegment(map, track, segmentData) {
+    var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y);
+    var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y);
+    var stationA = map.findStation(segmentData.stationA.id);
+    var stationB = map.findStation(segmentData.stationB.id);
+    var segment = null;
+    if (stationA && stationB) {
+        segment = track.createSegment(stationA, stationB);
+    } else if (stationA) {
+        stationB = track.createStationFree(stationBPoint, stationA);
+        stationB.id = segmentData.stationB.id;
+        segment = track.findSegmentForStation(stationB);
+    } else if (stationB) {
+        stationA = track.createStationFree(stationAPoint);
+        stationA.id = segmentData.stationA.id;
+        segment = track.createSegment(stationA, stationB);
+    } else {
+        stationA = track.createStationFree(stationAPoint);
+        stationA.id = segmentData.stationA.id;
+        stationB = track.createStationFree(stationBPoint);
+        stationB.id = segmentData.stationB.id;
+        segment = track.createSegment(stationA, stationB);
+    }
+    console.assert(segment);
+
+    for (var i in segmentData.stationsUser) {
+        var stationData = segmentData.stationsUser[i];
+        if (segment.stationA.id === stationData.id || segment.stationB.id === stationData.id) {
+            continue;
+        }
+        var offsetFactor = segmentData.offsetFactor;
+        var station = track.createStationOnSegment(segment, offsetFactor);
+        station.offsetFactor = stationData.offsetFactor;
+        station.id = stationData.id;
+    }
+
+    for (var i in segmentData.stationsAuto) {
+        var stationData = segmentData.stationsAuto[i];
+        var station = track.createStationMinor(stationData.position, segment);
+        station.id = stationData.id;
+    }
 }
 
 

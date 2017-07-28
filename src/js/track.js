@@ -41,11 +41,11 @@ var Track = {
         console.log('create station', station.id);
         return station;
     },
-    createStationOnSegment: function(segment, position) {
-        var offsetFactor = segment.getOffsetOf(position) / segment.length();
+    createStationOnSegment: function(segment, offsetFactor) {
         var station = metrostation.createStationSegment(offsetFactor, this.stationStyle);
         this.stations.push(station);
         segment.addStationUser(station);
+        return station;
     },
     createSegment: function(stationA, stationB) {
         console.log('track.createSegment', stationA.id, stationB.id);
@@ -57,10 +57,6 @@ var Track = {
         var segment = this.findSegment(segmentId);
         position = segment.path.getNearestPoint(position);
         return this.createStationMinor(position, segment);
-    },
-    createStationMinorBetweenStations: function(stationA, stationB) {
-        var segment = this.findSegmentBetweenStations(stationA, stationB);
-        return this.createStationMinor(segment.center(), segment);
     },
     createStationMinor: function(position, segment) {
         var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, this.stationMinorStyle);

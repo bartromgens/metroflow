@@ -7,6 +7,7 @@ var Station = {
     Station: function(position, style) {
         console.log('new station for point', position);
         this.position = position;
+        this.offsetFactor = null;
         this.style = style;
         this.id = core.uuidv4().substring(0, 8);
         this.path = null;

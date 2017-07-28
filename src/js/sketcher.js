@@ -148,12 +148,16 @@ function onClickMajorStationMode(event) {
                 currentTrack.createSegment(stationClicked, selectedStation);
             }
             map.draw(drawSettings);
+            revision.createRevision(map);
             return;
         }
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
-            currentTrack.createStationOnSegment(segmentClicked, event.point);
+            var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
+            currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
             map.draw(drawSettings);
+            revision.createRevision(map);
+            return;
         }
     } else {
         if (!selectedStation) {
