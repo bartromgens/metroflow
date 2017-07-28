@@ -66,11 +66,6 @@ var Track = {
         this.draw();
         return station;
     },
-    stationSegments: function(station) {
-        var segments = [];
-        segments.push(this.segmentToStation(station));
-        segments.push(this.segmentFromStation(station));
-    },
     segmentToStation: function(station) {
         for (var i in this.segments) {
             var segment = this.segments[i];
