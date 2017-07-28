@@ -106,6 +106,7 @@ function loadMap(mapJSON) {
 
 
 function loadConnections(map, connectionData) {
+    console.log('load connections');
     var stationA = map.findStation(connectionData.stationA);
     var stationB = map.findStation(connectionData.stationB);
     var connection = map.createConnection(stationA, stationB);
@@ -131,6 +132,7 @@ function loadTrack(map, trackData) {
 
 
 function loadSegment(map, track, segmentData) {
+    console.log('load segment');
     var stationAPoint = new Point(segmentData.stationA.position.x, segmentData.stationA.position.y);
     var stationBPoint = new Point(segmentData.stationB.position.x, segmentData.stationB.position.y);
     var stationA = map.findStation(segmentData.stationA.id);
