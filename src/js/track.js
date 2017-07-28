@@ -65,6 +65,7 @@ var Track = {
     createStationMinor: function(position, segment) {
         var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, this.stationMinorStyle);
         segment.addStationAuto(station);
+        station.setPosition(position, segment);
         this.stationsMinor.push(station);
         this.draw();
         return station;

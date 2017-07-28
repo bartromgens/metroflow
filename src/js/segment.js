@@ -42,6 +42,7 @@ var Segment = {
     },
     getOffsetOf: function(position) {
         console.assert(position.x);
+        console.assert(this.path, this);
         var position = this.path.getNearestPoint(position);
         return this.path.getOffsetOf(position);
     },
@@ -112,13 +113,13 @@ var Segment = {
         return stationInfo;
     },
     getStationsBetween: function(stationA, stationB) {
-        var offsetA = this.path.getOffsetOf(stationA.position);
-        var offsetB = this.path.getOffsetOf(stationB.position);
+        var offsetA = this.getOffsetOf(stationA.position);
+        var offsetB = this.getOffsetOf(stationB.position);
         var stations = [];
         for (var i in this.stationsAuto) {
             var station = this.stationsAuto[i];
-            var offset = this.path.getOffsetOf(station.position);
-            if (offset > offsetA && offset < offsetB) {
+            var offset = this.getOffsetOf(station.position);
+            if (offset >= offsetA && offset <= offsetB) {
                 stations.push(station);
             }
         }
@@ -128,10 +129,6 @@ var Segment = {
         // console.log('segment.draw()');
         this.stationA.updatePosition(this);
         this.stationB.updatePosition(this);
-        for (var i in this.stationsUser) {
-            var station = this.stationsUser[i];
-            station.updatePosition(this);
-        }
 
         this.path = null;
         var stationVector = this.end() - this.begin();
@@ -162,28 +159,20 @@ var Segment = {
             var arcBegin = this.begin() + arcBeginRel;
             var beginPoint1 = arcBegin - arcBeginRel.normalize()*arcRadius;
             var beginPoint2 = arcBegin + (arcEnd-arcBegin).normalize()*arcRadius;
-
-            this.path = this.createPath();
-            var beginA = this.begin();
-            var beginB = beginPoint1;
-
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
             var endPoint2 = arcEnd + arcEndRel.normalize()*arcRadius;
 
+            this.path = this.createPath();
             this.path.add(this.begin());
             this.path.add(beginPoint1);
             this.path.quadraticCurveTo(arcBegin, beginPoint2);
             this.path.add(endPoint1);
             this.path.quadraticCurveTo(arcEnd, endPoint2);
             this.path.add(this.end());
-
-            var endA = endPoint2;
-            var endB = this.end();
         } else {
             this.path = this.createPath();
             this.path.add(this.begin());
             this.path.add(this.end());
-            // this.path.smooth();
         }
 
         if (core.DisplaySettings.isDebug) {
@@ -201,13 +190,18 @@ var Segment = {
             var arcEndCircle = new Path.Circle(arcEnd, debugPointRadius);
             arcEndCircle.style = arcBeginCircle.style;
         }
-        this.notifyAllObservers(this);
         this.path.sendToBack();
+
+        for (var i in this.stationsUser) {
+            var station = this.stationsUser[i];
+            station.updatePosition(this);
+        }
 
         for (var i in this.stationsAuto) {
             var station = this.stationsAuto[i];
             station.updatePosition(this);
         }
+        this.notifyAllObservers(this);
 //        path.fullySelected = true;
 //        return path;
     },
