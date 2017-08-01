@@ -1,6 +1,5 @@
 require("paper");
 var core = require("../core.js");
-var metrosketcher = require("../sketcher.js");
 
 var currentTrack = null;
 
@@ -9,7 +8,6 @@ function setCurrentTrack(track) {
     if (currentTrack && currentTrack.id === track.id) {
         return;
     }
-    currentTrack = track;
     var colorPicker = document.getElementById("track-color-picker");
     colorPicker.value = track.segmentStyle.strokeColor;
     document.getElementById("station-stroke-color-picker").value = track.stationStyle.strokeColor;
@@ -17,11 +15,21 @@ function setCurrentTrack(track) {
     $("#track-width-slider").slider('value', track.segmentStyle.strokeWidth);
     $("#station-radius-slider").slider('value', track.stationStyle.stationRadius);
     $("#station-stroke-width-slider").slider('value', track.stationStyle.strokeWidth);
+
+    currentTrack = track;
+    updateTableTrack(track);
 }
 
 
 function setExampleMapAction(callback) {
-    $("#button-example-map1").bind("click", callback);
+    $("#button-example-map1").bind("click", loadFilename);
+    $("#button-example-map2").bind("click", loadFilename);
+
+    function loadFilename() {
+        var filename = $(this).data("filename");
+        console.log(filename);
+        callback(filename);
+    }
 }
 
 
@@ -95,39 +103,62 @@ function setStationStrokeColorChangeAction(callback) {
 }
 
 
-//
-// function showStations(track) {
-//     var sideBar = $("#sidebar");
-//     sideBar.empty();
-//     for (var i in track.stations) {
-//         var station = track.stations[i];
-//         sideBar.append("<span><small>Station " + station.id + "</small></span>");
-//         sideBar.append("<span><small> (" + station.position.x + ", " + station.position.y + ")</small></span>");
-//         sideBar.append("<br/>");
-//     }
-// }
-
 
 function showTracks(tracks) {
     var sideBar = $("#sidebar");
 }
 
 
-function notifyNewStation(station, track) {
-    var stationObserver = new core.Observer(
-        function(station) {
-            // showStations(track);
-        },
-        function(station) {
-            // showStations(track);
+function updateTableTrack(track) {
+    console.log('TrackObserver.trackChanged()');
+    if (!currentTrack || currentTrack.id !== track.id) {
+        return;
+    }
+    $("#track-table tbody").empty();
+    for (var i in track.stations) {
+        var station = track.stations[i];
+        addStationRow(station);
+    }
+
+    function addStationRow(station) {
+        var markup = "<tr><td><input id='station-row-" + station.id + "' type='text' name='station' value='" + station.name + "' data-stationid='" + station.id + "'></td></tr>";
+        $("#track-table tbody").append(markup);
+        $("#station-row-" + station.id).bind("change", stationNameInputChange)
+    }
+
+    function stationNameInputChange() {
+        console.log("stationNameInputChange");
+        var stationId = $(this).data("stationid");
+        console.log('stationid', stationId);
+        var station = track.findStation(stationId);
+        console.log('station', station);
+        console.log('value', $(this).val());
+        station.name = $(this).val();
+        signalTrackInfoChanged(currentTrack);
+    }
+}
+
+
+function notifyTrackChanged(track) {
+    var trackObserver = new core.Observer(
+        updateTableTrack,
+        function(track) {
+            return;
         }
     );
-    station.registerObserver(stationObserver);
+    track.registerObserver(trackObserver);
+}
+
+
+var signalTrackInfoChanged = null;
+
+function setTrackChangeAction(callback) {
+    signalTrackInfoChanged = callback;
 }
 
 
 module.exports = {
-    notifyNewStation: notifyNewStation,
+    notifyTrackChanged: notifyTrackChanged,
     setExampleMapAction: setExampleMapAction,
     setCurrentTrack: setCurrentTrack,
     setTrackColorChangeAction: setTrackColorChangeAction,
@@ -135,4 +166,5 @@ module.exports = {
     setStationRadiusSliderChangeAction: setStationRadiusSliderChangeAction,
     setStationStrokeWidthSliderChangeAction: setStationStrokeWidthSliderChangeAction,
     setStationStrokeColorChangeAction: setStationStrokeColorChangeAction,
+    setTrackChangeAction: setTrackChangeAction
 };

@@ -143,16 +143,20 @@ function loadSegment(map, track, segmentData) {
     } else if (stationA) {
         stationB = track.createStationFree(stationBPoint, stationA);
         stationB.id = segmentData.stationB.id;
+        stationB.name = segmentData.stationB.name;
         segment = track.findSegmentForStation(stationB);
     } else if (stationB) {
         stationA = track.createStationFree(stationAPoint);
         stationA.id = segmentData.stationA.id;
+        stationA.name = segmentData.stationA.name;
         segment = track.createSegment(stationA, stationB);
     } else {
         stationA = track.createStationFree(stationAPoint);
         stationA.id = segmentData.stationA.id;
+        stationA.name = segmentData.stationA.name;
         stationB = track.createStationFree(stationBPoint);
         stationB.id = segmentData.stationB.id;
+        stationB.name = segmentData.stationB.name;
         segment = track.createSegment(stationA, stationB);
     }
     console.assert(segment);
@@ -166,12 +170,14 @@ function loadSegment(map, track, segmentData) {
         var station = track.createStationOnSegment(segment, offsetFactor);
         station.offsetFactor = stationData.offsetFactor;
         station.id = stationData.id;
+        station.name = stationData.name;
     }
 
     for (var i in segmentData.stationsAuto) {
         var stationData = segmentData.stationsAuto[i];
         var station = track.createStationMinor(stationData.position, segment);
         station.id = stationData.id;
+        station.name = stationData.name;
     }
 }
 

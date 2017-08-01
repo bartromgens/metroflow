@@ -8,6 +8,7 @@ var metrostyles = require("./styles.js");
 var Track = {
     Track: function() {
         this.stations = [];
+        this.stationsMajor = [];
         this.stationsMinor = [];
         this.segmentStyle = metrostyles.createSegmentStyle();
         this.stationStyle = metrostyles.createStationStyle();
@@ -38,19 +39,24 @@ var Track = {
             this.createSegment(previousStation, station)
         }
         this.stations.push(station);
+        this.stationsMajor.push(station);
         console.log('create station', station.id);
+        this.notifyAllObservers();
         return station;
     },
     createStationOnSegment: function(segment, offsetFactor) {
         var station = metrostation.createStationSegment(offsetFactor, this.stationStyle);
         this.stations.push(station);
+        this.stationsMajor.push(station);
         segment.addStationUser(station);
+        this.notifyAllObservers();
         return station;
     },
     createSegment: function(stationA, stationB) {
         console.log('track.createSegment', stationA.id, stationB.id);
         var segment = metrosegment.createSegment(stationA, stationB, this.segmentStyle);
         this.segments.push(segment);
+        this.notifyAllObservers();
         return segment;
     },
     createStationMinorOnSegmentId: function(position, segmentId) {
@@ -62,14 +68,11 @@ var Track = {
         var station = metrostation.createStationMinor(position, segment.stationA, segment.stationB, this.stationMinorStyle);
         segment.addStationAuto(station);
         station.setPosition(position, segment);
+        this.stations.push(station);
         this.stationsMinor.push(station);
         this.draw();
+        this.notifyAllObservers();
         return station;
-    },
-    stationSegments: function(station) {
-        var segments = [];
-        segments.push(this.segmentToStation(station));
-        segments.push(this.segmentFromStation(station));
     },
     segmentToStation: function(station) {
         for (var i in this.segments) {
@@ -90,10 +93,10 @@ var Track = {
         return null;
     },
     lastAddedStation: function() {
-        if (this.stations.length === 0) {
+        if (this.stationsMajor.length === 0) {
             return null;
         }
-        return this.stations[this.stations.length - 1];
+        return this.stationsMajor[this.stationsMajor.length - 1];
     },
     connectedStations: function(station) {
         var stations = [];
@@ -127,8 +130,8 @@ var Track = {
             var segment = this.findSegmentForStationMinor(stationMinor);
             this.stationsMinor[i].draw(segment);
         }
-        for (var i in this.stations) {
-            this.stations[i].draw();
+        for (var i in this.stationsMajor) {
+            this.stationsMajor[i].draw();
         }
         this.notifyAllObservers(this);
     },
@@ -166,7 +169,7 @@ var Track = {
         return positions[positionsTried];
     },
     drawStationNames: function(paths, drawSettings) {
-        var fontSize = 16;
+        var fontSize = 14;
         this.drawMajorStationNames(paths, fontSize, drawSettings.calcTextPositions);
         fontSize = 10;
         if (drawSettings.minorStationText) {
@@ -174,8 +177,8 @@ var Track = {
         }
     },
     drawMajorStationNames: function(paths, fontSize, calcTextPositions) {
-        for (var i in this.stations) {
-            var station = this.stations[i];
+        for (var i in this.stationsMajor) {
+            var station = this.stationsMajor[i];
             if (!calcTextPositions && station.textPositionRel) {
                 text = this.createText(station, station.textPositionRel);
                 text.fontSize = fontSize;
