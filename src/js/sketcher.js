@@ -11,7 +11,7 @@ var serialize = require("./serialize.js");
 $(initialise);
 
 // disable browser context menu
-$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
+// $('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
 
 var map = null;
 var currentTrack = null;
@@ -39,6 +39,7 @@ function resetState() {
 
 function initialise() {
     drawSettings = metromap.createDrawSettings();
+    drawSettings.minorStationText = true;
     drawSettingsDrag = metromap.createDrawSettings();
     drawSettingsDrag.text = false;
     drawSettingsDrag.fast = true;
@@ -46,9 +47,10 @@ function initialise() {
     drawSettingsFull.text = true;
     drawSettingsFull.fast = false;
     drawSettingsFull.calcTextPositions = true;
+    drawSettingsFull.minorStationText = true;
     initialiseToolbarActions();
     map = metromap.createMap();
-    setCurrentTrack(map.createTrack());
+    setCurrentTrack(createTrack());
 }
 
 
@@ -68,6 +70,13 @@ var hitOptions = {
     fill: true,
     tolerance: 3
 };
+
+
+function createTrack() {
+    var track = map.createTrack();
+    sidebar.notifyTrackChanged(track);
+    return track;
+}
 
 
 function setCurrentTrack(track) {
@@ -169,7 +178,6 @@ function onClickMajorStationMode(event) {
             stationNew.setPosition(position);
         }
         selectStation(stationNew);
-        sidebar.notifyNewStation(stationNew, currentTrack);
         interaction.createStationElement(stationNew, currentTrack);
         interaction.createSegmentElements(currentTrack);
         revision.createRevision(map);
@@ -293,23 +301,6 @@ function onMouseDrag(event) {
 	}
 }
 
-
-function onKeyDown(event) {
-    if (event.key === 'd') {
-        console.log('d key pressed');
-        core.DisplaySettings.isDebug = !core.DisplaySettings.isDebug;
-        map.draw(drawSettings);
-        if (core.DisplaySettings.isDebug) {
-            $(".station").css('border-width', '1px');
-            $(".segment").css('border-width', '1px');
-        } else {
-            $(".station").css('border-width', '0px');
-            $(".segment").css('border-width', '0px');
-        }
-    }
-}
-
-
 function initialiseToolbarActions() {
     console.log('initialiseToolbarActions');
 
@@ -320,6 +311,8 @@ function initialiseToolbarActions() {
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
     toolbar.setToggleSnapAction(snapCheckboxClicked);
+    toolbar.setToggleDebugAction(debugCheckboxClicked);
+    toolbar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
     toolbar.setUndoAction(onUndoButtonClicked);
     toolbar.setRedoAction(onRedoButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
@@ -331,6 +324,11 @@ function initialiseToolbarActions() {
     sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
     sidebar.setStationStrokeWidthSliderChangeAction(onStationStrokeWidthChanged);
     sidebar.setStationStrokeColorChangeAction(onStationStrokeColorChanged);
+    sidebar.setTrackChangeAction(onTrackChanged);
+
+    function onTrackChanged(track) {
+        map.draw(drawSettings);
+    }
 
     function majorStationButtonClicked() {
         console.log('major station drawing selected');
@@ -350,7 +348,7 @@ function initialiseToolbarActions() {
     function newTrackButtonClicked() {
         console.log('new track button clicked');
         selectedStation = null;
-        var newTrack = map.createTrack();
+        var newTrack = createTrack();
         revision.createRevision(map);
         var segmentStyle = styles.createSegmentStyle();
         segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
@@ -373,6 +371,27 @@ function initialiseToolbarActions() {
     function snapCheckboxClicked(event) {
         console.log('snap clicked', event.target.checked);
         doSnap = event.target.checked;
+        map.draw(drawSettingsFull);
+    }
+
+    function minorNamesCheckboxClicked(event) {
+        console.log('minor names clicked', event.target.checked);
+        drawSettings.minorStationText = event.target.checked;
+        drawSettingsFull.minorStationText = event.target.checked;
+        map.draw(drawSettingsFull);
+    }
+
+    function debugCheckboxClicked(event) {
+        console.log('debug clicked', event.target.checked);
+        core.DisplaySettings.isDebug = event.target.checked;
+        map.draw(drawSettings);
+        if (core.DisplaySettings.isDebug) {
+            $(".station").css('border-width', '1px');
+            $(".segment").css('border-width', '1px');
+        } else {
+            $(".station").css('border-width', '0px');
+            $(".segment").css('border-width', '0px');
+        }
         map.draw(drawSettingsFull);
     }
 
@@ -452,10 +471,13 @@ function initialiseToolbarActions() {
         if (track && map.tracks) {
             track = map.tracks[map.tracks.length-1];
         } else {
-            track = map.createTrack();
+            track = createTrack();
         }
         setCurrentTrack(track);
         map.draw(drawSettingsFull);
+        for (var i in map.tracks) {
+            sidebar.notifyTrackChanged(map.tracks[i]);
+        }
     }
 
     function onUndoButtonClicked() {
