@@ -587,39 +587,48 @@ function initialiseToolbarActions() {
 }
 
 // TODO: update html elements on zoom
-// $("canvas").bind("wheel", function(event) {
-//     var point = new Point(event.clientX, event.clientY);
-//     zoom(-event.originalEvent.deltaY, point);
-//
-//     function allowedZoom(zoom) {
-//         console.log(zoom);
-//         if (zoom !== paper.view.zoom)
-//         {
-//             paper.view.zoom = zoom;
-//             return zoom;
-//         }
-//         return null;
-//     }
-//
-//     function zoom(delta, point) {
-//         if (!delta) return;
-//
-//         var oldZoom = paper.view.zoom;
-//         var oldCenter = paper.view.center;
-//         var viewPos = paper.view.viewToProject(point);
-//         var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
-//
-//         if (!allowedZoom(newZoom)) {
-//             return;
-//         }
-//
-//         var zoomScale = oldZoom / newZoom;
-//         var centerAdjust = viewPos.subtract(oldCenter);
-//         var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
-//
-//         paper.view.center = view.center.add(offset);
-//     }
-// });
+$("canvas").bind("wheel", function(event) {
+    var point = new Point(event.clientX, event.clientY);
+    zoom(-event.originalEvent.deltaY, point);
+
+    function allowedZoom(zoom) {
+        console.log(zoom);
+        if (zoom !== paper.view.zoom)
+        {
+            paper.view.zoom = zoom;
+            return zoom;
+        }
+        return null;
+    }
+
+    function zoom(delta, point) {
+        if (!delta) return;
+
+        var oldZoom = paper.view.zoom;
+        var oldCenter = paper.view.center;
+        var viewPos = paper.view.viewToProject(point);
+        var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
+
+        if (!allowedZoom(newZoom)) {
+            return;
+        }
+
+        var zoomScale = oldZoom / newZoom;
+        var centerAdjust = viewPos.subtract(oldCenter);
+        var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
+
+        paper.view.center = view.center.add(offset);
+
+        var stations = map.stations();
+        for (var i in stations) {
+            stations[i].notifyAllObservers();
+        }
+        var segments = map.segments();
+        for (var i in segments) {
+            segments[i].notifyAllObservers();
+        }
+    }
+});
 
 
 tool.onMouseDown = onMouseDown;

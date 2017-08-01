@@ -44,10 +44,8 @@ function setNewMap(newMap) {
 }
 
 
-
 function setLoadMapAction(callback) {
-    document.getElementById('file-input')
-        .addEventListener('change', callback, false);
+    document.getElementById('file-input').addEventListener('change', callback, false);
 }
 
 
