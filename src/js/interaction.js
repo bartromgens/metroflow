@@ -1,6 +1,6 @@
 require("paper");
 var core = require("./core.js");
-var contextmenu = require("./ui/contextmenu.js");
+var contextmenu = require("./sketcher/contextmenu.js");
 
 var map = null;
 

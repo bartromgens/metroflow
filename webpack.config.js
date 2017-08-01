@@ -18,10 +18,10 @@ module.exports = {
         serialize: "./src/js/serialize.js",
         revision: "./src/js/revision.js",
         interaction: "./src/js/interaction.js",
-        sidebar: "./src/js/ui/sidebar.js",
-        toolbar: "./src/js/ui/toolbar.js",
-        contextmenu: "./src/js/ui/contextmenu.js",
-        sketcher: "./src/js/sketcher.js",
+        sidebar: "./src/js/sketcher/sidebar.js",
+        toolbar: "./src/js/sketcher/toolbar.js",
+        contextmenu: "./src/js/sketcher/contextmenu.js",
+        sketcher: "./src/js/sketcher/sketcher.js",
         css: ["./src/css/basic.css"]
     },
     output: {
