@@ -8,6 +8,7 @@ var serialize = require("../serialize.js");
 var sidebar = require("./sidebar.js");
 var toolbar = require("./toolbar.js");
 var contextmenu = require("./contextmenu.js");
+var zoom = require("../controls/zoom.js");
 
 $(initialise);
 
@@ -71,12 +72,15 @@ function initialise() {
     var newMap = metromap.createMap();
     setNewMap(newMap);
     setCurrentTrack(createTrack());
+
+    zoom.enableZoomOnCanvas(map);
 }
 
 
 function setNewMap(newMap) {
     map = newMap;
     interaction.setCurrentMap(newMap);
+    zoom.setNewMap(newMap);
 }
 
 
@@ -182,7 +186,7 @@ function onClickMajorStationMode(event) {
             revision.createRevision(map);
             // TODO: create elements based on track/map observer in interaction
             var stationElement = interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
-            contextmenu.createStationContextMenu(stationElement.id, onRemoveStation);
+            contextmenu.createStationContextMenu(stationElement.attr('id'), onRemoveStation);
             return;
         }
     } else {
@@ -201,7 +205,7 @@ function onClickMajorStationMode(event) {
         var segmentElements = interaction.createSegmentElements(currentTrack);
         for (var i in segmentElements) {
             var element = segmentElements[i];
-            contextmenu.createSegmentContextMenu(element.id, currentTrack);
+            contextmenu.createSegmentContextMenu(element.attr('id'), currentTrack);
         }
         revision.createRevision(map);
         return;
@@ -476,10 +480,10 @@ function initialiseToolbarActions() {
             var stationElements = mapElements[i].stationElements;
             var segmentElements = mapElements[i].segmentElements;
             for (var j in segmentElements) {
-                contextmenu.createSegmentContextMenu(segmentElements[j].id, track);
+                contextmenu.createSegmentContextMenu(segmentElements[j].attr('id'), track);
             }
             for (var j in stationElements) {
-                contextmenu.createStationContextMenu(stationElements[j].id, onRemoveStation);
+                contextmenu.createStationContextMenu(stationElements[j].attr('id'), onRemoveStation);
             }
         }
     }
@@ -585,50 +589,6 @@ function initialiseToolbarActions() {
         map.draw(drawSettings);
     }
 }
-
-// TODO: update html elements on zoom
-$("canvas").bind("wheel", function(event) {
-    var point = new Point(event.clientX, event.clientY);
-    zoom(-event.originalEvent.deltaY, point);
-
-    function allowedZoom(zoom) {
-        console.log(zoom);
-        if (zoom !== paper.view.zoom)
-        {
-            paper.view.zoom = zoom;
-            return zoom;
-        }
-        return null;
-    }
-
-    function zoom(delta, point) {
-        if (!delta) return;
-
-        var oldZoom = paper.view.zoom;
-        var oldCenter = paper.view.center;
-        var viewPos = paper.view.viewToProject(point);
-        var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
-
-        if (!allowedZoom(newZoom)) {
-            return;
-        }
-
-        var zoomScale = oldZoom / newZoom;
-        var centerAdjust = viewPos.subtract(oldCenter);
-        var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
-
-        paper.view.center = view.center.add(offset);
-
-        var stations = map.stations();
-        for (var i in stations) {
-            stations[i].notifyAllObservers();
-        }
-        var segments = map.segments();
-        for (var i in segments) {
-            segments[i].notifyAllObservers();
-        }
-    }
-});
 
 
 tool.onMouseDown = onMouseDown;

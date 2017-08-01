@@ -23,7 +23,8 @@ module.exports = {
         contextmenu: "./src/js/sketcher/contextmenu.js",
         sketcher: "./src/js/sketcher/sketcher.js",
         viewer: "./src/js/viewer/viewer.js",
-        css: ["./src/css/basic.css"]
+        zoom: "./src/js/controls/zoom.js",
+        css: ["./src/css/sketcher.css", "./src/css/viewer.css"]
     },
     output: {
         library: ["MetroFlow", "[name]"],
@@ -62,7 +63,8 @@ module.exports = {
     plugins: [
         new ManifestPlugin(),
 //        new ExtractTextPlugin("metro.[contenthash].css"),
-        new ExtractTextPlugin("metroflow-basic.css"),
+        new ExtractTextPlugin("metroflow-sketcher.css"),
+        new ExtractTextPlugin("metroflow-viewer.css"),
         new WebpackCleanupPlugin(),
     ],
 };

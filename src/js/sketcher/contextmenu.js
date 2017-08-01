@@ -2,7 +2,7 @@ var core = require("../core.js");
 
 
 function createStationContextMenu(stationElementId, onRemoveStation) {
-    console.log('createStationContextMenu');
+    console.assert(stationElementId);
     $.contextMenu({
         selector: '#' + stationElementId,
         trigger: 'none',

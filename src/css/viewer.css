@@ -8,18 +8,11 @@ body {
     margin: 0;
 }
 
-#draw-area {
-    position: absolute;
-    top: 40px;
-    width: 80%;
-    height: 95%;
-}
-
 /* Scale canvas with resize attribute to full size */
 canvas[resize] {
     position: absolute;
     top: 40px;
-    width: 80%;
+    width: 100%;
     height: 95%;
 }
 
@@ -65,18 +58,6 @@ canvas[resize] {
     margin: 0;
 }
 
-#sidebar {
-    position: absolute;
-    right: 0;
-    top: 40px;
-    width: 20%;
-    height: 90%;
-    z-index: 100;
-    background-color: #f9f9f9;
-    pointer-events: auto;
-    border: dashed 0px;
-}
-
 #toolbar {
     position: absolute;
     top: 0;
@@ -91,26 +72,4 @@ canvas[resize] {
 .toolbar-buttons {
     padding-top: 5px;
     padding-left: 10px;
-}
-
-.station-style-widget {
-    padding: 0 10px 0 10px;
-}
-
-.map-style-widget {
-    padding: 0 10px 0 10px;
-}
-
-.track-table-container {
-    padding: 0 10px 0 10px;
-    overflow-y: scroll;
-    max-height: 400px;
-}
-
-.station-info {
-    position: absolute;
-    z-index: 100;
-    background-color: white;
-    border: solid 1px;
-    padding: 20px;
 }

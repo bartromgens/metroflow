@@ -3,8 +3,9 @@ var core = require("../core.js");
 var serialize = require("../serialize.js");
 var metromap = require("../map.js");
 var metrointeraction = require("../interaction.js");
+var metrozoom = require("../controls/zoom.js");
 
-var isDebug = false;
+var isDebug = true;
 
 var map = null;
 var currentTrack = null;
@@ -27,6 +28,7 @@ function initialise() {
     setLoadMapAction(loadMapClicked);
     var newMap = metromap.createMap();
     setNewMap(newMap);
+    metrozoom.enableZoomOnCanvas(newMap);
 }
 
 
@@ -40,7 +42,8 @@ function resetState() {
 
 function setNewMap(newMap) {
     map = newMap;
-    // interaction.setCurrentMap(newMap);
+    metrozoom.setNewMap(newMap);
+    metrointeraction.setCurrentMap(newMap);
 }
 
 
