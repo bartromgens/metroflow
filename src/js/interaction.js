@@ -39,6 +39,7 @@ function createStationMinorElement(station, track) {
 
 
 function createMapElements(map, onRemoveStation) {
+    $("#overlay").empty();
     for (var i in map.tracks) {
         createTrackElements(map.tracks[i], onRemoveStation);
     }

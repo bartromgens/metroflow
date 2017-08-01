@@ -2,9 +2,10 @@ core = require("./core.js");
 metrotrack = require("./track.js");
 metroconnection = require("./connection.js");
 
+
 var DrawSettings = {
     text: true,
-    fast: true,
+    fast: false,
     calcTextPositions: false,
     minorStationText: false,
 };

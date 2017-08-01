@@ -185,10 +185,11 @@ var Segment = {
         }
         return null;
     },
-    draw: function(previous) {
+    draw: function(previous, drawSettings) {
         // console.log('segment.draw()');
-        this.stationA.updatePosition(this);
-        this.stationB.updatePosition(this);
+        var notifyObservers = !drawSettings.fast;
+        this.stationA.updatePosition(this, notifyObservers);
+        this.stationB.updatePosition(this, notifyObservers);
 
         this.path = null;
         var stationVector = this.end() - this.begin();
@@ -254,14 +255,16 @@ var Segment = {
 
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];
-            station.updatePosition(this);
+            station.updatePosition(this, notifyObservers);
         }
 
         for (var i in this.stationsAuto) {
             var station = this.stationsAuto[i];
-            station.updatePosition(this);
+            station.updatePosition(this, notifyObservers);
         }
-        this.notifyAllObservers(this);
+        if (notifyObservers) {
+            this.notifyAllObservers(this);
+        }
 //        path.fullySelected = true;
 //        return path;
     },

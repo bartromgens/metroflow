@@ -505,6 +505,7 @@ function initialiseToolbarActions() {
         }
         setCurrentTrack(track);
         map.draw(drawSettingsFull);
+        interaction.createMapElements(map, onRemoveStation);
         for (var i in map.tracks) {
             sidebar.notifyTrackChanged(map.tracks[i]);
         }

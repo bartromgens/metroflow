@@ -70,7 +70,6 @@ var Track = {
         station.setPosition(position, segment);
         this.stations.push(station);
         this.stationsMinor.push(station);
-        this.draw();
         this.notifyAllObservers();
         return station;
     },
@@ -118,12 +117,12 @@ var Track = {
         }
         return paths;
     },
-    draw: function() {
+    draw: function(drawSettings) {
         // console.log('track.draw()');
         for (var i in this.segments) {
             var segment = this.segments[i];
             var previous = this.segmentToStation(segment.stationA);
-            segment.draw(previous);
+            segment.draw(previous, drawSettings);
         }
         for (var i in this.stationsMinor) {
             var stationMinor = this.stationsMinor[i];
@@ -133,7 +132,7 @@ var Track = {
         for (var i in this.stationsMajor) {
             this.stationsMajor[i].draw();
         }
-        this.notifyAllObservers(this);
+        // this.notifyAllObservers(this);
     },
     createText: function(station, positionRelative) {
         var text = new PointText(station.position + positionRelative);
