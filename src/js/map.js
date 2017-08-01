@@ -2,9 +2,10 @@ core = require("./core.js");
 metrotrack = require("./track.js");
 metroconnection = require("./connection.js");
 
+
 var DrawSettings = {
     text: true,
-    fast: true,
+    fast: false,
     calcTextPositions: false,
     minorStationText: false,
 };
@@ -39,6 +40,16 @@ var Map = {
         var newConnection = metroconnection.createConnection(stationA, stationB);
         this.connections.push(newConnection);
         return newConnection;
+    },
+    removeStation: function(id) {
+        for (var i in this.tracks) {
+            this.tracks[i].removeStation(id);
+        }
+        for (var i = this.connections.length - 1; i >= 0; i--) {
+            if (this.connections[i].stationA.id === id || this.connections[i].stationB.id === id) {
+                this.connections.splice(i, 1);
+            }
+        }
     },
     draw: function(drawSettings) {
         console.time("map.draw");

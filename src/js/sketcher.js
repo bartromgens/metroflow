@@ -11,7 +11,7 @@ var serialize = require("./serialize.js");
 $(initialise);
 
 // disable browser context menu
-// $('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
+$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
 
 var map = null;
 var currentTrack = null;
@@ -37,6 +37,24 @@ function resetState() {
 }
 
 
+var modes = {
+    majorstation: "majorstation",
+    minorstation: "minorstation",
+    select: "select",
+    createConnection: "createConnection"
+};
+
+
+var mode = modes.majorstation;
+
+
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    tolerance: 3
+};
+
 function initialise() {
     drawSettings = metromap.createDrawSettings();
     drawSettings.minorStationText = true;
@@ -49,27 +67,22 @@ function initialise() {
     drawSettingsFull.calcTextPositions = true;
     drawSettingsFull.minorStationText = true;
     initialiseToolbarActions();
-    map = metromap.createMap();
+    var newMap = metromap.createMap();
+    setNewMap(newMap);
     setCurrentTrack(createTrack());
 }
 
 
-var modes = {
-    majorstation: "majorstation",
-    minorstation: "minorstation",
-    select: "select",
-    createConnection: "createConnection"
-};
-
-var mode = modes.majorstation;
+function setNewMap(newMap) {
+    map = newMap;
+    interaction.setCurrentMap(newMap);
+}
 
 
-var hitOptions = {
-    segments: true,
-    stroke: true,
-    fill: true,
-    tolerance: 3
-};
+function onRemoveStation(stationId) {
+    map.removeStation(stationId);
+    map.draw(drawSettings);
+}
 
 
 function createTrack() {
@@ -123,9 +136,9 @@ function onRightClick(event) {
 
     var stationClicked = getStationClicked(hitResult);
     if (stationClicked) {  // right mouse
-        // interaction.showStationContextMenu(stationClicked.id);
-        interaction.hideStationInfoAll();
-        interaction.showStationInfo(stationClicked);
+        interaction.showStationContextMenu(stationClicked.id);
+        // interaction.hideStationInfoAll();
+        // interaction.showStationInfo(stationClicked);
         return;
     }
     var segmentClicked = getSegmentClicked(hitResult);
@@ -163,9 +176,11 @@ function onClickMajorStationMode(event) {
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
             var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
-            currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
+            var stationNew = currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
             map.draw(drawSettings);
             revision.createRevision(map);
+            // TODO: create elements based on track/map observer in interaction
+            interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
             return;
         }
     } else {
@@ -178,7 +193,8 @@ function onClickMajorStationMode(event) {
             stationNew.setPosition(position);
         }
         selectStation(stationNew);
-        interaction.createStationElement(stationNew, currentTrack);
+        // TODO: create elements based on track/map observer in interaction
+        interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
         interaction.createSegmentElements(currentTrack);
         revision.createRevision(map);
         return;
@@ -293,9 +309,9 @@ function onMouseDrag(event) {
 	    if (doSnap && selectedStation.doSnap) {
 	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
         }
-        var segment = currentTrack.findSegmentForStation(selectedStation);
-	    console.assert(segment);
-        selectedStation.setPosition(position, segment);
+        var segments = currentTrack.findSegmentsForStation(selectedStation);
+	    console.assert(segments[0]);
+        selectedStation.setPosition(position, segments[0]);
         selectedStation.select();
 	    map.draw(drawSettingsDrag);
 	}
@@ -311,13 +327,13 @@ function initialiseToolbarActions() {
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
     toolbar.setToggleSnapAction(snapCheckboxClicked);
-    toolbar.setToggleDebugAction(debugCheckboxClicked);
-    toolbar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
     toolbar.setUndoAction(onUndoButtonClicked);
     toolbar.setRedoAction(onRedoButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
+    sidebar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
+    sidebar.setToggleDebugAction(debugCheckboxClicked);
     sidebar.setExampleMapAction(loadExampleMapClicked);
     sidebar.setTrackColorChangeAction(onTrackColorChanged);
     sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
@@ -443,15 +459,16 @@ function initialiseToolbarActions() {
     function finishLoadMap(newMap) {
         newMap.draw(drawSettingsFull);
         revision.createRevision(newMap);
-        interaction.createMapElements(newMap);
+        interaction.createMapElements(newMap, onRemoveStation);
     }
 
     function loadMapJson(json) {
-        map = serialize.loadMap(json);
-        if (map.tracks.length > 0) {
-            setCurrentTrack(map.tracks[0]);
+        var newMap = serialize.loadMap(json);
+        setNewMap(newMap);
+        if (newMap.tracks.length > 0) {
+            setCurrentTrack(newMap.tracks[0]);
         }
-        finishLoadMap(map);
+        finishLoadMap(newMap);
     }
 
     function loadMapFile(filepath) {
@@ -488,6 +505,7 @@ function initialiseToolbarActions() {
         }
         setCurrentTrack(track);
         map.draw(drawSettingsFull);
+        interaction.createMapElements(map, onRemoveStation);
         for (var i in map.tracks) {
             sidebar.notifyTrackChanged(map.tracks[i]);
         }
@@ -499,7 +517,7 @@ function initialiseToolbarActions() {
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        map = revision.undo(map);
+        setNewMap(revision.undo(map));
         finaliseUndoRedo(currentTrackId);
     }
 
@@ -510,7 +528,7 @@ function initialiseToolbarActions() {
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        map = revision.redo(map);
+        setNewMap(revision.redo(map));
         finaliseUndoRedo(currentTrackId);
     }
 
@@ -546,40 +564,40 @@ function initialiseToolbarActions() {
     }
 }
 
-
-$("canvas").bind("wheel", function(event) {
-    var point = new Point(event.clientX, event.clientY);
-    zoom(-event.originalEvent.deltaY, point);
-
-    function allowedZoom(zoom) {
-        console.log(zoom);
-        if (zoom !== paper.view.zoom)
-        {
-            paper.view.zoom = zoom;
-            return zoom;
-        }
-        return null;
-    }
-
-    function zoom(delta, point) {
-        if (!delta) return;
-
-        var oldZoom = paper.view.zoom;
-        var oldCenter = paper.view.center;
-        var viewPos = paper.view.viewToProject(point);
-        var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
-
-        if (!allowedZoom(newZoom)) {
-            return;
-        }
-
-        var zoomScale = oldZoom / newZoom;
-        var centerAdjust = viewPos.subtract(oldCenter);
-        var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
-
-        paper.view.center = view.center.add(offset);
-    }
-});
+// TODO: update html elements on zoom
+// $("canvas").bind("wheel", function(event) {
+//     var point = new Point(event.clientX, event.clientY);
+//     zoom(-event.originalEvent.deltaY, point);
+//
+//     function allowedZoom(zoom) {
+//         console.log(zoom);
+//         if (zoom !== paper.view.zoom)
+//         {
+//             paper.view.zoom = zoom;
+//             return zoom;
+//         }
+//         return null;
+//     }
+//
+//     function zoom(delta, point) {
+//         if (!delta) return;
+//
+//         var oldZoom = paper.view.zoom;
+//         var oldCenter = paper.view.center;
+//         var viewPos = paper.view.viewToProject(point);
+//         var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
+//
+//         if (!allowedZoom(newZoom)) {
+//             return;
+//         }
+//
+//         var zoomScale = oldZoom / newZoom;
+//         var centerAdjust = viewPos.subtract(oldCenter);
+//         var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
+//
+//         paper.view.center = view.center.add(offset);
+//     }
+// });
 
 
 tool.onMouseDown = onMouseDown;
