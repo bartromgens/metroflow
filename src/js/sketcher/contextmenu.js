@@ -1,7 +1,8 @@
 var core = require("../core.js");
 
 
-function createStationContextMenu(stationElementId, track, map, onRemoveStation) {
+function createStationContextMenu(stationElementId, onRemoveStation) {
+    console.log('createStationContextMenu');
     $.contextMenu({
         selector: '#' + stationElementId,
         trigger: 'none',

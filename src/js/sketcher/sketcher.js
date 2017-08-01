@@ -4,9 +4,10 @@ var metromap = require("../map.js");
 var snap = require("../snap.js");
 var revision = require("../revision.js");
 var interaction = require("../interaction.js");
+var serialize = require("../serialize.js");
 var sidebar = require("./sidebar.js");
 var toolbar = require("./toolbar.js");
-var serialize = require("../serialize.js");
+var contextmenu = require("./contextmenu.js");
 
 $(initialise);
 
@@ -180,7 +181,8 @@ function onClickMajorStationMode(event) {
             map.draw(drawSettings);
             revision.createRevision(map);
             // TODO: create elements based on track/map observer in interaction
-            interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+            var stationElement = interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+            contextmenu.createStationContextMenu(stationElement.id, onRemoveStation);
             return;
         }
     } else {
@@ -194,8 +196,13 @@ function onClickMajorStationMode(event) {
         }
         selectStation(stationNew);
         // TODO: create elements based on track/map observer in interaction
-        interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
-        interaction.createSegmentElements(currentTrack);
+        var stationElement = interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+        contextmenu.createStationContextMenu(stationElement.id, onRemoveStation);
+        var segmentElements = interaction.createSegmentElements(currentTrack);
+        for (var i in segmentElements) {
+            var element = segmentElements[i];
+            contextmenu.createSegmentContextMenu(element.id, currentTrack);
+        }
         revision.createRevision(map);
         return;
     }
@@ -459,7 +466,23 @@ function initialiseToolbarActions() {
     function finishLoadMap(newMap) {
         newMap.draw(drawSettingsFull);
         revision.createRevision(newMap);
-        interaction.createMapElements(newMap, onRemoveStation);
+        var mapElements = interaction.createMapElements(newMap, onRemoveStation);
+        createContextMenusMapElements(mapElements);
+    }
+
+    function createContextMenusMapElements(mapElements) {
+        for (var i in mapElements) {
+            var track = mapElements[i].track;
+            var trackElements = mapElements[i].elements;
+            var stationElements = trackElements.stationElements;
+            var segmentElements = trackElements.segmentElements;
+            for (var j in segmentElements) {
+                contextmenu.createSegmentContextMenu(segmentElements[j].id, track);
+            }
+            for (var j in stationElements) {
+                contextmenu.createStationContextMenu(stationElements[j].id, onRemoveStation);
+            }
+        }
     }
 
     function loadMapJson(json) {

@@ -1,6 +1,6 @@
 require("paper");
 var core = require("./core.js");
-var contextmenu = require("./sketcher/contextmenu.js");
+
 
 var map = null;
 
@@ -40,29 +40,31 @@ function createStationMinorElement(station, track) {
 
 function createMapElements(map, onRemoveStation) {
     $("#overlay").empty();
+    var tracksElements = [];
     for (var i in map.tracks) {
-        createTrackElements(map.tracks[i], onRemoveStation);
+        var trackElements = createTrackElements(map.tracks[i], onRemoveStation);
+        tracksElements.push({track: map.tracks[i], elements: trackElements});
     }
+    return tracksElements
 }
 
 
-function createTrackElements(track, onRemoveStation) {
+function createTrackElements(track) {
+    var stationElements = [];
     for (var i in track.stations) {
-        createStationElement(track.stations[i], track, onRemoveStation);
+        var stationElement = createStationElement(track.stations[i], track);
+        stationElements.push(stationElement);
     }
-    createSegmentElements(track);
-    // for (var i in track.stationsMinor) {
-    //     createStationMinorElement(track.stationsMinor[i], track);
-    // }
+    var segmentElements = createSegmentElements(track);
+    return {stationElements: stationElements, segmentElements: segmentElements};
 }
 
 
-function createStationElement(station, track, onRemoveStation) {
+function createStationElement(station, track) {
 	var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
     var stationElement = $("#" + stationElementId);
 
-	contextmenu.createStationContextMenu(stationElementId, track, map, onRemoveStation);
     updateElementPosition(stationElement, station);
     updateStyle();
     createStationObserver();
@@ -92,16 +94,20 @@ function createStationElement(station, track, onRemoveStation) {
         stationObserver.stationElement = stationElement;
         station.registerObserver(stationObserver);
     }
+    return stationElement;
 }
 
 
 function createSegmentElements(track) {
     console.log('createSegmentElements');
     $(".segment").empty();
+    var elements = [];
     for (var i in track.segments) {
         var segment = track.segments[i];
-        createSegmentElement(segment, track);
+        var element = createSegmentElement(segment, track);
+        elements.push(element);
     }
+    return elements;
 }
 
 
@@ -110,7 +116,6 @@ function createSegmentElement(segment, track) {
 	$("#overlay").append("<div class=\"segment\" id=\"" + segmentElementId + "\" data-segment-id=\"" + segment.id + "\"></div>")
     var segmentElement = $("#" + segmentElementId);
 
-	contextmenu.createSegmentContextMenu(segmentElementId, track);
     updateSegmentElementPosition(segmentElement, segment);
     updateStyle();
     createSegmentObserver();
@@ -140,6 +145,8 @@ function createSegmentElement(segment, track) {
         segmentObserver.segmentElement = segmentElement;
         segment.registerObserver(segmentObserver);
     }
+
+    return segmentElement;
 }
 
 
