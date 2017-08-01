@@ -97,6 +97,10 @@ canvas[resize] {
     margin: 10px;
 }
 
+.track-table-container {
+    margin: 10px;
+}
+
 .station-info {
     position: absolute;
     z-index: 100;
