@@ -260,16 +260,45 @@ var Track = {
         return null;
     },
     removeStation: function(id) {
-        var station = this.findStation(id);
-        var pos = this.stations.indexOf(station);
-        if (pos > -1) {
-            station.notifyBeforeRemove();
-            var removedStation = this.stations.splice(pos, 1);
-        } else {
-            console.log('removeStation: station not found');
-            return null;
+        console.log('track.removeStation() on track:', this.id);
+        function removeFromTrackState(track, id) {
+            var station = track.findStation(id);
+            if (station) {
+                console.log('track.removeStation()', station);
+                var pos = track.stations.indexOf(station);
+                if (pos > -1) {
+                    station.notifyBeforeRemove();
+                    track.stations.splice(pos, 1);
+                }
+                pos = track.stationsMajor.indexOf(station);
+                if (pos > -1) {
+                    station.notifyBeforeRemove();
+                    track.stationsMajor.splice(pos, 1);
+                }
+                pos = track.stationsMinor.indexOf(station);
+                if (pos > -1) {
+                    station.notifyBeforeRemove();
+                    track.stationsMinor.splice(pos, 1);
+                }
+            }
         }
-        return removedStation;
+        removeFromTrackState(this, id);
+        for (var i = this.segments.length - 1; i >= 0; i--) {  // loop backwards because we splice the array
+            var segment = this.segments[i];
+            if (segment.stationA.id === id || segment.stationB.id === id) {
+                pos = this.segments.indexOf(segment);
+                if (pos > -1) {
+                    var stationsRemoved = segment.removeAllOnSegmentStations();
+                    for (var j in stationsRemoved) {
+                        removeFromTrackState(this, stationsRemoved[j].id);
+                    }
+                    this.segments.splice(pos, 1);
+                }
+            } else {
+                segment.removeStation(id);
+            }
+        }
+        return ;
     },
     findSegmentByPathId: function(id) {
         for (var i in this.segments) {
@@ -299,14 +328,15 @@ var Track = {
     findSegmentForStationMinor: function(stationMinor) {
         return this.findSegmentBetweenStations(stationMinor.stationA, stationMinor.stationB);
     },
-    findSegmentForStation: function(station) {
+    findSegmentsForStation: function(station) {
+        var segments = [];
         for (var i in this.segments) {
             var index = this.segments[i].stations.indexOf(station);
             if (index != -1) {
-                return this.segments[i];
+                segments.push(this.segments[i]);
             }
         }
-        return null;
+        return segments;
     }
 };
 

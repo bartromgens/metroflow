@@ -1,14 +1,15 @@
 var core = require("../core.js");
 
 
-function createStationContextMenu(stationElementId, track) {
+function createStationContextMenu(stationElementId, track, map, updateMapCallback) {
     $.contextMenu({
         selector: '#' + stationElementId,
         trigger: 'none',
         callback: function(key, options) {
             if (key === "delete") {
                 var stationId = $(options.selector).data('station-id');
-                track.removeStation(stationId);
+                map.removeStation(stationId);
+                updateMapCallback();
             }
         },
         items: {
@@ -31,7 +32,6 @@ function createSegmentContextMenu(segmentElementId, track) {
                 var stationId = $(options.selector).data('station-id');
                 var segment = track.findSegment(segmentId);
                 segment.switchDirection();
-                track.draw();
             }
         },
         items: {

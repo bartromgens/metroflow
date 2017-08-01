@@ -11,7 +11,7 @@ var serialize = require("./serialize.js");
 $(initialise);
 
 // disable browser context menu
-// $('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
+$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
 
 var map = null;
 var currentTrack = null;
@@ -37,6 +37,24 @@ function resetState() {
 }
 
 
+var modes = {
+    majorstation: "majorstation",
+    minorstation: "minorstation",
+    select: "select",
+    createConnection: "createConnection"
+};
+
+
+var mode = modes.majorstation;
+
+
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    tolerance: 3
+};
+
 function initialise() {
     drawSettings = metromap.createDrawSettings();
     drawSettings.minorStationText = true;
@@ -49,27 +67,21 @@ function initialise() {
     drawSettingsFull.calcTextPositions = true;
     drawSettingsFull.minorStationText = true;
     initialiseToolbarActions();
-    map = metromap.createMap();
+    var newMap = metromap.createMap();
+    setNewMap(newMap);
     setCurrentTrack(createTrack());
 }
 
 
-var modes = {
-    majorstation: "majorstation",
-    minorstation: "minorstation",
-    select: "select",
-    createConnection: "createConnection"
-};
-
-var mode = modes.majorstation;
+function setNewMap(newMap) {
+    map = newMap;
+    interaction.setCurrentMap(newMap);
+}
 
 
-var hitOptions = {
-    segments: true,
-    stroke: true,
-    fill: true,
-    tolerance: 3
-};
+function updateMap() {
+    map.draw(drawSettings);
+}
 
 
 function createTrack() {
@@ -123,9 +135,9 @@ function onRightClick(event) {
 
     var stationClicked = getStationClicked(hitResult);
     if (stationClicked) {  // right mouse
-        // interaction.showStationContextMenu(stationClicked.id);
-        interaction.hideStationInfoAll();
-        interaction.showStationInfo(stationClicked);
+        interaction.showStationContextMenu(stationClicked.id);
+        // interaction.hideStationInfoAll();
+        // interaction.showStationInfo(stationClicked);
         return;
     }
     var segmentClicked = getSegmentClicked(hitResult);
@@ -178,7 +190,8 @@ function onClickMajorStationMode(event) {
             stationNew.setPosition(position);
         }
         selectStation(stationNew);
-        interaction.createStationElement(stationNew, currentTrack);
+        // TODO: create elements based on track/map observer in interaction
+        interaction.createStationElement(stationNew, currentTrack, updateMap);
         interaction.createSegmentElements(currentTrack);
         revision.createRevision(map);
         return;
@@ -293,9 +306,9 @@ function onMouseDrag(event) {
 	    if (doSnap && selectedStation.doSnap) {
 	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
         }
-        var segment = currentTrack.findSegmentForStation(selectedStation);
-	    console.assert(segment);
-        selectedStation.setPosition(position, segment);
+        var segments = currentTrack.findSegmentsForStation(selectedStation);
+	    console.assert(segments[0]);
+        selectedStation.setPosition(position, segments[0]);
         selectedStation.select();
 	    map.draw(drawSettingsDrag);
 	}
@@ -443,15 +456,16 @@ function initialiseToolbarActions() {
     function finishLoadMap(newMap) {
         newMap.draw(drawSettingsFull);
         revision.createRevision(newMap);
-        interaction.createMapElements(newMap);
+        interaction.createMapElements(newMap, updateMap);
     }
 
     function loadMapJson(json) {
-        map = serialize.loadMap(json);
-        if (map.tracks.length > 0) {
-            setCurrentTrack(map.tracks[0]);
+        var newMap = serialize.loadMap(json);
+        setNewMap(newMap);
+        if (newMap.tracks.length > 0) {
+            setCurrentTrack(newMap.tracks[0]);
         }
-        finishLoadMap(map);
+        finishLoadMap(newMap);
     }
 
     function loadMapFile(filepath) {
@@ -499,7 +513,7 @@ function initialiseToolbarActions() {
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        map = revision.undo(map);
+        setNewMap(revision.undo(map));
         finaliseUndoRedo(currentTrackId);
     }
 
@@ -510,7 +524,7 @@ function initialiseToolbarActions() {
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        map = revision.redo(map);
+        setNewMap(revision.redo(map));
         finaliseUndoRedo(currentTrackId);
     }
 

@@ -144,7 +144,7 @@ function loadSegment(map, track, segmentData) {
         stationB = track.createStationFree(stationBPoint, stationA);
         stationB.id = segmentData.stationB.id;
         stationB.name = segmentData.stationB.name;
-        segment = track.findSegmentForStation(stationB);
+        segment = track.findSegmentsForStation(stationB)[0];
     } else if (stationB) {
         stationA = track.createStationFree(stationAPoint);
         stationA.id = segmentData.stationA.id;
