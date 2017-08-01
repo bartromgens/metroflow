@@ -8,6 +8,7 @@ var currentRevision = -1;
 
 
 function createRevision(map) {
+    console.log('createRevision');
     currentRevision++;
     var mapDataString = serialize.saveMap(map);
     if (currentRevision >= revisions.length) {
@@ -56,9 +57,15 @@ function hasRedo() {
 }
 
 
+function clearRevisions() {
+    revisions = [];
+    currentRevision = -1;
+}
+
 
 module.exports = {
     createRevision: createRevision,
+    clearRevisions: clearRevisions,
     undo: undo,
     redo: redo,
     hasUndo: hasUndo,

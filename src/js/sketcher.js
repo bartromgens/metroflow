@@ -411,8 +411,8 @@ function initialiseToolbarActions() {
 
     function loadMapClicked(event) {
         console.log('load map button clicked');
-        project.clear();
-        resetState();
+        prepareLoadMap();
+
         readSingleFile(event);
 
         function readSingleFile(event) {
@@ -433,23 +433,36 @@ function initialiseToolbarActions() {
         }
     }
 
+    function prepareLoadMap() {
+        console.log('create revision before clear');
+        revision.createRevision(map);
+        project.clear();
+        resetState();
+    }
+
+    function finishLoadMap(newMap) {
+        newMap.draw(drawSettingsFull);
+        revision.createRevision(newMap);
+        interaction.createMapElements(newMap);
+    }
+
     function loadMapJson(json) {
         map = serialize.loadMap(json);
         if (map.tracks.length > 0) {
             setCurrentTrack(map.tracks[0]);
         }
-        map.draw(drawSettingsFull);
-        interaction.createMapElements(map);
+        finishLoadMap(map);
     }
 
     function loadMapFile(filepath) {
-        project.clear();
+        console.log('loadMapFile');
         $.getJSON(filepath, function(json) {
             loadMapJson(json);
         });
     }
 
     function loadExampleMapClicked(filename) {
+        prepareLoadMap();
         loadMapFile("src/maps/" + filename);
     }
 
@@ -534,39 +547,39 @@ function initialiseToolbarActions() {
 }
 
 
-// $("canvas").bind("wheel", function(event) {
-//     var point = new Point(event.clientX, event.clientY);
-//     zoom(-event.originalEvent.deltaY, point);
-//
-//     function allowedZoom(zoom) {
-//         console.log(zoom);
-//         if (zoom !== paper.view.zoom)
-//         {
-//             paper.view.zoom = zoom;
-//             return zoom;
-//         }
-//         return null;
-//     }
-//
-//     function zoom(delta, point) {
-//         if (!delta) return;
-//
-//         var oldZoom = paper.view.zoom;
-//         var oldCenter = paper.view.center;
-//         var viewPos = paper.view.viewToProject(point);
-//         var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
-//
-//         if (!allowedZoom(newZoom)) {
-//             return;
-//         }
-//
-//         var zoomScale = oldZoom / newZoom;
-//         var centerAdjust = viewPos.subtract(oldCenter);
-//         var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
-//
-//         paper.view.center = view.center.add(offset);
-//     }
-// });
+$("canvas").bind("wheel", function(event) {
+    var point = new Point(event.clientX, event.clientY);
+    zoom(-event.originalEvent.deltaY, point);
+
+    function allowedZoom(zoom) {
+        console.log(zoom);
+        if (zoom !== paper.view.zoom)
+        {
+            paper.view.zoom = zoom;
+            return zoom;
+        }
+        return null;
+    }
+
+    function zoom(delta, point) {
+        if (!delta) return;
+
+        var oldZoom = paper.view.zoom;
+        var oldCenter = paper.view.center;
+        var viewPos = paper.view.viewToProject(point);
+        var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
+
+        if (!allowedZoom(newZoom)) {
+            return;
+        }
+
+        var zoomScale = oldZoom / newZoom;
+        var centerAdjust = viewPos.subtract(oldCenter);
+        var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
+
+        paper.view.center = view.center.add(offset);
+    }
+});
 
 
 tool.onMouseDown = onMouseDown;
