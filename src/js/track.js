@@ -286,7 +286,7 @@ var Track = {
         for (var i = this.segments.length - 1; i >= 0; i--) {  // loop backwards because we splice the array
             var segment = this.segments[i];
             if (segment.stationA.id === id || segment.stationB.id === id) {
-                pos = this.segments.indexOf(segment);
+                var pos = this.segments.indexOf(segment);
                 if (pos > -1) {
                     var stationsRemoved = segment.removeAllOnSegmentStations();
                     for (var j in stationsRemoved) {
