@@ -176,9 +176,11 @@ function onClickMajorStationMode(event) {
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
             var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
-            currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
+            var stationNew = currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
             map.draw(drawSettings);
             revision.createRevision(map);
+            // TODO: create elements based on track/map observer in interaction
+            interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
             return;
         }
     } else {
