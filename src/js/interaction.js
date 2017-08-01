@@ -40,12 +40,12 @@ function createStationMinorElement(station, track) {
 
 function createMapElements(map, onRemoveStation) {
     $("#overlay").empty();
-    var tracksElements = [];
+    var mapElements = [];
     for (var i in map.tracks) {
         var trackElements = createTrackElements(map.tracks[i], onRemoveStation);
-        tracksElements.push({track: map.tracks[i], elements: trackElements});
+        mapElements.push({track: map.tracks[i], stationElements: trackElements.stationElements, segmentElements: trackElements.segmentElements});
     }
-    return tracksElements
+    return mapElements
 }
 
 

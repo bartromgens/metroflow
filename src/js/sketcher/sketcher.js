@@ -473,9 +473,8 @@ function initialiseToolbarActions() {
     function createContextMenusMapElements(mapElements) {
         for (var i in mapElements) {
             var track = mapElements[i].track;
-            var trackElements = mapElements[i].elements;
-            var stationElements = trackElements.stationElements;
-            var segmentElements = trackElements.segmentElements;
+            var stationElements = mapElements[i].stationElements;
+            var segmentElements = mapElements[i].segmentElements;
             for (var j in segmentElements) {
                 contextmenu.createSegmentContextMenu(segmentElements[j].id, track);
             }
