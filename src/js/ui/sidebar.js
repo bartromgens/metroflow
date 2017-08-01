@@ -22,7 +22,14 @@ function setCurrentTrack(track) {
 
 
 function setExampleMapAction(callback) {
-    $("#button-example-map1").bind("click", callback);
+    $("#button-example-map1").bind("click", loadFilename);
+    $("#button-example-map2").bind("click", loadFilename);
+
+    function loadFilename() {
+        var filename = $(this).data("filename");
+        console.log(filename);
+        callback(filename);
+    }
 }
 
 

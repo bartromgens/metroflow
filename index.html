@@ -48,10 +48,15 @@
 
     <div id="sidebar">
         <div class="toolbar-buttons">
-            <button id="button-example-map1" type="button">Example map 1</button>
+            <button id="button-example-map1" type="button" data-filename="example1.json">Example map 1</button>
+            <br/>
+            <button id="button-example-map2" type="button" data-filename="example2.json">Example map 2</button>
         </div>
+
+        <hr/>
+
         <div class="station-style-widget">
-            <h3>track style</h3>
+            <h4>Track Style</h4>
             <div class="track-style-widget">
                 <label>Track color: </label><input id="track-color-picker" type="color" value="#ff0000">
                 <br/>
@@ -63,11 +68,13 @@
             </div>
         </div>
 
+        <hr/>
+
         <div class="track-table-container">
-            <h3>track table</h3>
+            <h4>Track Table</h4>
             <table id="track-table">
                 <thead>
-                    <th>test</th>
+                    <th>station name</th>
                 </thead>
                 <tbody>
                     <tr>

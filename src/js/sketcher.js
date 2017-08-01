@@ -449,8 +449,8 @@ function initialiseToolbarActions() {
         });
     }
 
-    function loadExampleMapClicked() {
-        loadMapFile("src/maps/test1.json");
+    function loadExampleMapClicked(filename) {
+        loadMapFile("src/maps/" + filename);
     }
 
     function prepareUndoRedo() {
