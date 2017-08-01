@@ -79,7 +79,8 @@ function setNewMap(newMap) {
 }
 
 
-function updateMap() {
+function onRemoveStation(stationId) {
+    map.removeStation(stationId);
     map.draw(drawSettings);
 }
 
@@ -191,7 +192,7 @@ function onClickMajorStationMode(event) {
         }
         selectStation(stationNew);
         // TODO: create elements based on track/map observer in interaction
-        interaction.createStationElement(stationNew, currentTrack, updateMap);
+        interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
         interaction.createSegmentElements(currentTrack);
         revision.createRevision(map);
         return;
@@ -456,7 +457,7 @@ function initialiseToolbarActions() {
     function finishLoadMap(newMap) {
         newMap.draw(drawSettingsFull);
         revision.createRevision(newMap);
-        interaction.createMapElements(newMap, updateMap);
+        interaction.createMapElements(newMap, onRemoveStation);
     }
 
     function loadMapJson(json) {

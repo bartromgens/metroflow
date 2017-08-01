@@ -1,15 +1,14 @@
 var core = require("../core.js");
 
 
-function createStationContextMenu(stationElementId, track, map, updateMapCallback) {
+function createStationContextMenu(stationElementId, track, map, onRemoveStation) {
     $.contextMenu({
         selector: '#' + stationElementId,
         trigger: 'none',
         callback: function(key, options) {
             if (key === "delete") {
                 var stationId = $(options.selector).data('station-id');
-                map.removeStation(stationId);
-                updateMapCallback();
+                onRemoveStation(stationId);
             }
         },
         items: {

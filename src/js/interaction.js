@@ -38,16 +38,16 @@ function createStationMinorElement(station, track) {
 }
 
 
-function createMapElements(map, updateMapCallback) {
+function createMapElements(map, onRemoveStation) {
     for (var i in map.tracks) {
-        createTrackElements(map.tracks[i], updateMapCallback);
+        createTrackElements(map.tracks[i], onRemoveStation);
     }
 }
 
 
-function createTrackElements(track, updateMapCallback) {
+function createTrackElements(track, onRemoveStation) {
     for (var i in track.stations) {
-        createStationElement(track.stations[i], track, updateMapCallback);
+        createStationElement(track.stations[i], track, onRemoveStation);
     }
     createSegmentElements(track);
     // for (var i in track.stationsMinor) {
@@ -56,12 +56,12 @@ function createTrackElements(track, updateMapCallback) {
 }
 
 
-function createStationElement(station, track, updateMapCallback) {
+function createStationElement(station, track, onRemoveStation) {
 	var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
     var stationElement = $("#" + stationElementId);
 
-	contextmenu.createStationContextMenu(stationElementId, track, map, updateMapCallback);
+	contextmenu.createStationContextMenu(stationElementId, track, map, onRemoveStation);
     updateElementPosition(stationElement, station);
     updateStyle();
     createStationObserver();
