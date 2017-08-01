@@ -61,12 +61,12 @@ var MetroFlow = MetroFlow || {}; MetroFlow["toolbar"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 13);
+/******/ 	return __webpack_require__(__webpack_require__.s = 14);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 13:
+/***/ 14:
 /***/ (function(module, exports) {
 
 
@@ -125,6 +125,14 @@ function setToggleSnapAction(callback) {
     $("#checkbox-snap").bind("click", callback);
 }
 
+function setToggleDebugAction(callback) {
+    $("#checkbox-debug").bind("click", callback);
+}
+
+function setToggleMinorNamesAction(callback) {
+    $("#checkbox-minor-station-names").bind("click", callback);
+}
+
 function setSaveMapAction(callback) {
     var button = $("#button-save-map");
     button.bind("click", callback);
@@ -145,6 +153,8 @@ module.exports = {
     setUndoAction: setUndoAction,
     setRedoAction: setRedoAction,
     setToggleSnapAction: setToggleSnapAction,
+    setToggleDebugAction: setToggleDebugAction,
+    setToggleMinorNamesAction: setToggleMinorNamesAction,
     setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,
     setLoadMapAction: setLoadMapAction
