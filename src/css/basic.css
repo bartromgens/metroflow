@@ -94,11 +94,15 @@ canvas[resize] {
 }
 
 .station-style-widget {
-    padding: 10px;
+    padding: 0 10px 0 10px;
+}
+
+.map-style-widget {
+    padding: 0 10px 0 10px;
 }
 
 .track-table-container {
-    padding: 10px;
+    padding: 0 10px 0 10px;
     overflow-y: scroll;
     max-height: 400px;
 }
