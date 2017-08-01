@@ -7,6 +7,8 @@ var metrostyles = require("./styles.js");
 
 var Track = {
     Track: function() {
+        this.segments = [];
+        this.id = core.uuidv4();
         this.stations = [];
         this.stationsMajor = [];
         this.stationsMinor = [];
@@ -14,8 +16,6 @@ var Track = {
         this.stationStyle = metrostyles.createStationStyle();
         this.stationMinorStyle = metrostyles.createStationMinorStyle();
         this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
-        this.segments = [];
-        this.id = core.uuidv4();
         return this;
     },
     setStationRadius: function(radius) {
