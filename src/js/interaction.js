@@ -2,6 +2,11 @@ require("paper");
 var core = require("./core.js");
 var contextmenu = require("./ui/contextmenu.js");
 
+var map = null;
+
+function setCurrentMap(currentMap) {
+    map = currentMap;
+}
 
 function showStationContextMenu(stationId) {
     $('#station-' + stationId).contextMenu();
@@ -33,16 +38,17 @@ function createStationMinorElement(station, track) {
 }
 
 
-function createMapElements(map) {
+function createMapElements(map, onRemoveStation) {
+    $("#overlay").empty();
     for (var i in map.tracks) {
-        createTrackElements(map.tracks[i]);
+        createTrackElements(map.tracks[i], onRemoveStation);
     }
 }
 
 
-function createTrackElements(track) {
+function createTrackElements(track, onRemoveStation) {
     for (var i in track.stations) {
-        createStationElement(track.stations[i], track);
+        createStationElement(track.stations[i], track, onRemoveStation);
     }
     createSegmentElements(track);
     // for (var i in track.stationsMinor) {
@@ -51,12 +57,12 @@ function createTrackElements(track) {
 }
 
 
-function createStationElement(station, track) {
+function createStationElement(station, track, onRemoveStation) {
 	var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
     var stationElement = $("#" + stationElementId);
 
-	contextmenu.createStationContextMenu(stationElementId, track);
+	contextmenu.createStationContextMenu(stationElementId, track, map, onRemoveStation);
     updateElementPosition(stationElement, station);
     updateStyle();
     createStationObserver();
@@ -146,4 +152,5 @@ module.exports = {
     showStationContextMenu: showStationContextMenu,
     showSegmentContextMenu: showSegmentContextMenu,
     createSegmentElements: createSegmentElements,
+    setCurrentMap: setCurrentMap,
 };

@@ -239,6 +239,7 @@ var minStraight = 4.0*arcRadius;
 
 var Segment = {
     Segment: function(stationA, stationB, style) {
+        console.log('Segment.Segment()', stationA, stationB);
         this.stationA = stationA;
         this.stationB = stationB;
         this.stations = [stationA, stationB];
@@ -300,6 +301,57 @@ var Segment = {
     deselect: function() {
         this.isSelected = false;
     },
+    removeStation: function(id) {
+        var station = this.findStation(id);
+        if (!station) {
+            return;
+        }
+        var pos = this.stations.indexOf(station);
+        if (pos > -1) {
+            this.stations.splice(pos, 1);
+        }
+        pos = this.stationsAuto.indexOf(station);
+        if (pos > -1) {
+            this.stationsAuto.splice(pos, 1);
+        }
+        pos = this.stationsUser.indexOf(station);
+        if (pos > -1) {
+            this.stationsUser.splice(pos, 1);
+        }
+    },
+    getAllOnSegmentStations: function() {
+        var stations = [];
+        stations = stations.concat(this.stationsAuto);
+        stations = stations.concat(this.stationsUser);
+        var pos = stations.indexOf(this.stationA);
+        if (pos != -1) {
+            stations.splice(pos, 1);
+        }
+        var pos = stations.indexOf(this.stationB);
+        if (pos != -1) {
+            stations.splice(pos, 1);
+        }
+        return stations;
+    },
+    removeAllOnSegmentStations: function() {
+        var stationsRemoved = [];
+        var onSegementStations = this.getAllOnSegmentStations();
+        for (var i in onSegementStations) {
+            var station = onSegementStations[i];
+            var pos = this.stationsAuto.indexOf(station);
+            this.stationsAuto.splice(pos, 1);
+            pos = this.stationsUser.indexOf(station);
+            this.stationsUser.splice(pos, 1);
+            stationsRemoved.push(station);
+        }
+        for (var i in stationsRemoved) {
+            var pos = this.stations.indexOf(stationsRemoved[i]);
+            if (pos != -1) {
+                this.stations.splice(pos, 1);
+            }
+        }
+        return stationsRemoved;
+    },
     createPath: function() {
         var path = new Path();
         path.strokeColor = this.style.strokeColor;
@@ -358,10 +410,19 @@ var Segment = {
         }
         return stations;
     },
-    draw: function(previous) {
+    findStation: function(id) {
+        for (var i in this.stations) {
+            if (this.stations[i].id === id) {
+                return this.stations[i];
+            }
+        }
+        return null;
+    },
+    draw: function(previous, drawSettings) {
         // console.log('segment.draw()');
-        this.stationA.updatePosition(this);
-        this.stationB.updatePosition(this);
+        var notifyObservers = !drawSettings.fast;
+        this.stationA.updatePosition(this, notifyObservers);
+        this.stationB.updatePosition(this, notifyObservers);
 
         this.path = null;
         var stationVector = this.end() - this.begin();
@@ -427,14 +488,16 @@ var Segment = {
 
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];
-            station.updatePosition(this);
+            station.updatePosition(this, notifyObservers);
         }
 
         for (var i in this.stationsAuto) {
             var station = this.stationsAuto[i];
-            station.updatePosition(this);
+            station.updatePosition(this, notifyObservers);
         }
-        this.notifyAllObservers(this);
+        if (notifyObservers) {
+            this.notifyAllObservers(this);
+        }
 //        path.fullySelected = true;
 //        return path;
     },
@@ -534,7 +597,7 @@ var StationPositionSegmentAuto = {
     doSetPosition: function(position, segment) {
         this.position = position;
     },
-    updatePosition: function(segment) {
+    updatePosition: function(segment, notifyObservers) {
         // console.log('=======================================');
         // console.log('StationPositionSegmentAuto.updatePosition');
         // console.log('this.position', this.position);
@@ -568,6 +631,9 @@ var StationPositionSegmentAuto = {
         // console.log('segment.getOffsetOf(this.position)', segment.getOffsetOf(this.position));
         // console.log('offsetFactor', this.offsetFactor);
         this.normalUnit = segment.path.getNormalAt(stationOffset);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
         return this.position;
     }
 };
@@ -577,9 +643,12 @@ var StationPositionSegmentUser = {
     doSetPosition: function(position, segment) {
         this.offsetFactor = segment.getOffsetOf(position) / segment.length();
     },
-    updatePosition: function(segment, orderNr) {
+    updatePosition: function(segment, notifyObservers) {
         var distanceStation = segment.path.length * this.offsetFactor;
         this.position = segment.path.getPointAt(distanceStation);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
         return this.position;
     }
 };
@@ -589,7 +658,10 @@ var StationPositionFree = {
     doSetPosition: function(position, segment) {
         this.position = position;
     },
-    updatePosition: function() {
+    updatePosition: function(segment, notifyObservers) {
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
         return this.position;
     }
 };
@@ -624,6 +696,7 @@ function createStationMinor(position, stationA, stationB, style) {
     station = station.Station(position, style);
     station.stationA = stationA;
     station.stationB = stationB;
+    station.name = "minor station";
     station.doSnap = false;
     return station;
 }
@@ -648,6 +721,8 @@ var metrostyles = __webpack_require__(2);
 
 var Track = {
     Track: function() {
+        this.segments = [];
+        this.id = core.uuidv4();
         this.stations = [];
         this.stationsMajor = [];
         this.stationsMinor = [];
@@ -655,8 +730,6 @@ var Track = {
         this.stationStyle = metrostyles.createStationStyle();
         this.stationMinorStyle = metrostyles.createStationMinorStyle();
         this.stationMinorStyle.strokeColor = this.segmentStyle.strokeColor;
-        this.segments = [];
-        this.id = core.uuidv4();
         return this;
     },
     setStationRadius: function(radius) {
@@ -711,7 +784,6 @@ var Track = {
         station.setPosition(position, segment);
         this.stations.push(station);
         this.stationsMinor.push(station);
-        this.draw();
         this.notifyAllObservers();
         return station;
     },
@@ -759,12 +831,12 @@ var Track = {
         }
         return paths;
     },
-    draw: function() {
+    draw: function(drawSettings) {
         // console.log('track.draw()');
         for (var i in this.segments) {
             var segment = this.segments[i];
             var previous = this.segmentToStation(segment.stationA);
-            segment.draw(previous);
+            segment.draw(previous, drawSettings);
         }
         for (var i in this.stationsMinor) {
             var stationMinor = this.stationsMinor[i];
@@ -774,7 +846,7 @@ var Track = {
         for (var i in this.stationsMajor) {
             this.stationsMajor[i].draw();
         }
-        this.notifyAllObservers(this);
+        // this.notifyAllObservers(this);
     },
     createText: function(station, positionRelative) {
         var text = new PointText(station.position + positionRelative);
@@ -901,16 +973,45 @@ var Track = {
         return null;
     },
     removeStation: function(id) {
-        var station = this.findStation(id);
-        var pos = this.stations.indexOf(station);
-        if (pos > -1) {
-            station.notifyBeforeRemove();
-            var removedStation = this.stations.splice(pos, 1);
-        } else {
-            console.log('removeStation: station not found');
-            return null;
+        console.log('track.removeStation() on track:', this.id);
+        function removeFromTrackState(track, id) {
+            var station = track.findStation(id);
+            if (station) {
+                console.log('track.removeStation()', station);
+                var pos = track.stations.indexOf(station);
+                if (pos > -1) {
+                    station.notifyBeforeRemove();
+                    track.stations.splice(pos, 1);
+                }
+                pos = track.stationsMajor.indexOf(station);
+                if (pos > -1) {
+                    station.notifyBeforeRemove();
+                    track.stationsMajor.splice(pos, 1);
+                }
+                pos = track.stationsMinor.indexOf(station);
+                if (pos > -1) {
+                    station.notifyBeforeRemove();
+                    track.stationsMinor.splice(pos, 1);
+                }
+            }
         }
-        return removedStation;
+        removeFromTrackState(this, id);
+        for (var i = this.segments.length - 1; i >= 0; i--) {  // loop backwards because we splice the array
+            var segment = this.segments[i];
+            if (segment.stationA.id === id || segment.stationB.id === id) {
+                var pos = this.segments.indexOf(segment);
+                if (pos > -1) {
+                    var stationsRemoved = segment.removeAllOnSegmentStations();
+                    for (var j in stationsRemoved) {
+                        removeFromTrackState(this, stationsRemoved[j].id);
+                    }
+                    this.segments.splice(pos, 1);
+                }
+            } else {
+                segment.removeStation(id);
+            }
+        }
+        return ;
     },
     findSegmentByPathId: function(id) {
         for (var i in this.segments) {
@@ -940,14 +1041,15 @@ var Track = {
     findSegmentForStationMinor: function(stationMinor) {
         return this.findSegmentBetweenStations(stationMinor.stationA, stationMinor.stationB);
     },
-    findSegmentForStation: function(station) {
+    findSegmentsForStation: function(station) {
+        var segments = [];
         for (var i in this.segments) {
             var index = this.segments[i].stations.indexOf(station);
             if (index != -1) {
-                return this.segments[i];
+                segments.push(this.segments[i]);
             }
         }
-        return null;
+        return segments;
     }
 };
 
@@ -1038,9 +1140,10 @@ core = __webpack_require__(0);
 metrotrack = __webpack_require__(5);
 metroconnection = __webpack_require__(6);
 
+
 var DrawSettings = {
     text: true,
-    fast: true,
+    fast: false,
     calcTextPositions: false,
     minorStationText: false,
 };
@@ -1075,6 +1178,16 @@ var Map = {
         var newConnection = metroconnection.createConnection(stationA, stationB);
         this.connections.push(newConnection);
         return newConnection;
+    },
+    removeStation: function(id) {
+        for (var i in this.tracks) {
+            this.tracks[i].removeStation(id);
+        }
+        for (var i = this.connections.length - 1; i >= 0; i--) {
+            if (this.connections[i].stationA.id === id || this.connections[i].stationB.id === id) {
+                this.connections.splice(i, 1);
+            }
+        }
     },
     draw: function(drawSettings) {
         console.time("map.draw");
@@ -1316,7 +1429,7 @@ function loadSegment(map, track, segmentData) {
         stationB = track.createStationFree(stationBPoint, stationA);
         stationB.id = segmentData.stationB.id;
         stationB.name = segmentData.stationB.name;
-        segment = track.findSegmentForStation(stationB);
+        segment = track.findSegmentsForStation(stationB)[0];
     } else if (stationB) {
         stationA = track.createStationFree(stationAPoint);
         stationA.id = segmentData.stationA.id;
@@ -1366,14 +1479,14 @@ module.exports = {
 var core = __webpack_require__(0);
 
 
-function createStationContextMenu(stationElementId, track) {
+function createStationContextMenu(stationElementId, track, map, onRemoveStation) {
     $.contextMenu({
         selector: '#' + stationElementId,
         trigger: 'none',
         callback: function(key, options) {
             if (key === "delete") {
                 var stationId = $(options.selector).data('station-id');
-                track.removeStation(stationId);
+                onRemoveStation(stationId);
             }
         },
         items: {
@@ -1396,7 +1509,6 @@ function createSegmentContextMenu(segmentElementId, track) {
                 var stationId = $(options.selector).data('station-id');
                 var segment = track.findSegment(segmentId);
                 segment.switchDirection();
-                track.draw();
             }
         },
         items: {
@@ -1545,6 +1657,11 @@ __webpack_require__(1);
 var core = __webpack_require__(0);
 var contextmenu = __webpack_require__(9);
 
+var map = null;
+
+function setCurrentMap(currentMap) {
+    map = currentMap;
+}
 
 function showStationContextMenu(stationId) {
     $('#station-' + stationId).contextMenu();
@@ -1576,16 +1693,17 @@ function createStationMinorElement(station, track) {
 }
 
 
-function createMapElements(map) {
+function createMapElements(map, onRemoveStation) {
+    $("#overlay").empty();
     for (var i in map.tracks) {
-        createTrackElements(map.tracks[i]);
+        createTrackElements(map.tracks[i], onRemoveStation);
     }
 }
 
 
-function createTrackElements(track) {
+function createTrackElements(track, onRemoveStation) {
     for (var i in track.stations) {
-        createStationElement(track.stations[i], track);
+        createStationElement(track.stations[i], track, onRemoveStation);
     }
     createSegmentElements(track);
     // for (var i in track.stationsMinor) {
@@ -1594,12 +1712,12 @@ function createTrackElements(track) {
 }
 
 
-function createStationElement(station, track) {
+function createStationElement(station, track, onRemoveStation) {
 	var stationElementId = "station-" + station.id;
 	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
     var stationElement = $("#" + stationElementId);
 
-	contextmenu.createStationContextMenu(stationElementId, track);
+	contextmenu.createStationContextMenu(stationElementId, track, map, onRemoveStation);
     updateElementPosition(stationElement, station);
     updateStyle();
     createStationObserver();
@@ -1689,6 +1807,7 @@ module.exports = {
     showStationContextMenu: showStationContextMenu,
     showSegmentContextMenu: showSegmentContextMenu,
     createSegmentElements: createSegmentElements,
+    setCurrentMap: setCurrentMap,
 };
 
 /***/ }),
@@ -1853,6 +1972,14 @@ function setTrackChangeAction(callback) {
     signalTrackInfoChanged = callback;
 }
 
+function setToggleDebugAction(callback) {
+    $("#checkbox-debug").bind("click", callback);
+}
+
+function setToggleMinorNamesAction(callback) {
+    $("#checkbox-minor-station-names").bind("click", callback);
+}
+
 
 module.exports = {
     notifyTrackChanged: notifyTrackChanged,
@@ -1863,7 +1990,9 @@ module.exports = {
     setStationRadiusSliderChangeAction: setStationRadiusSliderChangeAction,
     setStationStrokeWidthSliderChangeAction: setStationStrokeWidthSliderChangeAction,
     setStationStrokeColorChangeAction: setStationStrokeColorChangeAction,
-    setTrackChangeAction: setTrackChangeAction
+    setTrackChangeAction: setTrackChangeAction,
+    setToggleDebugAction: setToggleDebugAction,
+    setToggleMinorNamesAction: setToggleMinorNamesAction,
 };
 
 /***/ }),
@@ -1926,14 +2055,6 @@ function setToggleSnapAction(callback) {
     $("#checkbox-snap").bind("click", callback);
 }
 
-function setToggleDebugAction(callback) {
-    $("#checkbox-debug").bind("click", callback);
-}
-
-function setToggleMinorNamesAction(callback) {
-    $("#checkbox-minor-station-names").bind("click", callback);
-}
-
 function setSaveMapAction(callback) {
     var button = $("#button-save-map");
     button.bind("click", callback);
@@ -1954,8 +2075,6 @@ module.exports = {
     setUndoAction: setUndoAction,
     setRedoAction: setRedoAction,
     setToggleSnapAction: setToggleSnapAction,
-    setToggleDebugAction: setToggleDebugAction,
-    setToggleMinorNamesAction: setToggleMinorNamesAction,
     setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,
     setLoadMapAction: setLoadMapAction
@@ -1978,7 +2097,7 @@ var serialize = __webpack_require__(8);
 $(initialise);
 
 // disable browser context menu
-// $('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
+$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
 
 var map = null;
 var currentTrack = null;
@@ -2004,6 +2123,24 @@ function resetState() {
 }
 
 
+var modes = {
+    majorstation: "majorstation",
+    minorstation: "minorstation",
+    select: "select",
+    createConnection: "createConnection"
+};
+
+
+var mode = modes.majorstation;
+
+
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    tolerance: 3
+};
+
 function initialise() {
     drawSettings = metromap.createDrawSettings();
     drawSettings.minorStationText = true;
@@ -2016,27 +2153,22 @@ function initialise() {
     drawSettingsFull.calcTextPositions = true;
     drawSettingsFull.minorStationText = true;
     initialiseToolbarActions();
-    map = metromap.createMap();
+    var newMap = metromap.createMap();
+    setNewMap(newMap);
     setCurrentTrack(createTrack());
 }
 
 
-var modes = {
-    majorstation: "majorstation",
-    minorstation: "minorstation",
-    select: "select",
-    createConnection: "createConnection"
-};
-
-var mode = modes.majorstation;
+function setNewMap(newMap) {
+    map = newMap;
+    interaction.setCurrentMap(newMap);
+}
 
 
-var hitOptions = {
-    segments: true,
-    stroke: true,
-    fill: true,
-    tolerance: 3
-};
+function onRemoveStation(stationId) {
+    map.removeStation(stationId);
+    map.draw(drawSettings);
+}
 
 
 function createTrack() {
@@ -2090,9 +2222,9 @@ function onRightClick(event) {
 
     var stationClicked = getStationClicked(hitResult);
     if (stationClicked) {  // right mouse
-        // interaction.showStationContextMenu(stationClicked.id);
-        interaction.hideStationInfoAll();
-        interaction.showStationInfo(stationClicked);
+        interaction.showStationContextMenu(stationClicked.id);
+        // interaction.hideStationInfoAll();
+        // interaction.showStationInfo(stationClicked);
         return;
     }
     var segmentClicked = getSegmentClicked(hitResult);
@@ -2130,9 +2262,11 @@ function onClickMajorStationMode(event) {
         var segmentClicked = getSegmentClicked(hitResult);
         if (segmentClicked) {
             var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
-            currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
+            var stationNew = currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
             map.draw(drawSettings);
             revision.createRevision(map);
+            // TODO: create elements based on track/map observer in interaction
+            interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
             return;
         }
     } else {
@@ -2145,7 +2279,8 @@ function onClickMajorStationMode(event) {
             stationNew.setPosition(position);
         }
         selectStation(stationNew);
-        interaction.createStationElement(stationNew, currentTrack);
+        // TODO: create elements based on track/map observer in interaction
+        interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
         interaction.createSegmentElements(currentTrack);
         revision.createRevision(map);
         return;
@@ -2260,9 +2395,9 @@ function onMouseDrag(event) {
 	    if (doSnap && selectedStation.doSnap) {
 	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
         }
-        var segment = currentTrack.findSegmentForStation(selectedStation);
-	    console.assert(segment);
-        selectedStation.setPosition(position, segment);
+        var segments = currentTrack.findSegmentsForStation(selectedStation);
+	    console.assert(segments[0]);
+        selectedStation.setPosition(position, segments[0]);
         selectedStation.select();
 	    map.draw(drawSettingsDrag);
 	}
@@ -2278,13 +2413,13 @@ function initialiseToolbarActions() {
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
     toolbar.setToggleSnapAction(snapCheckboxClicked);
-    toolbar.setToggleDebugAction(debugCheckboxClicked);
-    toolbar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
     toolbar.setUndoAction(onUndoButtonClicked);
     toolbar.setRedoAction(onRedoButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
+    sidebar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
+    sidebar.setToggleDebugAction(debugCheckboxClicked);
     sidebar.setExampleMapAction(loadExampleMapClicked);
     sidebar.setTrackColorChangeAction(onTrackColorChanged);
     sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
@@ -2410,15 +2545,16 @@ function initialiseToolbarActions() {
     function finishLoadMap(newMap) {
         newMap.draw(drawSettingsFull);
         revision.createRevision(newMap);
-        interaction.createMapElements(newMap);
+        interaction.createMapElements(newMap, onRemoveStation);
     }
 
     function loadMapJson(json) {
-        map = serialize.loadMap(json);
-        if (map.tracks.length > 0) {
-            setCurrentTrack(map.tracks[0]);
+        var newMap = serialize.loadMap(json);
+        setNewMap(newMap);
+        if (newMap.tracks.length > 0) {
+            setCurrentTrack(newMap.tracks[0]);
         }
-        finishLoadMap(map);
+        finishLoadMap(newMap);
     }
 
     function loadMapFile(filepath) {
@@ -2455,6 +2591,7 @@ function initialiseToolbarActions() {
         }
         setCurrentTrack(track);
         map.draw(drawSettingsFull);
+        interaction.createMapElements(map, onRemoveStation);
         for (var i in map.tracks) {
             sidebar.notifyTrackChanged(map.tracks[i]);
         }
@@ -2466,7 +2603,7 @@ function initialiseToolbarActions() {
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        map = revision.undo(map);
+        setNewMap(revision.undo(map));
         finaliseUndoRedo(currentTrackId);
     }
 
@@ -2477,7 +2614,7 @@ function initialiseToolbarActions() {
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        map = revision.redo(map);
+        setNewMap(revision.redo(map));
         finaliseUndoRedo(currentTrackId);
     }
 
@@ -2513,40 +2650,40 @@ function initialiseToolbarActions() {
     }
 }
 
-
-$("canvas").bind("wheel", function(event) {
-    var point = new Point(event.clientX, event.clientY);
-    zoom(-event.originalEvent.deltaY, point);
-
-    function allowedZoom(zoom) {
-        console.log(zoom);
-        if (zoom !== paper.view.zoom)
-        {
-            paper.view.zoom = zoom;
-            return zoom;
-        }
-        return null;
-    }
-
-    function zoom(delta, point) {
-        if (!delta) return;
-
-        var oldZoom = paper.view.zoom;
-        var oldCenter = paper.view.center;
-        var viewPos = paper.view.viewToProject(point);
-        var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
-
-        if (!allowedZoom(newZoom)) {
-            return;
-        }
-
-        var zoomScale = oldZoom / newZoom;
-        var centerAdjust = viewPos.subtract(oldCenter);
-        var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
-
-        paper.view.center = view.center.add(offset);
-    }
-});
+// TODO: update html elements on zoom
+// $("canvas").bind("wheel", function(event) {
+//     var point = new Point(event.clientX, event.clientY);
+//     zoom(-event.originalEvent.deltaY, point);
+//
+//     function allowedZoom(zoom) {
+//         console.log(zoom);
+//         if (zoom !== paper.view.zoom)
+//         {
+//             paper.view.zoom = zoom;
+//             return zoom;
+//         }
+//         return null;
+//     }
+//
+//     function zoom(delta, point) {
+//         if (!delta) return;
+//
+//         var oldZoom = paper.view.zoom;
+//         var oldCenter = paper.view.center;
+//         var viewPos = paper.view.viewToProject(point);
+//         var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
+//
+//         if (!allowedZoom(newZoom)) {
+//             return;
+//         }
+//
+//         var zoomScale = oldZoom / newZoom;
+//         var centerAdjust = viewPos.subtract(oldCenter);
+//         var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
+//
+//         paper.view.center = view.center.add(offset);
+//     }
+// });
 
 
 tool.onMouseDown = onMouseDown;

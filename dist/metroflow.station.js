@@ -305,7 +305,7 @@ var StationPositionSegmentAuto = {
     doSetPosition: function(position, segment) {
         this.position = position;
     },
-    updatePosition: function(segment) {
+    updatePosition: function(segment, notifyObservers) {
         // console.log('=======================================');
         // console.log('StationPositionSegmentAuto.updatePosition');
         // console.log('this.position', this.position);
@@ -339,6 +339,9 @@ var StationPositionSegmentAuto = {
         // console.log('segment.getOffsetOf(this.position)', segment.getOffsetOf(this.position));
         // console.log('offsetFactor', this.offsetFactor);
         this.normalUnit = segment.path.getNormalAt(stationOffset);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
         return this.position;
     }
 };
@@ -348,9 +351,12 @@ var StationPositionSegmentUser = {
     doSetPosition: function(position, segment) {
         this.offsetFactor = segment.getOffsetOf(position) / segment.length();
     },
-    updatePosition: function(segment, orderNr) {
+    updatePosition: function(segment, notifyObservers) {
         var distanceStation = segment.path.length * this.offsetFactor;
         this.position = segment.path.getPointAt(distanceStation);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
         return this.position;
     }
 };
@@ -360,7 +366,10 @@ var StationPositionFree = {
     doSetPosition: function(position, segment) {
         this.position = position;
     },
-    updatePosition: function() {
+    updatePosition: function(segment, notifyObservers) {
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
         return this.position;
     }
 };
@@ -395,6 +404,7 @@ function createStationMinor(position, stationA, stationB, style) {
     station = station.Station(position, style);
     station.stationA = stationA;
     station.stationB = stationB;
+    station.name = "minor station";
     station.doSnap = false;
     return station;
 }

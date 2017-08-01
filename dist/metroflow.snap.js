@@ -239,6 +239,7 @@ var minStraight = 4.0*arcRadius;
 
 var Segment = {
     Segment: function(stationA, stationB, style) {
+        console.log('Segment.Segment()', stationA, stationB);
         this.stationA = stationA;
         this.stationB = stationB;
         this.stations = [stationA, stationB];
@@ -300,6 +301,57 @@ var Segment = {
     deselect: function() {
         this.isSelected = false;
     },
+    removeStation: function(id) {
+        var station = this.findStation(id);
+        if (!station) {
+            return;
+        }
+        var pos = this.stations.indexOf(station);
+        if (pos > -1) {
+            this.stations.splice(pos, 1);
+        }
+        pos = this.stationsAuto.indexOf(station);
+        if (pos > -1) {
+            this.stationsAuto.splice(pos, 1);
+        }
+        pos = this.stationsUser.indexOf(station);
+        if (pos > -1) {
+            this.stationsUser.splice(pos, 1);
+        }
+    },
+    getAllOnSegmentStations: function() {
+        var stations = [];
+        stations = stations.concat(this.stationsAuto);
+        stations = stations.concat(this.stationsUser);
+        var pos = stations.indexOf(this.stationA);
+        if (pos != -1) {
+            stations.splice(pos, 1);
+        }
+        var pos = stations.indexOf(this.stationB);
+        if (pos != -1) {
+            stations.splice(pos, 1);
+        }
+        return stations;
+    },
+    removeAllOnSegmentStations: function() {
+        var stationsRemoved = [];
+        var onSegementStations = this.getAllOnSegmentStations();
+        for (var i in onSegementStations) {
+            var station = onSegementStations[i];
+            var pos = this.stationsAuto.indexOf(station);
+            this.stationsAuto.splice(pos, 1);
+            pos = this.stationsUser.indexOf(station);
+            this.stationsUser.splice(pos, 1);
+            stationsRemoved.push(station);
+        }
+        for (var i in stationsRemoved) {
+            var pos = this.stations.indexOf(stationsRemoved[i]);
+            if (pos != -1) {
+                this.stations.splice(pos, 1);
+            }
+        }
+        return stationsRemoved;
+    },
     createPath: function() {
         var path = new Path();
         path.strokeColor = this.style.strokeColor;
@@ -358,10 +410,19 @@ var Segment = {
         }
         return stations;
     },
-    draw: function(previous) {
+    findStation: function(id) {
+        for (var i in this.stations) {
+            if (this.stations[i].id === id) {
+                return this.stations[i];
+            }
+        }
+        return null;
+    },
+    draw: function(previous, drawSettings) {
         // console.log('segment.draw()');
-        this.stationA.updatePosition(this);
-        this.stationB.updatePosition(this);
+        var notifyObservers = !drawSettings.fast;
+        this.stationA.updatePosition(this, notifyObservers);
+        this.stationB.updatePosition(this, notifyObservers);
 
         this.path = null;
         var stationVector = this.end() - this.begin();
@@ -427,14 +488,16 @@ var Segment = {
 
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];
-            station.updatePosition(this);
+            station.updatePosition(this, notifyObservers);
         }
 
         for (var i in this.stationsAuto) {
             var station = this.stationsAuto[i];
-            station.updatePosition(this);
+            station.updatePosition(this, notifyObservers);
         }
-        this.notifyAllObservers(this);
+        if (notifyObservers) {
+            this.notifyAllObservers(this);
+        }
 //        path.fullySelected = true;
 //        return path;
     },
