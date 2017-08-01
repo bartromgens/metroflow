@@ -161,6 +161,7 @@ function createStationMinor(position, stationA, stationB, style) {
     station = station.Station(position, style);
     station.stationA = stationA;
     station.stationB = stationB;
+    station.name = "minor station";
     station.doSnap = false;
     return station;
 }
