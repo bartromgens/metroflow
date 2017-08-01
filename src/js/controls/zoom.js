@@ -39,14 +39,7 @@ function enableZoomOnCanvas(newMap) {
 
             paper.view.center = view.center.add(offset);
 
-            var stations = map.stations();
-            for (var i in stations) {
-                stations[i].notifyAllObservers();
-            }
-            var segments = map.segments();
-            for (var i in segments) {
-                segments[i].notifyAllObservers();
-            }
+            map.notifyAllStationsAndSegments();
         }
     });
 }

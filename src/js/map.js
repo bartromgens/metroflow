@@ -138,6 +138,16 @@ var Map = {
             }
         }
         return null;
+    },
+    notifyAllStationsAndSegments: function () {
+        var stations = this.stations();
+        for (var i in stations) {
+            stations[i].notifyAllObservers();
+        }
+        var segments = this.segments();
+        for (var i in segments) {
+            segments[i].notifyAllObservers();
+        }
     }
 };
 

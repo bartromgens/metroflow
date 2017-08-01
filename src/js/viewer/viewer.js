@@ -5,7 +5,7 @@ var metromap = require("../map.js");
 var metrointeraction = require("../interaction.js");
 var metrozoom = require("../controls/zoom.js");
 
-var isDebug = true;
+var isDebug = false;
 
 var map = null;
 var currentTrack = null;
@@ -95,3 +95,28 @@ function loadMapJson(json) {
     setNewMap(newMap);
     finishLoadMap(newMap);
 }
+
+var startPosition = null;
+
+
+function onMouseDown(event) {
+    startPosition = event.point;
+}
+
+
+function onMouseUp(event) {
+    map.notifyAllStationsAndSegments();
+    startPosition = null;
+}
+
+function onMouseDrag(event) {
+    console.log('panning', event.delta);
+    var offset = startPosition - event.point;
+    paper.view.center = view.center.add(offset);
+    return;
+}
+
+
+tool.onMouseDown = onMouseDown;
+tool.onMouseUp = onMouseUp;
+tool.onMouseDrag = onMouseDrag;
