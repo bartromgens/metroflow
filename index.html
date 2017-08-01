@@ -34,7 +34,9 @@
             <button id="button-undo" type="button">undo</button>
             <button id="button-redo" type="button">redo</button>
             <button id="button-calc-text-positions" type="button">position text</button>
-            snap: <input type="checkbox" id="checkbox-snap" checked="true">
+            snap: <input type="checkbox" id="checkbox-snap" checked>
+            minor names: <input type="checkbox" id="checkbox-minor-station-names" checked>
+            debug: <input type="checkbox" id="checkbox-debug">
             <button id="button-save-map" type="button">save map</button>
             <label>load map: </label><input type="file" id="file-input"/>
         </div>
@@ -59,6 +61,20 @@
                 <br/>
                 <label>Station stroke width: </label><div id="station-stroke-width-slider"></div>
             </div>
+        </div>
+
+        <div class="track-table-container">
+            <h3>track table</h3>
+            <table id="track-table">
+                <thead>
+                    <th>test</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" value="station-name"></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

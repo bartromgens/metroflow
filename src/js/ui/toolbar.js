@@ -54,6 +54,14 @@ function setToggleSnapAction(callback) {
     $("#checkbox-snap").bind("click", callback);
 }
 
+function setToggleDebugAction(callback) {
+    $("#checkbox-debug").bind("click", callback);
+}
+
+function setToggleMinorNamesAction(callback) {
+    $("#checkbox-minor-station-names").bind("click", callback);
+}
+
 function setSaveMapAction(callback) {
     var button = $("#button-save-map");
     button.bind("click", callback);
@@ -74,6 +82,8 @@ module.exports = {
     setUndoAction: setUndoAction,
     setRedoAction: setRedoAction,
     setToggleSnapAction: setToggleSnapAction,
+    setToggleDebugAction: setToggleDebugAction,
+    setToggleMinorNamesAction: setToggleMinorNamesAction,
     setCalcTextPositionsAction: setCalcTextPositionsAction,
     setSaveMapAction: setSaveMapAction,
     setLoadMapAction: setLoadMapAction
