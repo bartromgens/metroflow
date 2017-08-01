@@ -22,6 +22,7 @@ module.exports = {
         toolbar: "./src/js/sketcher/toolbar.js",
         contextmenu: "./src/js/sketcher/contextmenu.js",
         sketcher: "./src/js/sketcher/sketcher.js",
+        viewer: "./src/js/viewer/viewer.js",
         css: ["./src/css/basic.css"]
     },
     output: {
