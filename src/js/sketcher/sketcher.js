@@ -284,8 +284,10 @@ function onClickCreateConnectionMode(event) {
     }
 }
 
+var startPosition = null;
 
 function onMouseDown(event) {
+    startPosition = event.point;
     if (event.event.which === 3) {  // right mouse
         onRightClick(event);
         return;
@@ -315,6 +317,14 @@ function onMouseUp(event) {
 
 function onMouseDrag(event) {
     dragging = true;
+    console.log('onMouseDrag');
+    if (mode == modes.select) {
+        console.log('panning', event.delta);
+        var offset = startPosition - event.point;
+        paper.view.center = view.center.add(offset);
+        return;
+    }
+
 	if (selectedStation) {
         var position = event.point;
 	    if (doSnap && selectedStation.doSnap) {
