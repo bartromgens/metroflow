@@ -325,13 +325,13 @@ function initialiseToolbarActions() {
     toolbar.setNewConnectionAction(newConnectionButtionClicked);
     toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
     toolbar.setToggleSnapAction(snapCheckboxClicked);
-    toolbar.setToggleDebugAction(debugCheckboxClicked);
-    toolbar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
     toolbar.setUndoAction(onUndoButtonClicked);
     toolbar.setRedoAction(onRedoButtonClicked);
     toolbar.setSaveMapAction(saveMapClicked);
     toolbar.setLoadMapAction(loadMapClicked);
 
+    sidebar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
+    sidebar.setToggleDebugAction(debugCheckboxClicked);
     sidebar.setExampleMapAction(loadExampleMapClicked);
     sidebar.setTrackColorChangeAction(onTrackColorChanged);
     sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);

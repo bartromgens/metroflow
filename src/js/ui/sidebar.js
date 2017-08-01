@@ -156,6 +156,14 @@ function setTrackChangeAction(callback) {
     signalTrackInfoChanged = callback;
 }
 
+function setToggleDebugAction(callback) {
+    $("#checkbox-debug").bind("click", callback);
+}
+
+function setToggleMinorNamesAction(callback) {
+    $("#checkbox-minor-station-names").bind("click", callback);
+}
+
 
 module.exports = {
     notifyTrackChanged: notifyTrackChanged,
@@ -166,5 +174,7 @@ module.exports = {
     setStationRadiusSliderChangeAction: setStationRadiusSliderChangeAction,
     setStationStrokeWidthSliderChangeAction: setStationStrokeWidthSliderChangeAction,
     setStationStrokeColorChangeAction: setStationStrokeColorChangeAction,
-    setTrackChangeAction: setTrackChangeAction
+    setTrackChangeAction: setTrackChangeAction,
+    setToggleDebugAction: setToggleDebugAction,
+    setToggleMinorNamesAction: setToggleMinorNamesAction,
 };
