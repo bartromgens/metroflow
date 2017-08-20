@@ -1,9 +1,5 @@
 require("paper");
-var core = require("../core.js");
-var serialize = require("../serialize.js");
-var metromap = require("../map.js");
-var metrointeraction = require("../interaction.js");
-var metrozoom = require("../controls/zoom.js");
+var MetroFlow = require("../js/metroflow.js");
 
 var isDebug = false;
 
@@ -17,18 +13,18 @@ $(initialise);
 
 
 function initialise() {
-    core.DisplaySettings.isDebug = isDebug;
+    MetroFlow.core.DisplaySettings.isDebug = isDebug;
 
-    drawSettingsFull = metromap.createDrawSettings();
+    drawSettingsFull = MetroFlow.map.createDrawSettings();
     drawSettingsFull.text = true;
     drawSettingsFull.fast = false;
     drawSettingsFull.calcTextPositions = true;
     drawSettingsFull.minorStationText = true;
 
     setLoadMapAction(loadMapClicked);
-    var newMap = metromap.createMap();
+    var newMap = MetroFlow.map.createMap();
     setNewMap(newMap);
-    metrozoom.enableZoomOnCanvas(newMap);
+    MetroFlow.zoom.enableZoomOnCanvas(newMap);
 }
 
 
@@ -42,8 +38,8 @@ function resetState() {
 
 function setNewMap(newMap) {
     map = newMap;
-    metrozoom.setNewMap(newMap);
-    metrointeraction.setCurrentMap(newMap);
+    MetroFlow.zoom.setNewMap(newMap);
+    MetroFlow.interaction.setCurrentMap(newMap);
 }
 
 
@@ -86,12 +82,12 @@ function prepareLoadMap() {
 function finishLoadMap(newMap) {
     newMap.draw(drawSettingsFull);
     var onRemoveStation = null;
-    metrointeraction.createMapElements(newMap, onRemoveStation);
+    MetroFlow.interaction.createMapElements(newMap, onRemoveStation);
 }
 
 
 function loadMapJson(json) {
-    var newMap = serialize.loadMap(json);
+    var newMap = MetroFlow.serialize.loadMap(json);
     setNewMap(newMap);
     finishLoadMap(newMap);
 }

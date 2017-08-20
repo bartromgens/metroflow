@@ -1,5 +1,5 @@
 require("paper");
-var core = require("../core.js");
+require("../../js/metroflow.js");
 
 var currentTrack = null;
 
