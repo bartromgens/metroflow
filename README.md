@@ -7,7 +7,7 @@ A javascript library to create metro (subway) map style flowchars on an HTML can
 
 ## Demo
 
-A metro-map editor build on the MetroFlow library:  
+A metro-map editor built with the MetroFlow library:  
 https://bartromgens.github.io/metroflow/
 
 
