@@ -9,10 +9,10 @@ module.exports = {
     context: __dirname,
     entry: {
         metroflow: "./src/js/metroflow.js",
-        sketcher: ["./src/js/sketcher/sketcher.js"],
+        editor: ["./src/js/editor/editor.js"],
         viewer: ["./src/js/viewer/viewer.js"],
         example_basic: ["./examples/basic/basic.js"],
-        css: ["./src/css/sketcher.css", "./src/css/viewer.css"],
+        css: ["./src/css/editor.css", "./src/css/viewer.css"],
     },
     output: {
         library: "MetroFlow",
@@ -49,7 +49,7 @@ module.exports = {
     },
     plugins: [
         new ManifestPlugin(),
-        new ExtractTextPlugin("metroflow-sketcher.css"),
+        new ExtractTextPlugin("metroflow-editor.css"),
         new ExtractTextPlugin("metroflow-viewer.css"),
         new WebpackCleanupPlugin(),
     ],
