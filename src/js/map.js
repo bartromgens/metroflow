@@ -51,6 +51,20 @@ var Map = {
             }
         }
     },
+    stations: function() {
+        var stations = [];
+        for (var i in this.tracks) {
+            stations = stations.concat(this.tracks[i].stations);
+        }
+        return stations;
+    },
+    segments: function() {
+        var segments = [];
+        for (var i in this.tracks) {
+            segments = segments.concat(this.tracks[i].segments);
+        }
+        return segments;
+    },
     draw: function(drawSettings) {
         console.time("map.draw");
         project.clear();
@@ -124,6 +138,16 @@ var Map = {
             }
         }
         return null;
+    },
+    notifyAllStationsAndSegments: function () {
+        var stations = this.stations();
+        for (var i in stations) {
+            stations[i].notifyAllObservers();
+        }
+        var segments = this.segments();
+        for (var i in segments) {
+            segments[i].notifyAllObservers();
+        }
     }
 };
 

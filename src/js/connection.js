@@ -1,4 +1,3 @@
-require("paper");
 core = require("./core.js");
 styles = require("./styles.js");
 
@@ -53,7 +52,6 @@ function createConnection(stationA, stationB) {
     connection = connection.Connection(stationA, stationB);
     return connection;
 }
-
 
 
 module.exports = {

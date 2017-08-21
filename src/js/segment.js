@@ -119,7 +119,7 @@ var Segment = {
         }
         return stationsRemoved;
     },
-    createPath: function() {
+    createNewPath: function() {
         var path = new Path();
         path.strokeColor = this.style.strokeColor;
         if (this.isSelected) {
@@ -185,12 +185,7 @@ var Segment = {
         }
         return null;
     },
-    draw: function(previous, drawSettings) {
-        // console.log('segment.draw()');
-        var notifyObservers = !drawSettings.fast;
-        this.stationA.updatePosition(this, notifyObservers);
-        this.stationB.updatePosition(this, notifyObservers);
-
+    createPath: function(previous) {
         this.path = null;
         var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
@@ -223,7 +218,7 @@ var Segment = {
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
             var endPoint2 = arcEnd + arcEndRel.normalize()*arcRadius;
 
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(beginPoint1);
             this.path.quadraticCurveTo(arcBegin, beginPoint2);
@@ -231,7 +226,7 @@ var Segment = {
             this.path.quadraticCurveTo(arcEnd, endPoint2);
             this.path.add(this.end());
         } else {
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(this.end());
         }
@@ -252,6 +247,14 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.path.sendToBack();
+    },
+    draw: function(previous, drawSettings) {
+        // console.log('segment.draw()');
+        var notifyObservers = !drawSettings.fast;
+        this.stationA.updatePosition(this, notifyObservers);
+        this.stationB.updatePosition(this, notifyObservers);
+
+        this.createPath(previous);
 
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];

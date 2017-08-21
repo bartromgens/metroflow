@@ -40,12 +40,12 @@ function createStationMinorElement(station, track) {
 
 function createMapElements(map, onRemoveStation) {
     $("#overlay").empty();
-    var tracksElements = [];
+    var mapElements = [];
     for (var i in map.tracks) {
         var trackElements = createTrackElements(map.tracks[i], onRemoveStation);
-        tracksElements.push({track: map.tracks[i], elements: trackElements});
+        mapElements.push({track: map.tracks[i], stationElements: trackElements.stationElements, segmentElements: trackElements.segmentElements});
     }
-    return tracksElements
+    return mapElements
 }
 
 
@@ -70,8 +70,9 @@ function createStationElement(station, track) {
     createStationObserver();
 
     function updateElementPosition(stationElement, station) {
-	    stationElement.css('top', (station.position.y - stationElement.width()/2) + 'px');
-	    stationElement.css('left', (station.position.x - stationElement.height()/2) + 'px');
+        var viewPosition = paper.view.projectToView(station.position);
+	    stationElement.css('top', (viewPosition.y - stationElement.width()/2) + 'px');
+	    stationElement.css('left', (viewPosition.x - stationElement.height()/2) + 'px');
     }
 
     function updateStyle() {
@@ -121,8 +122,9 @@ function createSegmentElement(segment, track) {
     createSegmentObserver();
 
     function updateSegmentElementPosition(segmentElement, segment) {
-	    segmentElement.css('top', (segment.center().y - segmentElement.width()/2) + 'px');
-	    segmentElement.css('left', (segment.center().x - segmentElement.height()/2) + 'px');
+        var segmentCenterView = paper.view.projectToView(segment.center());
+	    segmentElement.css('top', (segmentCenterView.y - segmentElement.width()/2) + 'px');
+	    segmentElement.css('left', (segmentCenterView.x - segmentElement.height()/2) + 'px');
     }
 
     function updateStyle() {

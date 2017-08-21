@@ -1,8 +1,8 @@
-var core = require("../core.js");
+require("../metroflow.js");
 
 
 function createStationContextMenu(stationElementId, onRemoveStation) {
-    console.log('createStationContextMenu');
+    console.assert(stationElementId);
     $.contextMenu({
         selector: '#' + stationElementId,
         trigger: 'none',
