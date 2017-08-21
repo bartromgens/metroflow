@@ -9,6 +9,7 @@ $(initialise);
 
 function initialise() {
     drawSettingsFull = MetroFlow.map.createDrawSettings();
+    drawSettingsFull.calcTextPositions = true;
     var newMap = createBasicMap();
     MetroFlow.zoom.enableZoomOnCanvas(newMap);
     setNewMap(newMap);
