@@ -1,4 +1,3 @@
-require("paper");
 var MetroFlow = require("../../dist/metroflow.js");
 
 var map = null;
