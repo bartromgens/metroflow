@@ -18,7 +18,7 @@ https://bartromgens.github.io/metroflow/
  - Create metro maps via code
  - Create multiple tracks
  - Create stations and minor stations
- - Create Connections between stations
+ - Create connections between stations
  - Style stations, tracks, and text (size, width, color) on track or station level
  - Auto-positioning of tekst
  - HTML element overlays on stations and tracks for interaction
