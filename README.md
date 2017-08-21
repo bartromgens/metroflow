@@ -2,7 +2,7 @@
 
 A javascript library to create metro (subway) map style flowchars on an HTML canvas. 
 
-**WARNING**: This is a work in progress and is not ready to be used yet.
+**WARNING**: This is a work in progress in pre-alpha state. It is functional, so feel free to try it but expect changes that break your code in future versions.
 
 
 ## Demo
@@ -40,6 +40,12 @@ https://bartromgens.github.io/metroflow/
  - Modify loaded or generated maps via javascript and make them interactive
  - Use generated HTML element overlays at station positions to create interactions and add information
  - Zoom and pan
+
+
+## Dependencies
+ - jQuery
+ - [paper.js](http://paperjs.org/)
+
 
 ## Usage
 
