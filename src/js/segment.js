@@ -6,7 +6,7 @@ var minStraight = 4.0*arcRadius;
 
 var Segment = {
     Segment: function(stationA, stationB, style) {
-        console.log('Segment.Segment()', stationA, stationB);
+//        console.log('Segment.Segment()', stationA, stationB);
         this.stationA = stationA;
         this.stationB = stationB;
         this.stations = [stationA, stationB];
@@ -49,11 +49,11 @@ var Segment = {
     },
     switchDirection: function() {
         console.log('switchDirection');
-        console.log(this.stationA.id, this.stationB.id);
+//        console.log(this.stationA.id, this.stationB.id);
         var stationA = this.stationA;
         this.stationA = this.stationB;
         this.stationB = stationA;
-        console.log(this.stationA.id, this.stationB.id);
+//        console.log(this.stationA.id, this.stationB.id);
     },
     toggleSelect: function() {
         if (this.isSelected) {
