@@ -1,5 +1,5 @@
 require("paper");
-core = require("./core.js");
+util = require("./util.js");
 serialize = require("./serialize.js");
 
 var maxRevisions = 100;

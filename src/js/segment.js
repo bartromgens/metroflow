@@ -1,4 +1,4 @@
-core = require("./core.js");
+util = require("./util.js");
 
 var arcRadius = 8.0;
 var minStraight = 4.0*arcRadius;
@@ -13,7 +13,7 @@ var Segment = {
         this.stationsAuto = [];
         this.stationsUser = [stationA, stationB];
         this.style = style;
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.path = null;
         this.isSelected = false;
         return this;
@@ -128,7 +128,7 @@ var Segment = {
         path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
-        path.fullySelected = core.DisplaySettings.isDebug;
+        path.fullySelected = util.DisplaySettings.isDebug;
         return path;
     },
     getNearestStation: function(position, direction) {
@@ -231,7 +231,7 @@ var Segment = {
             this.path.add(this.end());
         }
 
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             var debugPointRadius = 4;
             var center = (stationVector)/2.0 + this.begin();
             var centerCircle = new Path.Circle(center, debugPointRadius);
@@ -276,7 +276,7 @@ var Segment = {
 
 function createSegment(stationA, stationB, style) {
     console.log('createSegment');
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var segment = Object.assign(observable, Segment);
     segment = segment.Segment(stationA, stationB, style);
     return segment;

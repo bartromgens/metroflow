@@ -1,5 +1,5 @@
 require("paper");
-var core = require("./core.js");
+var util = require("./util.js");
 var metrosegment = require("./segment.js");
 var metrostation = require("./station.js");
 var metrostyles = require("./styles.js");
@@ -8,7 +8,7 @@ var metrostyles = require("./styles.js");
 var Track = {
     Track: function() {
         this.segments = [];
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.stations = [];
         this.stationsMajor = [];
         this.stationsMinor = [];
@@ -341,7 +341,7 @@ var Track = {
 
 
 function createTrack() {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var track = Object.assign(observable, Track);
     track = track.Track();
     return track;

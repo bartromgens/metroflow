@@ -1,5 +1,5 @@
 require("paper");
-core = require("./core.js");
+util = require("./util.js");
 styles = require("./styles.js");
 
 
@@ -9,7 +9,7 @@ var Station = {
         this.position = position;
         this.offsetFactor = null;
         this.style = style;
-        this.id = core.uuidv4().substring(0, 8);
+        this.id = util.uuidv4().substring(0, 8);
         this.path = null;
         this.isSelected = false;
         this.name = "station";
@@ -142,7 +142,7 @@ var StationPositionFree = {
 
 
 function createStationFree(position, style) {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var station = Object.assign(observable, Station, StationPositionFree, StationPainter);
     if (!style) {
         style = styles.createStationStyle();
@@ -154,7 +154,7 @@ function createStationFree(position, style) {
 
 function createStationSegment(offsetFactor, style) {
     console.log('createStationMinor');
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var station = Object.assign(observable, Station, StationPositionSegmentUser, StationPainter);
     station = station.Station(new Point(0, 0), style);
     station.offsetFactor = offsetFactor;
@@ -165,7 +165,7 @@ function createStationSegment(offsetFactor, style) {
 
 function createStationMinor(position, stationA, stationB, style) {
     console.log('createStationMinor');
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var station = Object.assign(observable, Station, StationPositionSegmentAuto, StationMinorPainter);
     station = station.Station(position, style);
     station.stationA = stationA;

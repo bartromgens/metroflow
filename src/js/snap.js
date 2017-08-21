@@ -1,4 +1,4 @@
-core = require("./core.js");
+util = require("./util.js");
 metrosegment = require("./segment.js");
 
 

@@ -1,4 +1,4 @@
-core = require("./core.js");
+util = require("./util.js");
 metrotrack = require("./track.js");
 metroconnection = require("./connection.js");
 
@@ -153,7 +153,7 @@ var Map = {
 
 
 function createMap() {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var map = Object.assign(observable, Map);
     map = map.Map();
     return map;

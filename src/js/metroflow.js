@@ -1,6 +1,6 @@
 require("paper");
 
-var core = require("./core.js");
+var util = require("./util.js");
 var map = require("./map.js");
 var track = require("./track.js");
 var segment = require("./segment.js");
@@ -15,7 +15,7 @@ var interaction = require("./interaction.js");
 
 
 module.exports = {
-    core: core,
+    util: util,
     map: map,
     track: track,
     segment: segment,

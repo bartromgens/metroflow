@@ -417,9 +417,9 @@ function initialiseToolbarActions() {
 
     function debugCheckboxClicked(event) {
         console.log('debug clicked', event.target.checked);
-        MetroFlow.core.DisplaySettings.isDebug = event.target.checked;
+        MetroFlow.util.DisplaySettings.isDebug = event.target.checked;
         map.draw(drawSettings);
-        if (MetroFlow.core.DisplaySettings.isDebug) {
+        if (MetroFlow.util.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
         } else {

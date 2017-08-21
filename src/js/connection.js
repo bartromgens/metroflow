@@ -1,4 +1,4 @@
-core = require("./core.js");
+util = require("./util.js");
 styles = require("./styles.js");
 
 
@@ -6,7 +6,7 @@ var Connection = {
     Connection: function(stationA, stationB) {
         this.stationA = stationA;
         this.stationB = stationB;
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.paths = [];
         return this;
     },
@@ -47,7 +47,7 @@ var Connection = {
 
 
 function createConnection(stationA, stationB) {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var connection = Object.assign(observable, Connection);
     connection = connection.Connection(stationA, stationB);
     return connection;

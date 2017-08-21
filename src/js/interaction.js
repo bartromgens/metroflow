@@ -1,5 +1,5 @@
 require("paper");
-var core = require("./core.js");
+var util = require("./util.js");
 
 
 var map = null;
@@ -76,7 +76,7 @@ function createStationElement(station, track) {
     }
 
     function updateStyle() {
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             stationElement.css('border-width', '1px');
         } else {
             stationElement.css('border-width', '0px');
@@ -84,7 +84,7 @@ function createStationElement(station, track) {
     }
 
     function createStationObserver() {
-        var stationObserver = new core.Observer(
+        var stationObserver = new util.Observer(
             function(station) {
                 updateElementPosition(this.stationElement, station);
             },
@@ -128,7 +128,7 @@ function createSegmentElement(segment, track) {
     }
 
     function updateStyle() {
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             segmentElement.css('border-width', '1px');
         } else {
             segmentElement.css('border-width', '0px');
@@ -136,7 +136,7 @@ function createSegmentElement(segment, track) {
     }
 
     function createSegmentObserver() {
-        var segmentObserver = new core.Observer(
+        var segmentObserver = new util.Observer(
             function(segment) {
                 updateSegmentElementPosition(this.segmentElement, segment);
             },

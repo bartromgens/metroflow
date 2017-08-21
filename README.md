@@ -13,7 +13,7 @@ https://bartromgens.github.io/metroflow/
 
 ## Features
 
-### Core library
+### MetroFlow library
  - Create metro (subway) style vector maps on an HTML canvas
  - Create metro maps via code
  - Create multiple tracks

@@ -13,7 +13,7 @@ $(initialise);
 
 
 function initialise() {
-    MetroFlow.core.DisplaySettings.isDebug = isDebug;
+    MetroFlow.util.DisplaySettings.isDebug = isDebug;
 
     drawSettingsFull = MetroFlow.map.createDrawSettings();
     drawSettingsFull.text = true;
