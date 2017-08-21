@@ -1,5 +1,5 @@
 require("paper");
-var MetroFlow = require("../js/metroflow.js");
+var MetroFlow = require("../metroflow.js");
 
 var isDebug = false;
 

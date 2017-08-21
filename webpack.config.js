@@ -9,13 +9,14 @@ module.exports = {
     context: __dirname,
     entry: {
         metroflow: "./src/js/metroflow.js",
-        sketcher: ["./src/examples/sketcher/sketcher.js"],
-        viewer: ["./src/examples/viewer.js"],
+        sketcher: ["./src/js/sketcher/sketcher.js"],
+        viewer: ["./src/js/viewer/viewer.js"],
+        example_basic: ["./examples/basic/basic.js"],
         css: ["./src/css/sketcher.css", "./src/css/viewer.css"],
     },
     output: {
         library: "MetroFlow",
-        libraryTarget: "var",
+        libraryTarget: "umd",
         path: path.join(__dirname, "/dist/"),
         filename: "[name].js"
     },

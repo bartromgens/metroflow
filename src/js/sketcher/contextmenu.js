@@ -1,4 +1,4 @@
-require("../../js/metroflow.js");
+require("../metroflow.js");
 
 
 function createStationContextMenu(stationElementId, onRemoveStation) {

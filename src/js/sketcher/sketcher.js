@@ -1,6 +1,6 @@
 require("paper");
 
-var MetroFlow = require("../../js/metroflow.js");
+var MetroFlow = require("../metroflow.js");
 
 var sidebar = require("./sidebar.js");
 var toolbar = require("./toolbar.js");
