@@ -183,26 +183,31 @@ var Track = {
                 text.fontSize = fontSize;
                 continue;
             }
-            console.log('recalc best text position');
             var stationRadius = station.style.stationRadius + station.style.strokeWidth;
-            var positions = [];
-            positions.push(new Point(stationRadius, fontSize / 4.0));
-            var text = this.createText(station, positions[0]);
+            var defaultPosition = new Point(stationRadius, fontSize / 4.0)
+            var text = this.createText(station, defaultPosition);
             text.fontSize = fontSize;
-            positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
-            positions.push(new Point(0, -stationRadius * 1.2));
-            positions.push(new Point(stationRadius, -stationRadius * 0.8));
-            positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
-            positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
-            positions.push(new Point(0, stationRadius * 2.2));
-            positions.push(new Point(stationRadius, stationRadius * 1.4));
-            positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
-            positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
-            var pathsToUse = paths;
-            if (paths.length === 0) {
-                pathsToUse = this.stationSegmentPaths(station);
+            if (!calcTextPositions) {
+                continue;
+            } else {
+                console.log('recalc best text position');
+                var positions = [];
+                positions.push(defaultPosition);
+                positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
+                positions.push(new Point(0, -stationRadius * 1.2));
+                positions.push(new Point(stationRadius, -stationRadius * 0.8));
+                positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
+                positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
+                positions.push(new Point(0, stationRadius * 2.2));
+                positions.push(new Point(stationRadius, stationRadius * 1.4));
+                positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
+                positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
+                var pathsToUse = paths;
+                if (paths.length === 0) {
+                    pathsToUse = this.stationSegmentPaths(station);
+                }
+                station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
             }
-            station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
         }
     },
     stationSegmentPaths: function(station) {
