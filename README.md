@@ -1,6 +1,6 @@
 # metroflow
 
-A javascript library to create metro (subway) map style flowcharts on an HTML canvas. 
+A javascript library to create metro (subway) map style flowchars on an HTML canvas. 
 
 **WARNING**: This is a work in progress and is not ready to be used yet.
 
@@ -10,6 +10,36 @@ A javascript library to create metro (subway) map style flowcharts on an HTML ca
 A metro-map editor build on the MetroFlow library:  
 https://bartromgens.github.io/metroflow/
 
+
+## Features
+
+### Core library
+ - Create metro (subway) style vector maps on an HTML canvas
+ - Create metro maps via code
+ - Create multiple tracks
+ - Create stations and minor stations
+ - Create Connections between stations
+ - Style stations, tracks, and text (size, width, color) on track or station level
+ - Auto-positioning of tekst
+ - HTML element overlays on stations and tracks for interaction
+ - Save/load maps to json
+
+### Web-editor
+ - Create maps via a web-editor
+ - Create tracks
+ - Create and position stations and minor stations
+ - Connect stations and tracks
+ - Edit station and track styles
+ - Edit station names
+ - Undo/Redo changes
+ - Load/save map
+
+### Web-viewer
+ - Empty canvas to draw on
+ - Load maps created in the web-editor
+ - Modify loaded or generated maps via javascript and make them interactive
+ - Use generated HTML element overlays at station positions to create interactions and add information
+ - Zoom and pan
 
 ## Usage
 
