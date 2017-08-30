@@ -24,7 +24,6 @@ function createSegmentContextMenu(segmentElementId, onCreateStationMinor) {
         selector: '#' + segmentElementId,
         trigger: 'none',
         callback: function(key, options) {
-            console.log(options);
             var segmentId = $(options.selector).data('segment-id');
             if (key === 'createMinorStation') {
                 var position = $(options.selector).data('position');
