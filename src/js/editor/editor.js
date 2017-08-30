@@ -198,7 +198,7 @@ function onClickMajorStationMode(event) {
         selectStation(stationNew);
         // TODO: create elements based on track/map observer in interaction
         var stationElement = MetroFlow.interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
-        contextmenu.createStationContextMenu(stationElement.id, onRemoveStation);
+        contextmenu.createStationContextMenu(stationElement.attr('id'), onRemoveStation);
         var segmentElements = MetroFlow.interaction.createSegmentElements(currentTrack);
         for (var i in segmentElements) {
             var element = segmentElements[i];

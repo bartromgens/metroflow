@@ -9,14 +9,14 @@ function setCurrentMap(currentMap) {
 }
 
 function showStationContextMenu(stationId) {
-    $('#station-' + stationId).contextMenu();
+    $('#' + stationId).contextMenu();
 }
 
 
 function showStationInfo(station) {
     var $div = $('<div class="station-info">id:' + station.id + '</div>');
-    $div.css('top', $('#station-' + station.id).css("top"));
-    $div.css('left', $('#station-' + station.id).css("left"));
+    $div.css('top', $('#' + station.id).css("top"));
+    $div.css('left', $('#' + station.id).css("left"));
     $('#overlay-content').append($div);
 }
 
@@ -33,8 +33,7 @@ function showSegmentContextMenu(segmentId, position) {
 
 
 function createStationMinorElement(station, track) {
-    var stationElementId = "station-" + station.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
+	$("#overlay").append("<div class=\"station\" id=\"" + station.id + "\" data-station-id=\"" + station.id + "\"></div>")
 }
 
 
@@ -61,9 +60,8 @@ function createTrackElements(track) {
 
 
 function createStationElement(station, track) {
-	var stationElementId = "station-" + station.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
-    var stationElement = $("#" + stationElementId);
+	$("#overlay").append("<div class=\"station\" id=\"" + station.id + "\" data-station-id=\"" + station.id + "\"></div>")
+    var stationElement = $("#" + station.id);
 
     updateElementPosition(stationElement, station);
     updateStyle();
