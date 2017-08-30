@@ -1,6 +1,3 @@
-require("paper");
-styles = require("./styles.js");
-
 
 var DisplaySettings = {
     isDebug: false,

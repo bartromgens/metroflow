@@ -1,5 +1,14 @@
-var MetroFlow = MetroFlow || {}; MetroFlow["serialize"] =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("paper"));
+	else if(typeof define === 'function' && define.amd)
+		define(["paper"], factory);
+	else if(typeof exports === 'object')
+		exports["MetroFlow"] = factory(require("paper"));
+	else
+		root["MetroFlow"] = factory(root["paper"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__) {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -61,15 +70,179 @@ var MetroFlow = MetroFlow || {}; MetroFlow["serialize"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 21);
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ 1:
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
+
+/***/ }),
+
+/***/ 21:
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(22);
+
+
+/***/ }),
+
+/***/ 22:
+/***/ (function(module, exports, __webpack_require__) {
+
+var MetroFlow = __webpack_require__(23);
+
+var map = null;
+var drawSettingsFull = null;
+
+
+$(initialise);
+
+
+function initialise() {
+    drawSettingsFull = MetroFlow.map.createDrawSettings();
+    drawSettingsFull.calcTextPositions = true;
+    var newMap = createBasicMap();
+    MetroFlow.zoom.enableZoomOnCanvas(newMap);
+    setNewMap(newMap);
+    newMap.draw(drawSettingsFull);
+}
+
+
+function createBasicMap() {
+    var newMap = MetroFlow.map.createMap();
+
+    var track = newMap.createTrack();
+    var station1 = track.createStationFree(new Point(100, 100), null);
+    station1.name = "Andromeda";
+    var station2 = track.createStationFree(new Point(100, 200), station1);
+    var station3 = track.createStationFree(new Point(100, 350), station2);
+    var station4 = track.createStationFree(new Point(300, 600), station3);
+    var segment = track.findSegmentBetweenStations(station3, station4)
+    track.createStationMinor(new Point(200, 500), segment);
+    var station5 = track.createStationFree(new Point(500, 500), station4);
+    var station6 = track.createStationFree(new Point(300, 200), station5);
+    var station7 = track.createStationFree(new Point(500, 200), station6);
+    var station8 = track.createStationFree(new Point(250, 100), station6);
+
+    return newMap;
+}
+
+
+function setNewMap(newMap) {
+    map = newMap;
+    MetroFlow.zoom.setNewMap(newMap);
+    MetroFlow.interaction.setCurrentMap(newMap);
+}
+
+
+var startPosition = null;
+
+function onMouseDown(event) {
+    startPosition = event.point;
+}
+
+function onMouseUp(event) {
+    map.notifyAllStationsAndSegments();
+    startPosition = null;
+}
+
+function onMouseDrag(event) {
+    var offset = startPosition - event.point;
+    paper.view.center = view.center.add(offset);
+    return;
+}
+
+tool.onMouseDown = onMouseDown;
+tool.onMouseUp = onMouseUp;
+tool.onMouseDrag = onMouseDrag;
+
+/***/ }),
+
+/***/ 23:
+/***/ (function(module, exports, __webpack_require__) {
+
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(true)
+		module.exports = factory(__webpack_require__(1));
+	else if(typeof define === 'function' && define.amd)
+		define(["paper"], factory);
+	else if(typeof exports === 'object')
+		exports["MetroFlow"] = factory(require("paper"));
+	else
+		root["MetroFlow"] = factory(root["paper"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__) {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-__webpack_require__(1);
-styles = __webpack_require__(2);
+/***/ (function(module, exports) {
 
 
 var DisplaySettings = {
@@ -134,7 +307,7 @@ module.exports = {
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = paper;
+module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 /***/ }),
 /* 2 */
@@ -231,7 +404,7 @@ module.exports = {
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
-core = __webpack_require__(0);
+util = __webpack_require__(0);
 
 var arcRadius = 8.0;
 var minStraight = 4.0*arcRadius;
@@ -239,14 +412,14 @@ var minStraight = 4.0*arcRadius;
 
 var Segment = {
     Segment: function(stationA, stationB, style) {
-        console.log('Segment.Segment()', stationA, stationB);
+//        console.log('Segment.Segment()', stationA, stationB);
         this.stationA = stationA;
         this.stationB = stationB;
         this.stations = [stationA, stationB];
         this.stationsAuto = [];
         this.stationsUser = [stationA, stationB];
         this.style = style;
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.path = null;
         this.isSelected = false;
         return this;
@@ -279,14 +452,6 @@ var Segment = {
         console.assert(this.path, this);
         var position = this.path.getNearestPoint(position);
         return this.path.getOffsetOf(position);
-    },
-    switchDirection: function() {
-        console.log('switchDirection');
-        console.log(this.stationA.id, this.stationB.id);
-        var stationA = this.stationA;
-        this.stationA = this.stationB;
-        this.stationB = stationA;
-        console.log(this.stationA.id, this.stationB.id);
     },
     toggleSelect: function() {
         if (this.isSelected) {
@@ -352,7 +517,7 @@ var Segment = {
         }
         return stationsRemoved;
     },
-    createPath: function() {
+    createNewPath: function() {
         var path = new Path();
         path.strokeColor = this.style.strokeColor;
         if (this.isSelected) {
@@ -361,7 +526,7 @@ var Segment = {
         path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
-        path.fullySelected = core.DisplaySettings.isDebug;
+        path.fullySelected = util.DisplaySettings.isDebug;
         return path;
     },
     getNearestStation: function(position, direction) {
@@ -418,12 +583,7 @@ var Segment = {
         }
         return null;
     },
-    draw: function(previous, drawSettings) {
-        // console.log('segment.draw()');
-        var notifyObservers = !drawSettings.fast;
-        this.stationA.updatePosition(this, notifyObservers);
-        this.stationB.updatePosition(this, notifyObservers);
-
+    createPath: function(previous) {
         this.path = null;
         var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
@@ -456,7 +616,7 @@ var Segment = {
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
             var endPoint2 = arcEnd + arcEndRel.normalize()*arcRadius;
 
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(beginPoint1);
             this.path.quadraticCurveTo(arcBegin, beginPoint2);
@@ -464,12 +624,12 @@ var Segment = {
             this.path.quadraticCurveTo(arcEnd, endPoint2);
             this.path.add(this.end());
         } else {
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(this.end());
         }
 
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             var debugPointRadius = 4;
             var center = (stationVector)/2.0 + this.begin();
             var centerCircle = new Path.Circle(center, debugPointRadius);
@@ -485,6 +645,14 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.path.sendToBack();
+    },
+    draw: function(previous, drawSettings) {
+        // console.log('segment.draw()');
+        var notifyObservers = !drawSettings.fast;
+        this.stationA.updatePosition(this, notifyObservers);
+        this.stationB.updatePosition(this, notifyObservers);
+
+        this.createPath(previous);
 
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];
@@ -506,7 +674,7 @@ var Segment = {
 
 function createSegment(stationA, stationB, style) {
     console.log('createSegment');
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var segment = Object.assign(observable, Segment);
     segment = segment.Segment(stationA, stationB, style);
     return segment;
@@ -524,188 +692,181 @@ module.exports = {
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(1);
-core = __webpack_require__(0);
-styles = __webpack_require__(2);
+util = __webpack_require__(0);
+metrotrack = __webpack_require__(5);
+metroconnection = __webpack_require__(7);
 
 
-var Station = {
-    Station: function(position, style) {
-        console.log('new station for point', position);
-        this.position = position;
-        this.offsetFactor = null;
-        this.style = style;
-        this.id = core.uuidv4().substring(0, 8);
-        this.path = null;
-        this.isSelected = false;
-        this.name = "station";
-        this.textPositionRel = null;
-        this.doSnap = true;
+var DrawSettings = {
+    text: true,
+    fast: false,
+    calcTextPositions: false,
+    minorStationText: false,
+};
+
+
+function createDrawSettings() {
+    var drawSettings = {};
+    Object.keys(DrawSettings).forEach(function(key) {
+        drawSettings[key] = DrawSettings[key];
+    });
+    return drawSettings;
+}
+
+
+var Map = {
+    Map: function() {
+        this.tracks = [];
+        this.connections = [];
         return this;
     },
-    toggleSelect: function() {
-        if (this.isSelected) {
-            this.deselect();
-        } else {
-            this.select();
+    createTrack: function() {
+        console.log('map.createTrack()');
+        var newTrack = metrotrack.createTrack();
+        this.tracks.push(newTrack);
+        return newTrack;
+    },
+    createConnection: function(stationA, stationB) {
+        console.log('map.createConnection()');
+        if (stationA.id === stationB.id) {
+            return null
+        }
+        var newConnection = metroconnection.createConnection(stationA, stationB);
+        this.connections.push(newConnection);
+        return newConnection;
+    },
+    removeStation: function(id) {
+        for (var i in this.tracks) {
+            this.tracks[i].removeStation(id);
+        }
+        for (var i = this.connections.length - 1; i >= 0; i--) {
+            if (this.connections[i].stationA.id === id || this.connections[i].stationB.id === id) {
+                this.connections.splice(i, 1);
+            }
         }
     },
-    select: function() {
-        this.isSelected = true;
-    },
-    deselect: function() {
-        this.isSelected = false;
-    },
-    setPosition: function(position, segment) {
-        this.doSetPosition(position, segment);
-        this.textPositionRel = null;
-        this.notifyAllObservers();
-    },
-};
-
-
-var StationPainter = {
-    draw: function() {
-        this.path = new Path.Circle(this.position, this.style.stationRadius);
-        if (this.isSelected) {
-            this.path.strokeColor = this.style.selectionColor;
-        } else {
-            this.path.strokeColor = this.style.strokeColor;
+    stations: function() {
+        var stations = [];
+        for (var i in this.tracks) {
+            stations = stations.concat(this.tracks[i].stations);
         }
-        this.path.strokeWidth = this.style.strokeWidth;
-        this.path.fillColor = this.style.fillColor;
-        this.path.bringToFront();
+        return stations;
     },
-};
-
-
-var StationMinorPainter = {
-    draw: function(segment) {
-        var minorStationSize = this.style.minorStationSize;
-        this.path = new Path.Line(this.position, this.position + this.normalUnit*minorStationSize);
-        this.path.strokeColor = this.style.strokeColor;
-        this.path.strokeWidth = this.style.strokeWidth;
-        // this.path.fillColor = this.style.fillColor;
+    segments: function() {
+        var segments = [];
+        for (var i in this.tracks) {
+            segments = segments.concat(this.tracks[i].segments);
+        }
+        return segments;
     },
-    direction: function() {
-        return (this.path.lastSegment.point - this.path.firstSegment.point).normalize();
+    draw: function(drawSettings) {
+        console.time("map.draw");
+        project.clear();
+        for (var i in this.tracks) {
+            this.tracks[i].draw(drawSettings);
+        }
+        for (var i in this.connections) {
+            this.connections[i].draw();
+        }
+        if (drawSettings.text) {
+            var paths = [];
+            if (!drawSettings.fast) {
+                paths = this.allPaths();
+                console.log("map.draw() paths.length", paths.length);
+            }
+            this.drawStationNames(paths, drawSettings);
+        }
+        console.timeEnd("map.draw");
+    },
+    clear: function() {
+        this.tracks = [];
+    },
+    drawStationNames: function(paths, drawSettings) {
+        for (var i in this.tracks) {
+            this.tracks[i].drawStationNames(paths, drawSettings);
+        }
+    },
+    allPaths: function() {
+        var paths = [];
+        for (var i in this.tracks) {
+            paths = paths.concat(this.tracks[i].allPaths());
+        }
+        for (var i in this.connections) {
+            paths = paths.concat(this.connections[i].allPaths());
+        }
+        return paths;
+    },
+    findStation: function(id) {
+        for (var i in this.tracks) {
+            var station = this.tracks[i].findStation(id);
+            if (station) {
+                return station;
+            }
+        }
+        return null;
+    },
+    findStationByPathId: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var station = track.findStationByPathId(id);
+            if (station) {
+                return {station: station, track: track};
+            }
+        }
+        return {station: null, track: null};
+    },
+    findSegment: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var segment = track.findSegment(id);
+            if (segment) {
+                return {segment: segment, track: track};
+            }
+        }
+        return {segment: null, track: null};
+    },
+    findSegmentByPathId: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var segment = track.findSegmentByPathId(id);
+            if (segment) {
+                return {segment: segment, track: track};
+            }
+        }
+        return {segment: null, track: null};
+    },
+    findTrack: function(id) {
+        for (var i in this.tracks) {
+            if (this.tracks[i].id === id) {
+                return this.tracks[i];
+            }
+        }
+        return null;
+    },
+    notifyAllStationsAndSegments: function () {
+        var stations = this.stations();
+        for (var i in stations) {
+            stations[i].notifyAllObservers();
+        }
+        var segments = this.segments();
+        for (var i in segments) {
+            segments[i].notifyAllObservers();
+        }
     }
 };
 
 
-var StationPositionSegmentAuto = {
-    doSetPosition: function(position, segment) {
-        this.position = position;
-    },
-    updatePosition: function(segment, notifyObservers) {
-        // console.log('=======================================');
-        // console.log('StationPositionSegmentAuto.updatePosition');
-        // console.log('this.position', this.position);
-        // console.log('segment', segment);
-        var offsetFactor = segment.getOffsetOf(this.position) / segment.length();
-        var offset = segment.path.length * offsetFactor;
-        this.position = segment.path.getPointAt(offset);
-        var previousStationInfo = segment.getPreviousStation(this.position);
-        // console.log('previousStationInfo', previousStationInfo.station.id);
-        var offsetA = previousStationInfo.offset;
-        var nextStationInfo = segment.getNextStation(this.position);
-        var stationsAuto = segment.getStationsBetween(previousStationInfo.station, nextStationInfo.station);
-        var nStations = stationsAuto.length;
-        var offsetB = nextStationInfo.offset;
-        // console.log('nextStationInfo', nextStationInfo.station.id);
-        var totalLength = offsetB - offsetA;
-        // console.log('totalLength', totalLength);
-        // console.log('segment.length', segment.length());
-        var distanceBetweenStations = totalLength/(nStations+1);
-        var orderNr = stationsAuto.indexOf(this);
-        var stationOffset = distanceBetweenStations * (orderNr+1) + offsetA;
-        // console.log('stationsAuto', stationsAuto);
-        // console.log('orderNr', orderNr);
-        // console.log('stationOffset', stationOffset);
-        var position = segment.path.getPointAt(stationOffset);
-        console.assert(position);
-        if (position) {
-            this.position = position;
-        }
-        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
-        // console.log('segment.getOffsetOf(this.position)', segment.getOffsetOf(this.position));
-        // console.log('offsetFactor', this.offsetFactor);
-        this.normalUnit = segment.path.getNormalAt(stationOffset);
-        if (notifyObservers) {
-            this.notifyAllObservers();
-        }
-        return this.position;
-    }
-};
-
-
-var StationPositionSegmentUser = {
-    doSetPosition: function(position, segment) {
-        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
-    },
-    updatePosition: function(segment, notifyObservers) {
-        var distanceStation = segment.path.length * this.offsetFactor;
-        this.position = segment.path.getPointAt(distanceStation);
-        if (notifyObservers) {
-            this.notifyAllObservers();
-        }
-        return this.position;
-    }
-};
-
-
-var StationPositionFree = {
-    doSetPosition: function(position, segment) {
-        this.position = position;
-    },
-    updatePosition: function(segment, notifyObservers) {
-        if (notifyObservers) {
-            this.notifyAllObservers();
-        }
-        return this.position;
-    }
-};
-
-
-function createStationFree(position, style) {
-    var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionFree, StationPainter);
-    if (!style) {
-        style = styles.createStationStyle();
-    }
-    station = station.Station(position, style);
-    return station;
-}
-
-
-function createStationSegment(offsetFactor, style) {
-    console.log('createStationMinor');
-    var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionSegmentUser, StationPainter);
-    station = station.Station(new Point(0, 0), style);
-    station.offsetFactor = offsetFactor;
-    station.doSnap = false;
-    return station;
-}
-
-
-function createStationMinor(position, stationA, stationB, style) {
-    console.log('createStationMinor');
-    var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionSegmentAuto, StationMinorPainter);
-    station = station.Station(position, style);
-    station.stationA = stationA;
-    station.stationB = stationB;
-    station.name = "minor station";
-    station.doSnap = false;
-    return station;
+function createMap() {
+    var observable = Object.create(util.Observable).Observable();
+    var map = Object.assign(observable, Map);
+    map = map.Map();
+    return map;
 }
 
 
 module.exports = {
-    createStationFree: createStationFree,
-    createStationSegment: createStationSegment,
-    createStationMinor: createStationMinor,
+    createMap: createMap,
+    createDrawSettings: createDrawSettings,
 };
 
 /***/ }),
@@ -713,16 +874,16 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-var core = __webpack_require__(0);
+var util = __webpack_require__(0);
 var metrosegment = __webpack_require__(3);
-var metrostation = __webpack_require__(4);
+var metrostation = __webpack_require__(6);
 var metrostyles = __webpack_require__(2);
 
 
 var Track = {
     Track: function() {
         this.segments = [];
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.stations = [];
         this.stationsMajor = [];
         this.stationsMinor = [];
@@ -897,26 +1058,31 @@ var Track = {
                 text.fontSize = fontSize;
                 continue;
             }
-            console.log('recalc best text position');
             var stationRadius = station.style.stationRadius + station.style.strokeWidth;
-            var positions = [];
-            positions.push(new Point(stationRadius, fontSize / 4.0));
-            var text = this.createText(station, positions[0]);
+            var defaultPosition = new Point(stationRadius, fontSize / 4.0)
+            var text = this.createText(station, defaultPosition);
             text.fontSize = fontSize;
-            positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
-            positions.push(new Point(0, -stationRadius * 1.2));
-            positions.push(new Point(stationRadius, -stationRadius * 0.8));
-            positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
-            positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
-            positions.push(new Point(0, stationRadius * 2.2));
-            positions.push(new Point(stationRadius, stationRadius * 1.4));
-            positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
-            positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
-            var pathsToUse = paths;
-            if (paths.length === 0) {
-                pathsToUse = this.stationSegmentPaths(station);
+            if (!calcTextPositions) {
+                continue;
+            } else {
+                console.log('recalc best text position');
+                var positions = [];
+                positions.push(defaultPosition);
+                positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
+                positions.push(new Point(0, -stationRadius * 1.2));
+                positions.push(new Point(stationRadius, -stationRadius * 0.8));
+                positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
+                positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
+                positions.push(new Point(0, stationRadius * 2.2));
+                positions.push(new Point(stationRadius, stationRadius * 1.4));
+                positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
+                positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
+                var pathsToUse = paths;
+                if (paths.length === 0) {
+                    pathsToUse = this.stationSegmentPaths(station);
+                }
+                station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
             }
-            station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
         }
     },
     stationSegmentPaths: function(station) {
@@ -1055,7 +1221,7 @@ var Track = {
 
 
 function createTrack() {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var track = Object.assign(observable, Track);
     track = track.Track();
     return track;
@@ -1071,7 +1237,194 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-core = __webpack_require__(0);
+util = __webpack_require__(0);
+styles = __webpack_require__(2);
+
+
+var Station = {
+    Station: function(position, style) {
+        console.log('new station for point', position);
+        this.position = position;
+        this.offsetFactor = null;
+        this.style = style;
+        this.id = util.uuidv4().substring(0, 8);
+        this.path = null;
+        this.isSelected = false;
+        this.name = "station";
+        this.textPositionRel = null;
+        this.doSnap = true;
+        return this;
+    },
+    toggleSelect: function() {
+        if (this.isSelected) {
+            this.deselect();
+        } else {
+            this.select();
+        }
+    },
+    select: function() {
+        this.isSelected = true;
+    },
+    deselect: function() {
+        this.isSelected = false;
+    },
+    setPosition: function(position, segment) {
+        this.doSetPosition(position, segment);
+        this.textPositionRel = null;
+        this.notifyAllObservers();
+    },
+};
+
+
+var StationPainter = {
+    draw: function() {
+        this.path = new Path.Circle(this.position, this.style.stationRadius);
+        if (this.isSelected) {
+            this.path.strokeColor = this.style.selectionColor;
+        } else {
+            this.path.strokeColor = this.style.strokeColor;
+        }
+        this.path.strokeWidth = this.style.strokeWidth;
+        this.path.fillColor = this.style.fillColor;
+        this.path.bringToFront();
+    },
+};
+
+
+var StationMinorPainter = {
+    draw: function(segment) {
+        var minorStationSize = this.style.minorStationSize;
+        this.path = new Path.Line(this.position, this.position + this.normalUnit*minorStationSize);
+        this.path.strokeColor = this.style.strokeColor;
+        this.path.strokeWidth = this.style.strokeWidth;
+        // this.path.fillColor = this.style.fillColor;
+    },
+    direction: function() {
+        return (this.path.lastSegment.point - this.path.firstSegment.point).normalize();
+    }
+};
+
+
+var StationPositionSegmentAuto = {
+    doSetPosition: function(position, segment) {
+        this.position = position;
+    },
+    updatePosition: function(segment, notifyObservers) {
+        // console.log('=======================================');
+        // console.log('StationPositionSegmentAuto.updatePosition');
+        // console.log('this.position', this.position);
+        // console.log('segment', segment);
+        var offsetFactor = segment.getOffsetOf(this.position) / segment.length();
+        var offset = segment.path.length * offsetFactor;
+        this.position = segment.path.getPointAt(offset);
+        var previousStationInfo = segment.getPreviousStation(this.position);
+        // console.log('previousStationInfo', previousStationInfo.station.id);
+        var offsetA = previousStationInfo.offset;
+        var nextStationInfo = segment.getNextStation(this.position);
+        var stationsAuto = segment.getStationsBetween(previousStationInfo.station, nextStationInfo.station);
+        var nStations = stationsAuto.length;
+        var offsetB = nextStationInfo.offset;
+        // console.log('nextStationInfo', nextStationInfo.station.id);
+        var totalLength = offsetB - offsetA;
+        // console.log('totalLength', totalLength);
+        // console.log('segment.length', segment.length());
+        var distanceBetweenStations = totalLength/(nStations+1);
+        var orderNr = stationsAuto.indexOf(this);
+        var stationOffset = distanceBetweenStations * (orderNr+1) + offsetA;
+        // console.log('stationsAuto', stationsAuto);
+        // console.log('orderNr', orderNr);
+        // console.log('stationOffset', stationOffset);
+        var position = segment.path.getPointAt(stationOffset);
+        console.assert(position);
+        if (position) {
+            this.position = position;
+        }
+        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
+        // console.log('segment.getOffsetOf(this.position)', segment.getOffsetOf(this.position));
+        // console.log('offsetFactor', this.offsetFactor);
+        this.normalUnit = segment.path.getNormalAt(stationOffset);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
+        return this.position;
+    }
+};
+
+
+var StationPositionSegmentUser = {
+    doSetPosition: function(position, segment) {
+        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
+    },
+    updatePosition: function(segment, notifyObservers) {
+        var distanceStation = segment.path.length * this.offsetFactor;
+        this.position = segment.path.getPointAt(distanceStation);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
+        return this.position;
+    }
+};
+
+
+var StationPositionFree = {
+    doSetPosition: function(position, segment) {
+        this.position = position;
+    },
+    updatePosition: function(segment, notifyObservers) {
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
+        return this.position;
+    }
+};
+
+
+function createStationFree(position, style) {
+    var observable = Object.create(util.Observable).Observable();
+    var station = Object.assign(observable, Station, StationPositionFree, StationPainter);
+    if (!style) {
+        style = styles.createStationStyle();
+    }
+    station = station.Station(position, style);
+    return station;
+}
+
+
+function createStationSegment(offsetFactor, style) {
+    console.log('createStationMinor');
+    var observable = Object.create(util.Observable).Observable();
+    var station = Object.assign(observable, Station, StationPositionSegmentUser, StationPainter);
+    station = station.Station(new Point(0, 0), style);
+    station.offsetFactor = offsetFactor;
+    station.doSnap = false;
+    return station;
+}
+
+
+function createStationMinor(position, stationA, stationB, style) {
+    console.log('createStationMinor');
+    var observable = Object.create(util.Observable).Observable();
+    var station = Object.assign(observable, Station, StationPositionSegmentAuto, StationMinorPainter);
+    station = station.Station(position, style);
+    station.stationA = stationA;
+    station.stationB = stationB;
+    station.name = "minor station";
+    station.doSnap = false;
+    return station;
+}
+
+
+module.exports = {
+    createStationFree: createStationFree,
+    createStationSegment: createStationSegment,
+    createStationMinor: createStationMinor,
+};
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+util = __webpack_require__(0);
 styles = __webpack_require__(2);
 
 
@@ -1079,7 +1432,7 @@ var Connection = {
     Connection: function(stationA, stationB) {
         this.stationA = stationA;
         this.stationB = stationB;
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.paths = [];
         return this;
     },
@@ -1120,12 +1473,11 @@ var Connection = {
 
 
 function createConnection(stationA, stationB) {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var connection = Object.assign(observable, Connection);
     connection = connection.Connection(stationA, stationB);
     return connection;
 }
-
 
 
 module.exports = {
@@ -1133,157 +1485,10 @@ module.exports = {
 };
 
 /***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-core = __webpack_require__(0);
-metrotrack = __webpack_require__(5);
-metroconnection = __webpack_require__(6);
-
-
-var DrawSettings = {
-    text: true,
-    fast: false,
-    calcTextPositions: false,
-    minorStationText: false,
-};
-
-
-function createDrawSettings() {
-    var drawSettings = {};
-    Object.keys(DrawSettings).forEach(function(key) {
-        drawSettings[key] = DrawSettings[key];
-    });
-    return drawSettings;
-}
-
-
-var Map = {
-    Map: function() {
-        this.tracks = [];
-        this.connections = [];
-        return this;
-    },
-    createTrack: function() {
-        console.log('map.createTrack()');
-        var newTrack = metrotrack.createTrack();
-        this.tracks.push(newTrack);
-        return newTrack;
-    },
-    createConnection: function(stationA, stationB) {
-        console.log('map.createConnection()');
-        if (stationA.id === stationB.id) {
-            return null
-        }
-        var newConnection = metroconnection.createConnection(stationA, stationB);
-        this.connections.push(newConnection);
-        return newConnection;
-    },
-    removeStation: function(id) {
-        for (var i in this.tracks) {
-            this.tracks[i].removeStation(id);
-        }
-        for (var i = this.connections.length - 1; i >= 0; i--) {
-            if (this.connections[i].stationA.id === id || this.connections[i].stationB.id === id) {
-                this.connections.splice(i, 1);
-            }
-        }
-    },
-    draw: function(drawSettings) {
-        console.time("map.draw");
-        project.clear();
-        for (var i in this.tracks) {
-            this.tracks[i].draw(drawSettings);
-        }
-        for (var i in this.connections) {
-            this.connections[i].draw();
-        }
-        if (drawSettings.text) {
-            var paths = [];
-            if (!drawSettings.fast) {
-                paths = this.allPaths();
-                console.log("map.draw() paths.length", paths.length);
-            }
-            this.drawStationNames(paths, drawSettings);
-        }
-        console.timeEnd("map.draw");
-    },
-    clear: function() {
-        this.tracks = [];
-    },
-    drawStationNames: function(paths, drawSettings) {
-        for (var i in this.tracks) {
-            this.tracks[i].drawStationNames(paths, drawSettings);
-        }
-    },
-    allPaths: function() {
-        var paths = [];
-        for (var i in this.tracks) {
-            paths = paths.concat(this.tracks[i].allPaths());
-        }
-        for (var i in this.connections) {
-            paths = paths.concat(this.connections[i].allPaths());
-        }
-        return paths;
-    },
-    findStation: function(id) {
-        for (var i in this.tracks) {
-            var station = this.tracks[i].findStation(id);
-            if (station) {
-                return station;
-            }
-        }
-        return null;
-    },
-    findStationByPathId: function(id) {
-        for (var i in this.tracks) {
-            var track = this.tracks[i];
-            var station = track.findStationByPathId(id);
-            if (station) {
-                return {station: station, track: track};
-            }
-        }
-        return {station: null, track: null};
-    },
-    findSegmentByPathId: function(id) {
-        for (var i in this.tracks) {
-            var track = this.tracks[i];
-            var segment = track.findSegmentByPathId(id);
-            if (segment) {
-                return {segment: segment, track: track};
-            }
-        }
-        return {segment: null, track: null};
-    },
-    findTrack: function(id) {
-        for (var i in this.tracks) {
-            if (this.tracks[i].id === id) {
-                return this.tracks[i];
-            }
-        }
-        return null;
-    }
-};
-
-
-function createMap() {
-    var observable = Object.create(core.Observable).Observable();
-    var map = Object.assign(observable, Map);
-    map = map.Map();
-    return map;
-}
-
-
-module.exports = {
-    createMap: createMap,
-    createDrawSettings: createDrawSettings,
-};
-
-/***/ }),
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metromap = __webpack_require__(7);
+var metromap = __webpack_require__(4);
 
 
 function saveMap(map) {
@@ -1472,5 +1677,395 @@ module.exports = {
     loadMap: loadMap,
 };
 
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
+
+var util = __webpack_require__(0);
+var map = __webpack_require__(4);
+var track = __webpack_require__(5);
+var segment = __webpack_require__(3);
+var station = __webpack_require__(6);
+var connection = __webpack_require__(7);
+var styles = __webpack_require__(2);
+var snap = __webpack_require__(10);
+var serialize = __webpack_require__(8);
+var revision = __webpack_require__(11);
+var zoom = __webpack_require__(12);
+var interaction = __webpack_require__(13);
+
+
+module.exports = {
+    util: util,
+    map: map,
+    track: track,
+    segment: segment,
+    station: station,
+    connection: connection,
+    snap: snap,
+    styles: styles,
+    serialize: serialize,
+    revision: revision,
+    interaction: interaction,
+    zoom: zoom,
+};
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+util = __webpack_require__(0);
+metrosegment = __webpack_require__(3);
+
+
+function snapPosition(track, station, position) {
+    var snapDistance = metrosegment.minStraight+metrosegment.arcRadius*2.0;
+    var stations = track.connectedStations(station);
+    if (stations.length === 0 && track.lastAddedStation()) {
+        stations.push(track.lastAddedStation());
+    }
+    var nearestX = null;
+    var nearestY = null;
+    var minDistanceX = 1e99;
+    var minDistanceY = 1e99;
+    for (var i in stations) {
+        var stationVector = position - stations[i].position;
+        var deltaX = Math.abs(stationVector.x);
+        if (deltaX < minDistanceX) {
+            nearestX = stations[i];
+            minDistanceX = deltaX;
+        }
+        var deltaY = Math.abs(stationVector.y);
+        if (deltaY < minDistanceY) {
+            nearestY = stations[i];
+            minDistanceY = deltaY;
+        }
+    }
+    var snapX = position.x;
+    if (minDistanceX < snapDistance) {
+        snapX = nearestX.position.x;
+    }
+    var snapY = position.y;
+    if (minDistanceY < snapDistance) {
+        snapY = nearestY.position.y;
+    }
+    return new Point(snapX, snapY);
+}
+
+
+module.exports = {
+    snapPosition: snapPosition,
+};
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
+util = __webpack_require__(0);
+serialize = __webpack_require__(8);
+
+var maxRevisions = 100;
+var revisions = [];
+var currentRevision = -1;
+
+
+function createRevision(map) {
+    console.log('createRevision');
+    currentRevision++;
+    var mapDataString = serialize.saveMap(map);
+    if (currentRevision >= revisions.length) {
+        revisions.push(mapDataString);
+    } else {
+        revisions[currentRevision] = mapDataString;
+        revisions.splice(currentRevision+1, revisions.length-currentRevision-1);
+    }
+    while (revisions.length > maxRevisions) {
+        revisions.shift();
+        currentRevision--;
+    }
+    console.log('currentRevision', currentRevision);
+}
+
+
+function undo(map) {
+    if (currentRevision <= 0) {
+        return map;
+    }
+    currentRevision--;
+    var last = revisions[currentRevision];
+    map = serialize.loadMap(JSON.parse(last));
+    return map;
+}
+
+
+function redo(map) {
+    if (currentRevision+1 >= revisions.length) {
+        return map;
+    }
+    currentRevision++;
+    var next = revisions[currentRevision];
+    map = serialize.loadMap(JSON.parse(next));
+    return map;
+}
+
+
+function hasUndo() {
+    return currentRevision > 0;
+}
+
+
+function hasRedo() {
+    return currentRevision+1 < revisions.length;
+}
+
+
+function clearRevisions() {
+    revisions = [];
+    currentRevision = -1;
+}
+
+
+module.exports = {
+    createRevision: createRevision,
+    clearRevisions: clearRevisions,
+    undo: undo,
+    redo: redo,
+    hasUndo: hasUndo,
+    hasRedo: hasRedo
+};
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
+
+var map = null;
+
+function setNewMap(newMap) {
+    map = newMap;
+}
+
+function enableZoomOnCanvas(newMap) {
+    map = newMap;
+    $("canvas").bind("wheel", function(event) {
+        var point = new Point(event.clientX, event.clientY);
+        zoom(-event.originalEvent.deltaY, point);
+
+        function allowedZoom(zoom) {
+            if (zoom !== paper.view.zoom)
+            {
+                paper.view.zoom = zoom;
+                return zoom;
+            }
+            return null;
+        }
+
+        function zoom(delta, point) {
+            if (!delta) return;
+
+            var oldZoom = paper.view.zoom;
+            var oldCenter = paper.view.center;
+            var viewPos = paper.view.viewToProject(point);
+            var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
+
+            if (!allowedZoom(newZoom)) {
+                return;
+            }
+
+            var zoomScale = oldZoom / newZoom;
+            var centerAdjust = viewPos.subtract(oldCenter);
+            var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
+
+            paper.view.center = view.center.add(offset);
+
+            map.notifyAllStationsAndSegments();
+        }
+    });
+}
+
+module.exports = {
+    enableZoomOnCanvas: enableZoomOnCanvas,
+    setNewMap: setNewMap,
+};
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
+var util = __webpack_require__(0);
+
+
+var map = null;
+
+function setCurrentMap(currentMap) {
+    map = currentMap;
+}
+
+function showStationContextMenu(stationId) {
+    $('#' + stationId).contextMenu();
+}
+
+
+function showStationInfo(station) {
+    var $div = $('<div class="station-info">id:' + station.id + '</div>');
+    $div.css('top', $('#' + station.id).css("top"));
+    $div.css('left', $('#' + station.id).css("left"));
+    $('#overlay-content').append($div);
+}
+
+
+function hideStationInfoAll() {
+    $(".station-info").hide();
+}
+
+
+function showSegmentContextMenu(segmentId, position) {
+    $('#segment-' + segmentId).data('position', position);
+    $('#segment-' + segmentId).contextMenu();
+}
+
+
+function createStationMinorElement(station, track) {
+	$("#overlay").append("<div class=\"station\" id=\"" + station.id + "\" data-station-id=\"" + station.id + "\"></div>")
+}
+
+
+function createMapElements(map, onRemoveStation) {
+    $("#overlay").empty();
+    var mapElements = [];
+    for (var i in map.tracks) {
+        var trackElements = createTrackElements(map.tracks[i], onRemoveStation);
+        mapElements.push({track: map.tracks[i], stationElements: trackElements.stationElements, segmentElements: trackElements.segmentElements});
+    }
+    return mapElements
+}
+
+
+function createTrackElements(track) {
+    var stationElements = [];
+    for (var i in track.stations) {
+        var stationElement = createStationElement(track.stations[i], track);
+        stationElements.push(stationElement);
+    }
+    var segmentElements = createSegmentElements(track);
+    return {stationElements: stationElements, segmentElements: segmentElements};
+}
+
+
+function createStationElement(station, track) {
+	$("#overlay").append("<div class=\"station\" id=\"" + station.id + "\" data-station-id=\"" + station.id + "\"></div>")
+    var stationElement = $("#" + station.id);
+
+    updateElementPosition(stationElement, station);
+    updateStyle();
+    createStationObserver();
+
+    function updateElementPosition(stationElement, station) {
+        var viewPosition = paper.view.projectToView(station.position);
+	    stationElement.css('top', (viewPosition.y - stationElement.width()/2) + 'px');
+	    stationElement.css('left', (viewPosition.x - stationElement.height()/2) + 'px');
+    }
+
+    function updateStyle() {
+        if (util.DisplaySettings.isDebug) {
+            stationElement.css('border-width', '1px');
+        } else {
+            stationElement.css('border-width', '0px');
+        }
+    }
+
+    function createStationObserver() {
+        var stationObserver = new util.Observer(
+            function(station) {
+                updateElementPosition(this.stationElement, station);
+            },
+            function(station) {
+                this.stationElement.remove();
+            }
+        );
+        stationObserver.stationElement = stationElement;
+        station.registerObserver(stationObserver);
+    }
+    return stationElement;
+}
+
+
+function createSegmentElements(track) {
+    console.log('createSegmentElements');
+    $(".segment").empty();
+    var elements = [];
+    for (var i in track.segments) {
+        var segment = track.segments[i];
+        var element = createSegmentElement(segment, track);
+        elements.push(element);
+    }
+    return elements;
+}
+
+
+function createSegmentElement(segment, track) {
+	var segmentElementId = "segment-" + segment.id;
+	$("#overlay").append("<div class=\"segment\" id=\"" + segmentElementId + "\" data-segment-id=\"" + segment.id + "\"></div>")
+    var segmentElement = $("#" + segmentElementId);
+
+    updateSegmentElementPosition(segmentElement, segment);
+    updateStyle();
+    createSegmentObserver();
+
+    function updateSegmentElementPosition(segmentElement, segment) {
+        var segmentCenterView = paper.view.projectToView(segment.center());
+	    segmentElement.css('top', (segmentCenterView.y - segmentElement.width()/2) + 'px');
+	    segmentElement.css('left', (segmentCenterView.x - segmentElement.height()/2) + 'px');
+    }
+
+    function updateStyle() {
+        if (util.DisplaySettings.isDebug) {
+            segmentElement.css('border-width', '1px');
+        } else {
+            segmentElement.css('border-width', '0px');
+        }
+    }
+
+    function createSegmentObserver() {
+        var segmentObserver = new util.Observer(
+            function(segment) {
+                updateSegmentElementPosition(this.segmentElement, segment);
+            },
+            function(segment) {
+                this.segmentElement.remove();
+            }
+        );
+        segmentObserver.segmentElement = segmentElement;
+        segment.registerObserver(segmentObserver);
+    }
+
+    return segmentElement;
+}
+
+
+module.exports = {
+    createMapElements: createMapElements,
+    createTrackElements: createTrackElements,
+    createStationElement: createStationElement,
+    showStationInfo: showStationInfo,
+    hideStationInfoAll: hideStationInfoAll,
+    showStationContextMenu: showStationContextMenu,
+    showSegmentContextMenu: showSegmentContextMenu,
+    createSegmentElements: createSegmentElements,
+    setCurrentMap: setCurrentMap,
+};
+
 /***/ })
 /******/ ]);
+});
+
+/***/ })
+
+/******/ });
+});

@@ -1,4 +1,4 @@
-core = require("./core.js");
+util = require("./util.js");
 metrotrack = require("./track.js");
 metroconnection = require("./connection.js");
 
@@ -50,6 +50,20 @@ var Map = {
                 this.connections.splice(i, 1);
             }
         }
+    },
+    stations: function() {
+        var stations = [];
+        for (var i in this.tracks) {
+            stations = stations.concat(this.tracks[i].stations);
+        }
+        return stations;
+    },
+    segments: function() {
+        var segments = [];
+        for (var i in this.tracks) {
+            segments = segments.concat(this.tracks[i].segments);
+        }
+        return segments;
     },
     draw: function(drawSettings) {
         console.time("map.draw");
@@ -107,6 +121,16 @@ var Map = {
         }
         return {station: null, track: null};
     },
+    findSegment: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var segment = track.findSegment(id);
+            if (segment) {
+                return {segment: segment, track: track};
+            }
+        }
+        return {segment: null, track: null};
+    },
     findSegmentByPathId: function(id) {
         for (var i in this.tracks) {
             var track = this.tracks[i];
@@ -124,12 +148,22 @@ var Map = {
             }
         }
         return null;
+    },
+    notifyAllStationsAndSegments: function () {
+        var stations = this.stations();
+        for (var i in stations) {
+            stations[i].notifyAllObservers();
+        }
+        var segments = this.segments();
+        for (var i in segments) {
+            segments[i].notifyAllObservers();
+        }
     }
 };
 
 
 function createMap() {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var map = Object.assign(observable, Map);
     map = map.Map();
     return map;

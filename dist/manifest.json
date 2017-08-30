@@ -1,19 +1,8 @@
 {
-  "connection.js": "metroflow.connection.js",
-  "contextmenu.js": "metroflow.contextmenu.js",
-  "core.js": "metroflow.core.js",
-  "css.css": "metroflow-basic.css",
-  "css.js": "metroflow.css.js",
-  "interaction.js": "metroflow.interaction.js",
-  "map.js": "metroflow.map.js",
-  "revision.js": "metroflow.revision.js",
-  "segment.js": "metroflow.segment.js",
-  "serialize.js": "metroflow.serialize.js",
-  "sidebar.js": "metroflow.sidebar.js",
-  "sketcher.js": "metroflow.sketcher.js",
-  "snap.js": "metroflow.snap.js",
-  "station.js": "metroflow.station.js",
-  "styles.js": "metroflow.styles.js",
-  "toolbar.js": "metroflow.toolbar.js",
-  "track.js": "metroflow.track.js"
+  "css.css": "metroflow-viewer.css",
+  "css.js": "css.js",
+  "editor.js": "editor.js",
+  "example_basic.js": "example_basic.js",
+  "metroflow.js": "metroflow.js",
+  "viewer.js": "viewer.js"
 }

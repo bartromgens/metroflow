@@ -1,4 +1,4 @@
-core = require("./core.js");
+util = require("./util.js");
 
 var arcRadius = 8.0;
 var minStraight = 4.0*arcRadius;
@@ -6,14 +6,14 @@ var minStraight = 4.0*arcRadius;
 
 var Segment = {
     Segment: function(stationA, stationB, style) {
-        console.log('Segment.Segment()', stationA, stationB);
+//        console.log('Segment.Segment()', stationA, stationB);
         this.stationA = stationA;
         this.stationB = stationB;
         this.stations = [stationA, stationB];
         this.stationsAuto = [];
         this.stationsUser = [stationA, stationB];
         this.style = style;
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.path = null;
         this.isSelected = false;
         return this;
@@ -46,14 +46,6 @@ var Segment = {
         console.assert(this.path, this);
         var position = this.path.getNearestPoint(position);
         return this.path.getOffsetOf(position);
-    },
-    switchDirection: function() {
-        console.log('switchDirection');
-        console.log(this.stationA.id, this.stationB.id);
-        var stationA = this.stationA;
-        this.stationA = this.stationB;
-        this.stationB = stationA;
-        console.log(this.stationA.id, this.stationB.id);
     },
     toggleSelect: function() {
         if (this.isSelected) {
@@ -119,7 +111,7 @@ var Segment = {
         }
         return stationsRemoved;
     },
-    createPath: function() {
+    createNewPath: function() {
         var path = new Path();
         path.strokeColor = this.style.strokeColor;
         if (this.isSelected) {
@@ -128,7 +120,7 @@ var Segment = {
         path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
-        path.fullySelected = core.DisplaySettings.isDebug;
+        path.fullySelected = util.DisplaySettings.isDebug;
         return path;
     },
     getNearestStation: function(position, direction) {
@@ -185,12 +177,7 @@ var Segment = {
         }
         return null;
     },
-    draw: function(previous, drawSettings) {
-        // console.log('segment.draw()');
-        var notifyObservers = !drawSettings.fast;
-        this.stationA.updatePosition(this, notifyObservers);
-        this.stationB.updatePosition(this, notifyObservers);
-
+    createPath: function(previous) {
         this.path = null;
         var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
@@ -223,7 +210,7 @@ var Segment = {
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
             var endPoint2 = arcEnd + arcEndRel.normalize()*arcRadius;
 
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(beginPoint1);
             this.path.quadraticCurveTo(arcBegin, beginPoint2);
@@ -231,12 +218,12 @@ var Segment = {
             this.path.quadraticCurveTo(arcEnd, endPoint2);
             this.path.add(this.end());
         } else {
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(this.end());
         }
 
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             var debugPointRadius = 4;
             var center = (stationVector)/2.0 + this.begin();
             var centerCircle = new Path.Circle(center, debugPointRadius);
@@ -252,6 +239,14 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.path.sendToBack();
+    },
+    draw: function(previous, drawSettings) {
+        // console.log('segment.draw()');
+        var notifyObservers = !drawSettings.fast;
+        this.stationA.updatePosition(this, notifyObservers);
+        this.stationB.updatePosition(this, notifyObservers);
+
+        this.createPath(previous);
 
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];
@@ -273,7 +268,7 @@ var Segment = {
 
 function createSegment(stationA, stationB, style) {
     console.log('createSegment');
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var segment = Object.assign(observable, Segment);
     segment = segment.Segment(stationA, stationB, style);
     return segment;

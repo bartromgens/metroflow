@@ -1,5 +1,5 @@
 require("paper");
-var core = require("../core.js");
+require("../metroflow.js");
 
 var currentTrack = null;
 
@@ -140,7 +140,7 @@ function updateTableTrack(track) {
 
 
 function notifyTrackChanged(track) {
-    var trackObserver = new core.Observer(
+    var trackObserver = new util.Observer(
         updateTableTrack,
         function(track) {
             return;

@@ -1,12 +1,11 @@
 require("paper");
-var core = require("./core.js");
-var metromap = require("./map.js");
-var snap = require("./snap.js");
-var revision = require("./revision.js");
-var interaction = require("./interaction.js");
-var sidebar = require("./ui/sidebar.js");
-var toolbar = require("./ui/toolbar.js");
-var serialize = require("./serialize.js");
+
+var MetroFlow = require("../metroflow.js");
+
+var sidebar = require("./sidebar.js");
+var toolbar = require("./toolbar.js");
+var contextmenu = require("./contextmenu.js");
+
 
 $(initialise);
 
@@ -56,30 +55,34 @@ var hitOptions = {
 };
 
 function initialise() {
-    drawSettings = metromap.createDrawSettings();
+    drawSettings = MetroFlow.map.createDrawSettings();
     drawSettings.minorStationText = true;
-    drawSettingsDrag = metromap.createDrawSettings();
+    drawSettingsDrag = MetroFlow.map.createDrawSettings();
     drawSettingsDrag.text = false;
     drawSettingsDrag.fast = true;
-    drawSettingsFull = metromap.createDrawSettings();
+    drawSettingsFull = MetroFlow.map.createDrawSettings();
     drawSettingsFull.text = true;
     drawSettingsFull.fast = false;
     drawSettingsFull.calcTextPositions = true;
     drawSettingsFull.minorStationText = true;
     initialiseToolbarActions();
-    var newMap = metromap.createMap();
+    var newMap = MetroFlow.map.createMap();
     setNewMap(newMap);
     setCurrentTrack(createTrack());
+
+//    MetroFlow.zoom.enableZoomOnCanvas(map);
 }
 
 
 function setNewMap(newMap) {
     map = newMap;
-    interaction.setCurrentMap(newMap);
+    MetroFlow.interaction.setCurrentMap(newMap);
+//    MetroFlow.zoom.setNewMap(newMap);
 }
 
 
 function onRemoveStation(stationId) {
+    selectedStation = null;
     map.removeStation(stationId);
     map.draw(drawSettings);
 }
@@ -136,14 +139,14 @@ function onRightClick(event) {
 
     var stationClicked = getStationClicked(hitResult);
     if (stationClicked) {  // right mouse
-        interaction.showStationContextMenu(stationClicked.id);
-        // interaction.hideStationInfoAll();
-        // interaction.showStationInfo(stationClicked);
+        MetroFlow.interaction.showStationContextMenu(stationClicked.id);
+        // MetroFlow.interaction.hideStationInfoAll();
+        // MetroFlow.interaction.showStationInfo(stationClicked);
         return;
     }
     var segmentClicked = getSegmentClicked(hitResult);
     if (segmentClicked) {  // right mouse
-        interaction.showSegmentContextMenu(segmentClicked.id);
+        MetroFlow.interaction.showSegmentContextMenu(segmentClicked.id);
         return;
     }
 }
@@ -170,7 +173,7 @@ function onClickMajorStationMode(event) {
                 currentTrack.createSegment(stationClicked, selectedStation);
             }
             map.draw(drawSettings);
-            revision.createRevision(map);
+            MetroFlow.revision.createRevision(map);
             return;
         }
         var segmentClicked = getSegmentClicked(hitResult);
@@ -178,9 +181,10 @@ function onClickMajorStationMode(event) {
             var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
             var stationNew = currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
             map.draw(drawSettings);
-            revision.createRevision(map);
+            MetroFlow.revision.createRevision(map);
             // TODO: create elements based on track/map observer in interaction
-            interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+            var stationElement = MetroFlow.interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+            contextmenu.createStationContextMenu(stationElement.attr('id'), onRemoveStation);
             return;
         }
     } else {
@@ -189,16 +193,29 @@ function onClickMajorStationMode(event) {
         }
         var stationNew = currentTrack.createStationFree(event.point, selectedStation);
         if (doSnap) {
-            var position = snap.snapPosition(currentTrack, stationNew, event.point);
+            var position = MetroFlow.snap.snapPosition(currentTrack, stationNew, event.point);
             stationNew.setPosition(position);
         }
         selectStation(stationNew);
         // TODO: create elements based on track/map observer in interaction
-        interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
-        interaction.createSegmentElements(currentTrack);
-        revision.createRevision(map);
+        var stationElement = MetroFlow.interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+        contextmenu.createStationContextMenu(stationElement.attr('id'), onRemoveStation);
+        var segmentElements = MetroFlow.interaction.createSegmentElements(currentTrack);
+        for (var i in segmentElements) {
+            var element = segmentElements[i];
+            contextmenu.createSegmentContextMenu(element.attr('id'), createStationMinorOnMap);
+        }
+        MetroFlow.revision.createRevision(map);
         return;
     }
+}
+
+
+function createStationMinorOnMap(position, segmentId) {
+    var segmentInfo = map.findSegment(segmentId);
+    segmentInfo.track.createStationMinorOnSegmentId(position, segmentId);
+    map.draw(drawSettings);
+    MetroFlow.revision.createRevision(map);
 }
 
 
@@ -211,9 +228,7 @@ function onClickMinorStationMode(event) {
             console.log('stroke hit');
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
-                currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
-                map.draw(drawSettings);
-                revision.createRevision(map);
+                createStationMinorOnMap(event.point, segmentClicked.id);
             } else {
                 console.log('warning: no segment clicked');
             }
@@ -267,14 +282,16 @@ function onClickCreateConnectionMode(event) {
         map.createConnection(connectionStationA, connectionStationB);
         connectionStationA.deselect();
         map.draw(drawSettings);
-        revision.createRevision(map);
+        MetroFlow.revision.createRevision(map);
         connectionStationA = null;
         connectionStationB = null;
     }
 }
 
+var startPosition = null;
 
 function onMouseDown(event) {
+    startPosition = event.point;
     if (event.event.which === 3) {  // right mouse
         onRightClick(event);
         return;
@@ -296,7 +313,7 @@ function onMouseDown(event) {
 function onMouseUp(event) {
     if (dragging) {
         map.draw(drawSettings);
-        revision.createRevision(map);
+        MetroFlow.revision.createRevision(map);
         dragging = false;
     }
 }
@@ -304,10 +321,18 @@ function onMouseUp(event) {
 
 function onMouseDrag(event) {
     dragging = true;
+    console.log('onMouseDrag');
+//    if (mode == modes.select) {
+//        console.log('panning', event.delta);
+//        var offset = startPosition - event.point;
+//        paper.view.center = view.center.add(offset);
+//        return;
+//    }
+
 	if (selectedStation) {
         var position = event.point;
 	    if (doSnap && selectedStation.doSnap) {
-	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
+	        position = MetroFlow.snap.snapPosition(currentTrack, selectedStation, event.point);
         }
         var segments = currentTrack.findSegmentsForStation(selectedStation);
 	    console.assert(segments[0]);
@@ -365,7 +390,7 @@ function initialiseToolbarActions() {
         console.log('new track button clicked');
         selectedStation = null;
         var newTrack = createTrack();
-        revision.createRevision(map);
+        MetroFlow.revision.createRevision(map);
         var segmentStyle = styles.createSegmentStyle();
         segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
         newTrack.segmentStyle = segmentStyle;
@@ -399,9 +424,9 @@ function initialiseToolbarActions() {
 
     function debugCheckboxClicked(event) {
         console.log('debug clicked', event.target.checked);
-        core.DisplaySettings.isDebug = event.target.checked;
+        MetroFlow.util.DisplaySettings.isDebug = event.target.checked;
         map.draw(drawSettings);
-        if (core.DisplaySettings.isDebug) {
+        if (MetroFlow.util.DisplaySettings.isDebug) {
             $(".station").css('border-width', '1px');
             $(".segment").css('border-width', '1px');
         } else {
@@ -413,7 +438,7 @@ function initialiseToolbarActions() {
 
     function saveMapClicked() {
         console.log('save map button clicked');
-        var mapJSONString = serialize.saveMap(map);
+        var mapJSONString = MetroFlow.serialize.saveMap(map);
         var data = "text/json;charset=utf-8," + encodeURIComponent(mapJSONString);
         var a = document.createElement('a');
         a.href = 'data:' + data;
@@ -451,19 +476,34 @@ function initialiseToolbarActions() {
 
     function prepareLoadMap() {
         console.log('create revision before clear');
-        revision.createRevision(map);
+        MetroFlow.revision.createRevision(map);
         project.clear();
         resetState();
     }
 
     function finishLoadMap(newMap) {
         newMap.draw(drawSettingsFull);
-        revision.createRevision(newMap);
-        interaction.createMapElements(newMap, onRemoveStation);
+        MetroFlow.revision.createRevision(newMap);
+        var mapElements = MetroFlow.interaction.createMapElements(newMap, onRemoveStation);
+        createContextMenusMapElements(mapElements);
+    }
+
+    function createContextMenusMapElements(mapElements) {
+        for (var i in mapElements) {
+            var track = mapElements[i].track;
+            var stationElements = mapElements[i].stationElements;
+            var segmentElements = mapElements[i].segmentElements;
+            for (var j in segmentElements) {
+                contextmenu.createSegmentContextMenu(segmentElements[j].attr('id'), track);
+            }
+            for (var j in stationElements) {
+                contextmenu.createStationContextMenu(stationElements[j].attr('id'), onRemoveStation);
+            }
+        }
     }
 
     function loadMapJson(json) {
-        var newMap = serialize.loadMap(json);
+        var newMap = MetroFlow.serialize.loadMap(json);
         setNewMap(newMap);
         if (newMap.tracks.length > 0) {
             setCurrentTrack(newMap.tracks[0]);
@@ -505,30 +545,30 @@ function initialiseToolbarActions() {
         }
         setCurrentTrack(track);
         map.draw(drawSettingsFull);
-        interaction.createMapElements(map, onRemoveStation);
+        MetroFlow.interaction.createMapElements(map, onRemoveStation);
         for (var i in map.tracks) {
             sidebar.notifyTrackChanged(map.tracks[i]);
         }
     }
 
     function onUndoButtonClicked() {
-        if (!revision.hasUndo()) {
+        if (!MetroFlow.revision.hasUndo()) {
             console.log('NO UNDO AVAILABLE');
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        setNewMap(revision.undo(map));
+        setNewMap(MetroFlow.revision.undo(map));
         finaliseUndoRedo(currentTrackId);
     }
 
 
     function onRedoButtonClicked() {
-        if (!revision.hasRedo()) {
+        if (!MetroFlow.revision.hasRedo()) {
             console.log('NO REDO AVAILABLE');
             return;
         }
         var currentTrackId = prepareUndoRedo();
-        setNewMap(revision.redo(map));
+        setNewMap(MetroFlow.revision.redo(map));
         finaliseUndoRedo(currentTrackId);
     }
 
@@ -563,42 +603,6 @@ function initialiseToolbarActions() {
         map.draw(drawSettings);
     }
 }
-
-// TODO: update html elements on zoom
-// $("canvas").bind("wheel", function(event) {
-//     var point = new Point(event.clientX, event.clientY);
-//     zoom(-event.originalEvent.deltaY, point);
-//
-//     function allowedZoom(zoom) {
-//         console.log(zoom);
-//         if (zoom !== paper.view.zoom)
-//         {
-//             paper.view.zoom = zoom;
-//             return zoom;
-//         }
-//         return null;
-//     }
-//
-//     function zoom(delta, point) {
-//         if (!delta) return;
-//
-//         var oldZoom = paper.view.zoom;
-//         var oldCenter = paper.view.center;
-//         var viewPos = paper.view.viewToProject(point);
-//         var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
-//
-//         if (!allowedZoom(newZoom)) {
-//             return;
-//         }
-//
-//         var zoomScale = oldZoom / newZoom;
-//         var centerAdjust = viewPos.subtract(oldCenter);
-//         var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
-//
-//         paper.view.center = view.center.add(offset);
-//     }
-// });
-
 
 tool.onMouseDown = onMouseDown;
 tool.onMouseUp = onMouseUp;

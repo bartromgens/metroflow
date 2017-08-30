@@ -1,0 +1,75 @@
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+/* Scale canvas with resize attribute to full size */
+canvas[resize] {
+    position: absolute;
+    top: 40px;
+    width: 100%;
+    height: 95%;
+}
+
+#overlay {
+    position: absolute;
+    top: 40px;
+    width: 80%;
+    height: 95%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+#overlay-content {
+    position: absolute;
+    top: 40px;
+    width: 80%;
+    height: 95%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.station {
+    position: absolute;
+    top: 0;
+    z-index: -1;
+    width: 30px;
+    height: 30px;
+    border: dashed 0px;
+    pointer-events: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.segment {
+    position: absolute;
+    top: 0;
+    z-index: -1;
+    width: 30px;
+    height: 30px;
+    border: dashed 0px;
+    pointer-events: auto;
+    padding: 0;
+    margin: 0;
+}
+
+#toolbar {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 40px;
+    z-index: 100;
+    background-color: #f9f9f9;
+    pointer-events: auto;
+    border: dashed 0px;
+}
+
+.toolbar-buttons {
+    padding-top: 5px;
+    padding-left: 10px;
+}

@@ -1,5 +1,14 @@
-var MetroFlow = MetroFlow || {}; MetroFlow["sketcher"] =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("paper"));
+	else if(typeof define === 'function' && define.amd)
+		define(["paper"], factory);
+	else if(typeof exports === 'object')
+		exports["MetroFlow"] = factory(require("paper"));
+	else
+		root["MetroFlow"] = factory(root["paper"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__) {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -61,15 +70,12 @@ var MetroFlow = MetroFlow || {}; MetroFlow["sketcher"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 15);
+/******/ 	return __webpack_require__(__webpack_require__.s = 14);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-__webpack_require__(1);
-styles = __webpack_require__(2);
+/***/ (function(module, exports) {
 
 
 var DisplaySettings = {
@@ -134,7 +140,7 @@ module.exports = {
 /* 1 */
 /***/ (function(module, exports) {
 
-module.exports = paper;
+module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
 
 /***/ }),
 /* 2 */
@@ -231,7 +237,7 @@ module.exports = {
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
-core = __webpack_require__(0);
+util = __webpack_require__(0);
 
 var arcRadius = 8.0;
 var minStraight = 4.0*arcRadius;
@@ -239,14 +245,14 @@ var minStraight = 4.0*arcRadius;
 
 var Segment = {
     Segment: function(stationA, stationB, style) {
-        console.log('Segment.Segment()', stationA, stationB);
+//        console.log('Segment.Segment()', stationA, stationB);
         this.stationA = stationA;
         this.stationB = stationB;
         this.stations = [stationA, stationB];
         this.stationsAuto = [];
         this.stationsUser = [stationA, stationB];
         this.style = style;
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.path = null;
         this.isSelected = false;
         return this;
@@ -279,14 +285,6 @@ var Segment = {
         console.assert(this.path, this);
         var position = this.path.getNearestPoint(position);
         return this.path.getOffsetOf(position);
-    },
-    switchDirection: function() {
-        console.log('switchDirection');
-        console.log(this.stationA.id, this.stationB.id);
-        var stationA = this.stationA;
-        this.stationA = this.stationB;
-        this.stationB = stationA;
-        console.log(this.stationA.id, this.stationB.id);
     },
     toggleSelect: function() {
         if (this.isSelected) {
@@ -352,7 +350,7 @@ var Segment = {
         }
         return stationsRemoved;
     },
-    createPath: function() {
+    createNewPath: function() {
         var path = new Path();
         path.strokeColor = this.style.strokeColor;
         if (this.isSelected) {
@@ -361,7 +359,7 @@ var Segment = {
         path.strokeWidth = this.style.strokeWidth;
         path.strokeCap = 'round';
         path.strokeJoin = 'round';
-        path.fullySelected = core.DisplaySettings.isDebug;
+        path.fullySelected = util.DisplaySettings.isDebug;
         return path;
     },
     getNearestStation: function(position, direction) {
@@ -418,12 +416,7 @@ var Segment = {
         }
         return null;
     },
-    draw: function(previous, drawSettings) {
-        // console.log('segment.draw()');
-        var notifyObservers = !drawSettings.fast;
-        this.stationA.updatePosition(this, notifyObservers);
-        this.stationB.updatePosition(this, notifyObservers);
-
+    createPath: function(previous) {
         this.path = null;
         var stationVector = this.end() - this.begin();
         var maxDistance = Math.min(Math.abs(stationVector.x), Math.abs(stationVector.y)) - minStraight;
@@ -456,7 +449,7 @@ var Segment = {
             var endPoint1 = arcEnd - (arcEnd-arcBegin).normalize()*arcRadius;
             var endPoint2 = arcEnd + arcEndRel.normalize()*arcRadius;
 
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(beginPoint1);
             this.path.quadraticCurveTo(arcBegin, beginPoint2);
@@ -464,12 +457,12 @@ var Segment = {
             this.path.quadraticCurveTo(arcEnd, endPoint2);
             this.path.add(this.end());
         } else {
-            this.path = this.createPath();
+            this.path = this.createNewPath();
             this.path.add(this.begin());
             this.path.add(this.end());
         }
 
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             var debugPointRadius = 4;
             var center = (stationVector)/2.0 + this.begin();
             var centerCircle = new Path.Circle(center, debugPointRadius);
@@ -485,6 +478,14 @@ var Segment = {
             arcEndCircle.style = arcBeginCircle.style;
         }
         this.path.sendToBack();
+    },
+    draw: function(previous, drawSettings) {
+        // console.log('segment.draw()');
+        var notifyObservers = !drawSettings.fast;
+        this.stationA.updatePosition(this, notifyObservers);
+        this.stationB.updatePosition(this, notifyObservers);
+
+        this.createPath(previous);
 
         for (var i in this.stationsUser) {
             var station = this.stationsUser[i];
@@ -506,7 +507,7 @@ var Segment = {
 
 function createSegment(stationA, stationB, style) {
     console.log('createSegment');
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var segment = Object.assign(observable, Segment);
     segment = segment.Segment(stationA, stationB, style);
     return segment;
@@ -524,188 +525,181 @@ module.exports = {
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(1);
-core = __webpack_require__(0);
-styles = __webpack_require__(2);
+util = __webpack_require__(0);
+metrotrack = __webpack_require__(5);
+metroconnection = __webpack_require__(7);
 
 
-var Station = {
-    Station: function(position, style) {
-        console.log('new station for point', position);
-        this.position = position;
-        this.offsetFactor = null;
-        this.style = style;
-        this.id = core.uuidv4().substring(0, 8);
-        this.path = null;
-        this.isSelected = false;
-        this.name = "station";
-        this.textPositionRel = null;
-        this.doSnap = true;
+var DrawSettings = {
+    text: true,
+    fast: false,
+    calcTextPositions: false,
+    minorStationText: false,
+};
+
+
+function createDrawSettings() {
+    var drawSettings = {};
+    Object.keys(DrawSettings).forEach(function(key) {
+        drawSettings[key] = DrawSettings[key];
+    });
+    return drawSettings;
+}
+
+
+var Map = {
+    Map: function() {
+        this.tracks = [];
+        this.connections = [];
         return this;
     },
-    toggleSelect: function() {
-        if (this.isSelected) {
-            this.deselect();
-        } else {
-            this.select();
+    createTrack: function() {
+        console.log('map.createTrack()');
+        var newTrack = metrotrack.createTrack();
+        this.tracks.push(newTrack);
+        return newTrack;
+    },
+    createConnection: function(stationA, stationB) {
+        console.log('map.createConnection()');
+        if (stationA.id === stationB.id) {
+            return null
+        }
+        var newConnection = metroconnection.createConnection(stationA, stationB);
+        this.connections.push(newConnection);
+        return newConnection;
+    },
+    removeStation: function(id) {
+        for (var i in this.tracks) {
+            this.tracks[i].removeStation(id);
+        }
+        for (var i = this.connections.length - 1; i >= 0; i--) {
+            if (this.connections[i].stationA.id === id || this.connections[i].stationB.id === id) {
+                this.connections.splice(i, 1);
+            }
         }
     },
-    select: function() {
-        this.isSelected = true;
-    },
-    deselect: function() {
-        this.isSelected = false;
-    },
-    setPosition: function(position, segment) {
-        this.doSetPosition(position, segment);
-        this.textPositionRel = null;
-        this.notifyAllObservers();
-    },
-};
-
-
-var StationPainter = {
-    draw: function() {
-        this.path = new Path.Circle(this.position, this.style.stationRadius);
-        if (this.isSelected) {
-            this.path.strokeColor = this.style.selectionColor;
-        } else {
-            this.path.strokeColor = this.style.strokeColor;
+    stations: function() {
+        var stations = [];
+        for (var i in this.tracks) {
+            stations = stations.concat(this.tracks[i].stations);
         }
-        this.path.strokeWidth = this.style.strokeWidth;
-        this.path.fillColor = this.style.fillColor;
-        this.path.bringToFront();
+        return stations;
     },
-};
-
-
-var StationMinorPainter = {
-    draw: function(segment) {
-        var minorStationSize = this.style.minorStationSize;
-        this.path = new Path.Line(this.position, this.position + this.normalUnit*minorStationSize);
-        this.path.strokeColor = this.style.strokeColor;
-        this.path.strokeWidth = this.style.strokeWidth;
-        // this.path.fillColor = this.style.fillColor;
+    segments: function() {
+        var segments = [];
+        for (var i in this.tracks) {
+            segments = segments.concat(this.tracks[i].segments);
+        }
+        return segments;
     },
-    direction: function() {
-        return (this.path.lastSegment.point - this.path.firstSegment.point).normalize();
+    draw: function(drawSettings) {
+        console.time("map.draw");
+        project.clear();
+        for (var i in this.tracks) {
+            this.tracks[i].draw(drawSettings);
+        }
+        for (var i in this.connections) {
+            this.connections[i].draw();
+        }
+        if (drawSettings.text) {
+            var paths = [];
+            if (!drawSettings.fast) {
+                paths = this.allPaths();
+                console.log("map.draw() paths.length", paths.length);
+            }
+            this.drawStationNames(paths, drawSettings);
+        }
+        console.timeEnd("map.draw");
+    },
+    clear: function() {
+        this.tracks = [];
+    },
+    drawStationNames: function(paths, drawSettings) {
+        for (var i in this.tracks) {
+            this.tracks[i].drawStationNames(paths, drawSettings);
+        }
+    },
+    allPaths: function() {
+        var paths = [];
+        for (var i in this.tracks) {
+            paths = paths.concat(this.tracks[i].allPaths());
+        }
+        for (var i in this.connections) {
+            paths = paths.concat(this.connections[i].allPaths());
+        }
+        return paths;
+    },
+    findStation: function(id) {
+        for (var i in this.tracks) {
+            var station = this.tracks[i].findStation(id);
+            if (station) {
+                return station;
+            }
+        }
+        return null;
+    },
+    findStationByPathId: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var station = track.findStationByPathId(id);
+            if (station) {
+                return {station: station, track: track};
+            }
+        }
+        return {station: null, track: null};
+    },
+    findSegment: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var segment = track.findSegment(id);
+            if (segment) {
+                return {segment: segment, track: track};
+            }
+        }
+        return {segment: null, track: null};
+    },
+    findSegmentByPathId: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var segment = track.findSegmentByPathId(id);
+            if (segment) {
+                return {segment: segment, track: track};
+            }
+        }
+        return {segment: null, track: null};
+    },
+    findTrack: function(id) {
+        for (var i in this.tracks) {
+            if (this.tracks[i].id === id) {
+                return this.tracks[i];
+            }
+        }
+        return null;
+    },
+    notifyAllStationsAndSegments: function () {
+        var stations = this.stations();
+        for (var i in stations) {
+            stations[i].notifyAllObservers();
+        }
+        var segments = this.segments();
+        for (var i in segments) {
+            segments[i].notifyAllObservers();
+        }
     }
 };
 
 
-var StationPositionSegmentAuto = {
-    doSetPosition: function(position, segment) {
-        this.position = position;
-    },
-    updatePosition: function(segment, notifyObservers) {
-        // console.log('=======================================');
-        // console.log('StationPositionSegmentAuto.updatePosition');
-        // console.log('this.position', this.position);
-        // console.log('segment', segment);
-        var offsetFactor = segment.getOffsetOf(this.position) / segment.length();
-        var offset = segment.path.length * offsetFactor;
-        this.position = segment.path.getPointAt(offset);
-        var previousStationInfo = segment.getPreviousStation(this.position);
-        // console.log('previousStationInfo', previousStationInfo.station.id);
-        var offsetA = previousStationInfo.offset;
-        var nextStationInfo = segment.getNextStation(this.position);
-        var stationsAuto = segment.getStationsBetween(previousStationInfo.station, nextStationInfo.station);
-        var nStations = stationsAuto.length;
-        var offsetB = nextStationInfo.offset;
-        // console.log('nextStationInfo', nextStationInfo.station.id);
-        var totalLength = offsetB - offsetA;
-        // console.log('totalLength', totalLength);
-        // console.log('segment.length', segment.length());
-        var distanceBetweenStations = totalLength/(nStations+1);
-        var orderNr = stationsAuto.indexOf(this);
-        var stationOffset = distanceBetweenStations * (orderNr+1) + offsetA;
-        // console.log('stationsAuto', stationsAuto);
-        // console.log('orderNr', orderNr);
-        // console.log('stationOffset', stationOffset);
-        var position = segment.path.getPointAt(stationOffset);
-        console.assert(position);
-        if (position) {
-            this.position = position;
-        }
-        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
-        // console.log('segment.getOffsetOf(this.position)', segment.getOffsetOf(this.position));
-        // console.log('offsetFactor', this.offsetFactor);
-        this.normalUnit = segment.path.getNormalAt(stationOffset);
-        if (notifyObservers) {
-            this.notifyAllObservers();
-        }
-        return this.position;
-    }
-};
-
-
-var StationPositionSegmentUser = {
-    doSetPosition: function(position, segment) {
-        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
-    },
-    updatePosition: function(segment, notifyObservers) {
-        var distanceStation = segment.path.length * this.offsetFactor;
-        this.position = segment.path.getPointAt(distanceStation);
-        if (notifyObservers) {
-            this.notifyAllObservers();
-        }
-        return this.position;
-    }
-};
-
-
-var StationPositionFree = {
-    doSetPosition: function(position, segment) {
-        this.position = position;
-    },
-    updatePosition: function(segment, notifyObservers) {
-        if (notifyObservers) {
-            this.notifyAllObservers();
-        }
-        return this.position;
-    }
-};
-
-
-function createStationFree(position, style) {
-    var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionFree, StationPainter);
-    if (!style) {
-        style = styles.createStationStyle();
-    }
-    station = station.Station(position, style);
-    return station;
-}
-
-
-function createStationSegment(offsetFactor, style) {
-    console.log('createStationMinor');
-    var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionSegmentUser, StationPainter);
-    station = station.Station(new Point(0, 0), style);
-    station.offsetFactor = offsetFactor;
-    station.doSnap = false;
-    return station;
-}
-
-
-function createStationMinor(position, stationA, stationB, style) {
-    console.log('createStationMinor');
-    var observable = Object.create(core.Observable).Observable();
-    var station = Object.assign(observable, Station, StationPositionSegmentAuto, StationMinorPainter);
-    station = station.Station(position, style);
-    station.stationA = stationA;
-    station.stationB = stationB;
-    station.name = "minor station";
-    station.doSnap = false;
-    return station;
+function createMap() {
+    var observable = Object.create(util.Observable).Observable();
+    var map = Object.assign(observable, Map);
+    map = map.Map();
+    return map;
 }
 
 
 module.exports = {
-    createStationFree: createStationFree,
-    createStationSegment: createStationSegment,
-    createStationMinor: createStationMinor,
+    createMap: createMap,
+    createDrawSettings: createDrawSettings,
 };
 
 /***/ }),
@@ -713,16 +707,16 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-var core = __webpack_require__(0);
+var util = __webpack_require__(0);
 var metrosegment = __webpack_require__(3);
-var metrostation = __webpack_require__(4);
+var metrostation = __webpack_require__(6);
 var metrostyles = __webpack_require__(2);
 
 
 var Track = {
     Track: function() {
         this.segments = [];
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.stations = [];
         this.stationsMajor = [];
         this.stationsMinor = [];
@@ -897,26 +891,31 @@ var Track = {
                 text.fontSize = fontSize;
                 continue;
             }
-            console.log('recalc best text position');
             var stationRadius = station.style.stationRadius + station.style.strokeWidth;
-            var positions = [];
-            positions.push(new Point(stationRadius, fontSize / 4.0));
-            var text = this.createText(station, positions[0]);
+            var defaultPosition = new Point(stationRadius, fontSize / 4.0)
+            var text = this.createText(station, defaultPosition);
             text.fontSize = fontSize;
-            positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
-            positions.push(new Point(0, -stationRadius * 1.2));
-            positions.push(new Point(stationRadius, -stationRadius * 0.8));
-            positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
-            positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
-            positions.push(new Point(0, stationRadius * 2.2));
-            positions.push(new Point(stationRadius, stationRadius * 1.4));
-            positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
-            positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
-            var pathsToUse = paths;
-            if (paths.length === 0) {
-                pathsToUse = this.stationSegmentPaths(station);
+            if (!calcTextPositions) {
+                continue;
+            } else {
+                console.log('recalc best text position');
+                var positions = [];
+                positions.push(defaultPosition);
+                positions.push(new Point(-stationRadius - text.bounds.width, fontSize / 4.0));
+                positions.push(new Point(0, -stationRadius * 1.2));
+                positions.push(new Point(stationRadius, -stationRadius * 0.8));
+                positions.push(new Point(-text.bounds.width, -stationRadius * 1.2));
+                positions.push(new Point(-text.bounds.width-stationRadius, -stationRadius * 0.8));
+                positions.push(new Point(0, stationRadius * 2.2));
+                positions.push(new Point(stationRadius, stationRadius * 1.4));
+                positions.push(new Point(-text.bounds.width, stationRadius * 2.2));
+                positions.push(new Point(-text.bounds.width-stationRadius, stationRadius * 1.2));
+                var pathsToUse = paths;
+                if (paths.length === 0) {
+                    pathsToUse = this.stationSegmentPaths(station);
+                }
+                station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
             }
-            station.textPositionRel = this.preventIntersectionSegments(text, station, pathsToUse, positions);
         }
     },
     stationSegmentPaths: function(station) {
@@ -1055,7 +1054,7 @@ var Track = {
 
 
 function createTrack() {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var track = Object.assign(observable, Track);
     track = track.Track();
     return track;
@@ -1071,7 +1070,194 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-core = __webpack_require__(0);
+util = __webpack_require__(0);
+styles = __webpack_require__(2);
+
+
+var Station = {
+    Station: function(position, style) {
+        console.log('new station for point', position);
+        this.position = position;
+        this.offsetFactor = null;
+        this.style = style;
+        this.id = util.uuidv4().substring(0, 8);
+        this.path = null;
+        this.isSelected = false;
+        this.name = "station";
+        this.textPositionRel = null;
+        this.doSnap = true;
+        return this;
+    },
+    toggleSelect: function() {
+        if (this.isSelected) {
+            this.deselect();
+        } else {
+            this.select();
+        }
+    },
+    select: function() {
+        this.isSelected = true;
+    },
+    deselect: function() {
+        this.isSelected = false;
+    },
+    setPosition: function(position, segment) {
+        this.doSetPosition(position, segment);
+        this.textPositionRel = null;
+        this.notifyAllObservers();
+    },
+};
+
+
+var StationPainter = {
+    draw: function() {
+        this.path = new Path.Circle(this.position, this.style.stationRadius);
+        if (this.isSelected) {
+            this.path.strokeColor = this.style.selectionColor;
+        } else {
+            this.path.strokeColor = this.style.strokeColor;
+        }
+        this.path.strokeWidth = this.style.strokeWidth;
+        this.path.fillColor = this.style.fillColor;
+        this.path.bringToFront();
+    },
+};
+
+
+var StationMinorPainter = {
+    draw: function(segment) {
+        var minorStationSize = this.style.minorStationSize;
+        this.path = new Path.Line(this.position, this.position + this.normalUnit*minorStationSize);
+        this.path.strokeColor = this.style.strokeColor;
+        this.path.strokeWidth = this.style.strokeWidth;
+        // this.path.fillColor = this.style.fillColor;
+    },
+    direction: function() {
+        return (this.path.lastSegment.point - this.path.firstSegment.point).normalize();
+    }
+};
+
+
+var StationPositionSegmentAuto = {
+    doSetPosition: function(position, segment) {
+        this.position = position;
+    },
+    updatePosition: function(segment, notifyObservers) {
+        // console.log('=======================================');
+        // console.log('StationPositionSegmentAuto.updatePosition');
+        // console.log('this.position', this.position);
+        // console.log('segment', segment);
+        var offsetFactor = segment.getOffsetOf(this.position) / segment.length();
+        var offset = segment.path.length * offsetFactor;
+        this.position = segment.path.getPointAt(offset);
+        var previousStationInfo = segment.getPreviousStation(this.position);
+        // console.log('previousStationInfo', previousStationInfo.station.id);
+        var offsetA = previousStationInfo.offset;
+        var nextStationInfo = segment.getNextStation(this.position);
+        var stationsAuto = segment.getStationsBetween(previousStationInfo.station, nextStationInfo.station);
+        var nStations = stationsAuto.length;
+        var offsetB = nextStationInfo.offset;
+        // console.log('nextStationInfo', nextStationInfo.station.id);
+        var totalLength = offsetB - offsetA;
+        // console.log('totalLength', totalLength);
+        // console.log('segment.length', segment.length());
+        var distanceBetweenStations = totalLength/(nStations+1);
+        var orderNr = stationsAuto.indexOf(this);
+        var stationOffset = distanceBetweenStations * (orderNr+1) + offsetA;
+        // console.log('stationsAuto', stationsAuto);
+        // console.log('orderNr', orderNr);
+        // console.log('stationOffset', stationOffset);
+        var position = segment.path.getPointAt(stationOffset);
+        console.assert(position);
+        if (position) {
+            this.position = position;
+        }
+        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
+        // console.log('segment.getOffsetOf(this.position)', segment.getOffsetOf(this.position));
+        // console.log('offsetFactor', this.offsetFactor);
+        this.normalUnit = segment.path.getNormalAt(stationOffset);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
+        return this.position;
+    }
+};
+
+
+var StationPositionSegmentUser = {
+    doSetPosition: function(position, segment) {
+        this.offsetFactor = segment.getOffsetOf(position) / segment.length();
+    },
+    updatePosition: function(segment, notifyObservers) {
+        var distanceStation = segment.path.length * this.offsetFactor;
+        this.position = segment.path.getPointAt(distanceStation);
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
+        return this.position;
+    }
+};
+
+
+var StationPositionFree = {
+    doSetPosition: function(position, segment) {
+        this.position = position;
+    },
+    updatePosition: function(segment, notifyObservers) {
+        if (notifyObservers) {
+            this.notifyAllObservers();
+        }
+        return this.position;
+    }
+};
+
+
+function createStationFree(position, style) {
+    var observable = Object.create(util.Observable).Observable();
+    var station = Object.assign(observable, Station, StationPositionFree, StationPainter);
+    if (!style) {
+        style = styles.createStationStyle();
+    }
+    station = station.Station(position, style);
+    return station;
+}
+
+
+function createStationSegment(offsetFactor, style) {
+    console.log('createStationMinor');
+    var observable = Object.create(util.Observable).Observable();
+    var station = Object.assign(observable, Station, StationPositionSegmentUser, StationPainter);
+    station = station.Station(new Point(0, 0), style);
+    station.offsetFactor = offsetFactor;
+    station.doSnap = false;
+    return station;
+}
+
+
+function createStationMinor(position, stationA, stationB, style) {
+    console.log('createStationMinor');
+    var observable = Object.create(util.Observable).Observable();
+    var station = Object.assign(observable, Station, StationPositionSegmentAuto, StationMinorPainter);
+    station = station.Station(position, style);
+    station.stationA = stationA;
+    station.stationB = stationB;
+    station.name = "minor station";
+    station.doSnap = false;
+    return station;
+}
+
+
+module.exports = {
+    createStationFree: createStationFree,
+    createStationSegment: createStationSegment,
+    createStationMinor: createStationMinor,
+};
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+util = __webpack_require__(0);
 styles = __webpack_require__(2);
 
 
@@ -1079,7 +1265,7 @@ var Connection = {
     Connection: function(stationA, stationB) {
         this.stationA = stationA;
         this.stationB = stationB;
-        this.id = core.uuidv4();
+        this.id = util.uuidv4();
         this.paths = [];
         return this;
     },
@@ -1120,12 +1306,11 @@ var Connection = {
 
 
 function createConnection(stationA, stationB) {
-    var observable = Object.create(core.Observable).Observable();
+    var observable = Object.create(util.Observable).Observable();
     var connection = Object.assign(observable, Connection);
     connection = connection.Connection(stationA, stationB);
     return connection;
 }
-
 
 
 module.exports = {
@@ -1133,157 +1318,10 @@ module.exports = {
 };
 
 /***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-core = __webpack_require__(0);
-metrotrack = __webpack_require__(5);
-metroconnection = __webpack_require__(6);
-
-
-var DrawSettings = {
-    text: true,
-    fast: false,
-    calcTextPositions: false,
-    minorStationText: false,
-};
-
-
-function createDrawSettings() {
-    var drawSettings = {};
-    Object.keys(DrawSettings).forEach(function(key) {
-        drawSettings[key] = DrawSettings[key];
-    });
-    return drawSettings;
-}
-
-
-var Map = {
-    Map: function() {
-        this.tracks = [];
-        this.connections = [];
-        return this;
-    },
-    createTrack: function() {
-        console.log('map.createTrack()');
-        var newTrack = metrotrack.createTrack();
-        this.tracks.push(newTrack);
-        return newTrack;
-    },
-    createConnection: function(stationA, stationB) {
-        console.log('map.createConnection()');
-        if (stationA.id === stationB.id) {
-            return null
-        }
-        var newConnection = metroconnection.createConnection(stationA, stationB);
-        this.connections.push(newConnection);
-        return newConnection;
-    },
-    removeStation: function(id) {
-        for (var i in this.tracks) {
-            this.tracks[i].removeStation(id);
-        }
-        for (var i = this.connections.length - 1; i >= 0; i--) {
-            if (this.connections[i].stationA.id === id || this.connections[i].stationB.id === id) {
-                this.connections.splice(i, 1);
-            }
-        }
-    },
-    draw: function(drawSettings) {
-        console.time("map.draw");
-        project.clear();
-        for (var i in this.tracks) {
-            this.tracks[i].draw(drawSettings);
-        }
-        for (var i in this.connections) {
-            this.connections[i].draw();
-        }
-        if (drawSettings.text) {
-            var paths = [];
-            if (!drawSettings.fast) {
-                paths = this.allPaths();
-                console.log("map.draw() paths.length", paths.length);
-            }
-            this.drawStationNames(paths, drawSettings);
-        }
-        console.timeEnd("map.draw");
-    },
-    clear: function() {
-        this.tracks = [];
-    },
-    drawStationNames: function(paths, drawSettings) {
-        for (var i in this.tracks) {
-            this.tracks[i].drawStationNames(paths, drawSettings);
-        }
-    },
-    allPaths: function() {
-        var paths = [];
-        for (var i in this.tracks) {
-            paths = paths.concat(this.tracks[i].allPaths());
-        }
-        for (var i in this.connections) {
-            paths = paths.concat(this.connections[i].allPaths());
-        }
-        return paths;
-    },
-    findStation: function(id) {
-        for (var i in this.tracks) {
-            var station = this.tracks[i].findStation(id);
-            if (station) {
-                return station;
-            }
-        }
-        return null;
-    },
-    findStationByPathId: function(id) {
-        for (var i in this.tracks) {
-            var track = this.tracks[i];
-            var station = track.findStationByPathId(id);
-            if (station) {
-                return {station: station, track: track};
-            }
-        }
-        return {station: null, track: null};
-    },
-    findSegmentByPathId: function(id) {
-        for (var i in this.tracks) {
-            var track = this.tracks[i];
-            var segment = track.findSegmentByPathId(id);
-            if (segment) {
-                return {segment: segment, track: track};
-            }
-        }
-        return {segment: null, track: null};
-    },
-    findTrack: function(id) {
-        for (var i in this.tracks) {
-            if (this.tracks[i].id === id) {
-                return this.tracks[i];
-            }
-        }
-        return null;
-    }
-};
-
-
-function createMap() {
-    var observable = Object.create(core.Observable).Observable();
-    var map = Object.assign(observable, Map);
-    map = map.Map();
-    return map;
-}
-
-
-module.exports = {
-    createMap: createMap,
-    createDrawSettings: createDrawSettings,
-};
-
-/***/ }),
 /* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var metromap = __webpack_require__(7);
+var metromap = __webpack_require__(4);
 
 
 function saveMap(map) {
@@ -1476,59 +1514,42 @@ module.exports = {
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var core = __webpack_require__(0);
+__webpack_require__(1);
 
-
-function createStationContextMenu(stationElementId, track, map, onRemoveStation) {
-    $.contextMenu({
-        selector: '#' + stationElementId,
-        trigger: 'none',
-        callback: function(key, options) {
-            if (key === "delete") {
-                var stationId = $(options.selector).data('station-id');
-                onRemoveStation(stationId);
-            }
-        },
-        items: {
-            "delete": {name: "Delete", icon: "delete"},
-        }
-    });
-}
-
-
-function createSegmentContextMenu(segmentElementId, track) {
-    $.contextMenu({
-        selector: '#' + segmentElementId,
-        trigger: 'none',
-        callback: function(key, options) {
-            var segmentId = $(options.selector).data('segment-id');
-            if (key === "create minor station") {
-                var position = $(options.selector).data('position');
-                track.createStationMinorOnSegmentId(position, segmentId);
-            } else if (key === "switchdirection") {
-                var stationId = $(options.selector).data('station-id');
-                var segment = track.findSegment(segmentId);
-                segment.switchDirection();
-            }
-        },
-        items: {
-            "create minor station": {name: "Add minor station", icon: "new"},
-            "switchdirection": {name: "Switch direction", icon: ""},
-        }
-    });
-}
+var util = __webpack_require__(0);
+var map = __webpack_require__(4);
+var track = __webpack_require__(5);
+var segment = __webpack_require__(3);
+var station = __webpack_require__(6);
+var connection = __webpack_require__(7);
+var styles = __webpack_require__(2);
+var snap = __webpack_require__(10);
+var serialize = __webpack_require__(8);
+var revision = __webpack_require__(11);
+var zoom = __webpack_require__(12);
+var interaction = __webpack_require__(13);
 
 
 module.exports = {
-    createStationContextMenu: createStationContextMenu,
-    createSegmentContextMenu: createSegmentContextMenu,
+    util: util,
+    map: map,
+    track: track,
+    segment: segment,
+    station: station,
+    connection: connection,
+    snap: snap,
+    styles: styles,
+    serialize: serialize,
+    revision: revision,
+    interaction: interaction,
+    zoom: zoom,
 };
 
 /***/ }),
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-core = __webpack_require__(0);
+util = __webpack_require__(0);
 metrosegment = __webpack_require__(3);
 
 
@@ -1576,7 +1597,7 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-core = __webpack_require__(0);
+util = __webpack_require__(0);
 serialize = __webpack_require__(8);
 
 var maxRevisions = 100;
@@ -1654,8 +1675,64 @@ module.exports = {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-var core = __webpack_require__(0);
-var contextmenu = __webpack_require__(9);
+
+var map = null;
+
+function setNewMap(newMap) {
+    map = newMap;
+}
+
+function enableZoomOnCanvas(newMap) {
+    map = newMap;
+    $("canvas").bind("wheel", function(event) {
+        var point = new Point(event.clientX, event.clientY);
+        zoom(-event.originalEvent.deltaY, point);
+
+        function allowedZoom(zoom) {
+            if (zoom !== paper.view.zoom)
+            {
+                paper.view.zoom = zoom;
+                return zoom;
+            }
+            return null;
+        }
+
+        function zoom(delta, point) {
+            if (!delta) return;
+
+            var oldZoom = paper.view.zoom;
+            var oldCenter = paper.view.center;
+            var viewPos = paper.view.viewToProject(point);
+            var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
+
+            if (!allowedZoom(newZoom)) {
+                return;
+            }
+
+            var zoomScale = oldZoom / newZoom;
+            var centerAdjust = viewPos.subtract(oldCenter);
+            var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
+
+            paper.view.center = view.center.add(offset);
+
+            map.notifyAllStationsAndSegments();
+        }
+    });
+}
+
+module.exports = {
+    enableZoomOnCanvas: enableZoomOnCanvas,
+    setNewMap: setNewMap,
+};
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
+var util = __webpack_require__(0);
+
 
 var map = null;
 
@@ -1664,14 +1741,14 @@ function setCurrentMap(currentMap) {
 }
 
 function showStationContextMenu(stationId) {
-    $('#station-' + stationId).contextMenu();
+    $('#' + stationId).contextMenu();
 }
 
 
 function showStationInfo(station) {
     var $div = $('<div class="station-info">id:' + station.id + '</div>');
-    $div.css('top', $('#station-' + station.id).css("top"));
-    $div.css('left', $('#station-' + station.id).css("left"));
+    $div.css('top', $('#' + station.id).css("top"));
+    $div.css('left', $('#' + station.id).css("left"));
     $('#overlay-content').append($div);
 }
 
@@ -1688,47 +1765,48 @@ function showSegmentContextMenu(segmentId, position) {
 
 
 function createStationMinorElement(station, track) {
-    var stationElementId = "station-" + station.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
+	$("#overlay").append("<div class=\"station\" id=\"" + station.id + "\" data-station-id=\"" + station.id + "\"></div>")
 }
 
 
 function createMapElements(map, onRemoveStation) {
     $("#overlay").empty();
+    var mapElements = [];
     for (var i in map.tracks) {
-        createTrackElements(map.tracks[i], onRemoveStation);
+        var trackElements = createTrackElements(map.tracks[i], onRemoveStation);
+        mapElements.push({track: map.tracks[i], stationElements: trackElements.stationElements, segmentElements: trackElements.segmentElements});
     }
+    return mapElements
 }
 
 
-function createTrackElements(track, onRemoveStation) {
+function createTrackElements(track) {
+    var stationElements = [];
     for (var i in track.stations) {
-        createStationElement(track.stations[i], track, onRemoveStation);
+        var stationElement = createStationElement(track.stations[i], track);
+        stationElements.push(stationElement);
     }
-    createSegmentElements(track);
-    // for (var i in track.stationsMinor) {
-    //     createStationMinorElement(track.stationsMinor[i], track);
-    // }
+    var segmentElements = createSegmentElements(track);
+    return {stationElements: stationElements, segmentElements: segmentElements};
 }
 
 
-function createStationElement(station, track, onRemoveStation) {
-	var stationElementId = "station-" + station.id;
-	$("#overlay").append("<div class=\"station\" id=\"" + stationElementId + "\" data-station-id=\"" + station.id + "\"></div>")
-    var stationElement = $("#" + stationElementId);
+function createStationElement(station, track) {
+	$("#overlay").append("<div class=\"station\" id=\"" + station.id + "\" data-station-id=\"" + station.id + "\"></div>")
+    var stationElement = $("#" + station.id);
 
-	contextmenu.createStationContextMenu(stationElementId, track, map, onRemoveStation);
     updateElementPosition(stationElement, station);
     updateStyle();
     createStationObserver();
 
     function updateElementPosition(stationElement, station) {
-	    stationElement.css('top', (station.position.y - stationElement.width()/2) + 'px');
-	    stationElement.css('left', (station.position.x - stationElement.height()/2) + 'px');
+        var viewPosition = paper.view.projectToView(station.position);
+	    stationElement.css('top', (viewPosition.y - stationElement.width()/2) + 'px');
+	    stationElement.css('left', (viewPosition.x - stationElement.height()/2) + 'px');
     }
 
     function updateStyle() {
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             stationElement.css('border-width', '1px');
         } else {
             stationElement.css('border-width', '0px');
@@ -1736,7 +1814,7 @@ function createStationElement(station, track, onRemoveStation) {
     }
 
     function createStationObserver() {
-        var stationObserver = new core.Observer(
+        var stationObserver = new util.Observer(
             function(station) {
                 updateElementPosition(this.stationElement, station);
             },
@@ -1747,16 +1825,20 @@ function createStationElement(station, track, onRemoveStation) {
         stationObserver.stationElement = stationElement;
         station.registerObserver(stationObserver);
     }
+    return stationElement;
 }
 
 
 function createSegmentElements(track) {
     console.log('createSegmentElements');
     $(".segment").empty();
+    var elements = [];
     for (var i in track.segments) {
         var segment = track.segments[i];
-        createSegmentElement(segment, track);
+        var element = createSegmentElement(segment, track);
+        elements.push(element);
     }
+    return elements;
 }
 
 
@@ -1765,18 +1847,18 @@ function createSegmentElement(segment, track) {
 	$("#overlay").append("<div class=\"segment\" id=\"" + segmentElementId + "\" data-segment-id=\"" + segment.id + "\"></div>")
     var segmentElement = $("#" + segmentElementId);
 
-	contextmenu.createSegmentContextMenu(segmentElementId, track);
     updateSegmentElementPosition(segmentElement, segment);
     updateStyle();
     createSegmentObserver();
 
     function updateSegmentElementPosition(segmentElement, segment) {
-	    segmentElement.css('top', (segment.center().y - segmentElement.width()/2) + 'px');
-	    segmentElement.css('left', (segment.center().x - segmentElement.height()/2) + 'px');
+        var segmentCenterView = paper.view.projectToView(segment.center());
+	    segmentElement.css('top', (segmentCenterView.y - segmentElement.width()/2) + 'px');
+	    segmentElement.css('left', (segmentCenterView.x - segmentElement.height()/2) + 'px');
     }
 
     function updateStyle() {
-        if (core.DisplaySettings.isDebug) {
+        if (util.DisplaySettings.isDebug) {
             segmentElement.css('border-width', '1px');
         } else {
             segmentElement.css('border-width', '0px');
@@ -1784,7 +1866,7 @@ function createSegmentElement(segment, track) {
     }
 
     function createSegmentObserver() {
-        var segmentObserver = new core.Observer(
+        var segmentObserver = new util.Observer(
             function(segment) {
                 updateSegmentElementPosition(this.segmentElement, segment);
             },
@@ -1795,6 +1877,8 @@ function createSegmentElement(segment, track) {
         segmentObserver.segmentElement = segmentElement;
         segment.registerObserver(segmentObserver);
     }
+
+    return segmentElement;
 }
 
 
@@ -1811,11 +1895,634 @@ module.exports = {
 };
 
 /***/ }),
-/* 13 */
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(15);
+
+
+/***/ }),
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(1);
-var core = __webpack_require__(0);
+
+var MetroFlow = __webpack_require__(9);
+
+var sidebar = __webpack_require__(16);
+var toolbar = __webpack_require__(17);
+var contextmenu = __webpack_require__(18);
+
+
+$(initialise);
+
+// disable browser context menu
+$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
+
+var map = null;
+var currentTrack = null;
+var segmentClicked = null;
+var selectedStation = null;
+var connectionStationA = null;
+var connectionStationB = null;
+var drawSettings = null;
+var drawSettingsDrag = null;
+var drawSettingsFull = null;
+var dragging = false;
+var doSnap = true;
+
+
+function resetState() {
+    map = null;
+    currentTrack = null;
+    segmentClicked = null;
+    selectedStation = null;
+    connectionStationA = null;
+    connectionStationB = null;
+    dragging = false;
+}
+
+
+var modes = {
+    majorstation: "majorstation",
+    minorstation: "minorstation",
+    select: "select",
+    createConnection: "createConnection"
+};
+
+
+var mode = modes.majorstation;
+
+
+var hitOptions = {
+    segments: true,
+    stroke: true,
+    fill: true,
+    tolerance: 3
+};
+
+function initialise() {
+    drawSettings = MetroFlow.map.createDrawSettings();
+    drawSettings.minorStationText = true;
+    drawSettingsDrag = MetroFlow.map.createDrawSettings();
+    drawSettingsDrag.text = false;
+    drawSettingsDrag.fast = true;
+    drawSettingsFull = MetroFlow.map.createDrawSettings();
+    drawSettingsFull.text = true;
+    drawSettingsFull.fast = false;
+    drawSettingsFull.calcTextPositions = true;
+    drawSettingsFull.minorStationText = true;
+    initialiseToolbarActions();
+    var newMap = MetroFlow.map.createMap();
+    setNewMap(newMap);
+    setCurrentTrack(createTrack());
+
+//    MetroFlow.zoom.enableZoomOnCanvas(map);
+}
+
+
+function setNewMap(newMap) {
+    map = newMap;
+    MetroFlow.interaction.setCurrentMap(newMap);
+//    MetroFlow.zoom.setNewMap(newMap);
+}
+
+
+function onRemoveStation(stationId) {
+    selectedStation = null;
+    map.removeStation(stationId);
+    map.draw(drawSettings);
+}
+
+
+function createTrack() {
+    var track = map.createTrack();
+    sidebar.notifyTrackChanged(track);
+    return track;
+}
+
+
+function setCurrentTrack(track) {
+    if (!track || (currentTrack && currentTrack.id === track.id)) {
+        return;
+    }
+    if (selectedStation) {
+        selectedStation.deselect();
+    }
+    currentTrack = track;
+    sidebar.setCurrentTrack(track);
+}
+
+
+function getStationClicked(hitResult, allowSwitchTrack) {
+    var path = hitResult.item;
+    var result = map.findStationByPathId(path.id);
+    var stationClicked = result.station;
+    if (allowSwitchTrack) {
+        setCurrentTrack(result.track);
+    }
+    return stationClicked;
+}
+
+
+function getSegmentClicked(hitResult) {
+    var path = hitResult.item;
+    var segments = path.segments;
+    if (!segments) {
+        return null;
+    }
+    var result = map.findSegmentByPathId(segments[0].path.id);
+    var segmentClicked = result.segment;
+    setCurrentTrack(result.track);
+    return segmentClicked;
+}
+
+
+function onRightClick(event) {
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (!hitResult) {
+        return;
+    }
+
+    var stationClicked = getStationClicked(hitResult);
+    if (stationClicked) {  // right mouse
+        MetroFlow.interaction.showStationContextMenu(stationClicked.id);
+        // MetroFlow.interaction.hideStationInfoAll();
+        // MetroFlow.interaction.showStationInfo(stationClicked);
+        return;
+    }
+    var segmentClicked = getSegmentClicked(hitResult);
+    if (segmentClicked) {  // right mouse
+        MetroFlow.interaction.showSegmentContextMenu(segmentClicked.id);
+        return;
+    }
+}
+
+
+function selectStation(stationClicked) {
+    if (selectedStation && stationClicked.id !== selectedStation.id) {
+        selectedStation.deselect();
+    }
+    stationClicked.toggleSelect();
+    selectedStation = stationClicked;
+    map.draw(drawSettings);
+}
+
+
+function onClickMajorStationMode(event) {
+    console.log('onClickMajorStation');
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult) {
+        var stationClicked = getStationClicked(hitResult, false);
+        if (stationClicked && selectedStation) {
+            console.log('station clicked');
+            if (stationClicked.id !== selectedStation.id) {
+                currentTrack.createSegment(stationClicked, selectedStation);
+            }
+            map.draw(drawSettings);
+            MetroFlow.revision.createRevision(map);
+            return;
+        }
+        var segmentClicked = getSegmentClicked(hitResult);
+        if (segmentClicked) {
+            var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
+            var stationNew = currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
+            map.draw(drawSettings);
+            MetroFlow.revision.createRevision(map);
+            // TODO: create elements based on track/map observer in interaction
+            var stationElement = MetroFlow.interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+            contextmenu.createStationContextMenu(stationElement.attr('id'), onRemoveStation);
+            return;
+        }
+    } else {
+        if (!selectedStation) {
+            selectedStation = currentTrack.lastAddedStation();
+        }
+        var stationNew = currentTrack.createStationFree(event.point, selectedStation);
+        if (doSnap) {
+            var position = MetroFlow.snap.snapPosition(currentTrack, stationNew, event.point);
+            stationNew.setPosition(position);
+        }
+        selectStation(stationNew);
+        // TODO: create elements based on track/map observer in interaction
+        var stationElement = MetroFlow.interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
+        contextmenu.createStationContextMenu(stationElement.attr('id'), onRemoveStation);
+        var segmentElements = MetroFlow.interaction.createSegmentElements(currentTrack);
+        for (var i in segmentElements) {
+            var element = segmentElements[i];
+            contextmenu.createSegmentContextMenu(element.attr('id'), createStationMinorOnMap);
+        }
+        MetroFlow.revision.createRevision(map);
+        return;
+    }
+}
+
+
+function createStationMinorOnMap(position, segmentId) {
+    var segmentInfo = map.findSegment(segmentId);
+    segmentInfo.track.createStationMinorOnSegmentId(position, segmentId);
+    map.draw(drawSettings);
+    MetroFlow.revision.createRevision(map);
+}
+
+
+function onClickMinorStationMode(event) {
+    console.log('onClickMinorStationMode');
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult) {
+        var path = hitResult.item;
+        if (hitResult.type === "stroke" || path) {
+            console.log('stroke hit');
+            segmentClicked = getSegmentClicked(hitResult);
+            if (segmentClicked) {
+                createStationMinorOnMap(event.point, segmentClicked.id);
+            } else {
+                console.log('warning: no segment clicked');
+            }
+        }
+    }
+}
+
+
+function onClickSelectMode(event) {
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult) {
+        var stationClicked = getStationClicked(hitResult, true);
+        if (stationClicked) {
+            console.log('selectedStation', selectedStation);
+            selectStation(stationClicked);
+            return;
+        }
+        var segmentClicked = getSegmentClicked(hitResult);
+        if (segmentClicked) {
+            console.log('segment clicked');
+            segmentClicked.toggleSelect();
+            map.draw(drawSettings);
+            return;
+        }
+    }
+}
+
+
+function onClickCreateConnectionMode(event) {
+    console.log('onClickCreateConnectionMode');
+    var hitResult = project.hitTest(event.point, hitOptions);
+    if (!hitResult) {
+        return;
+    }
+    var stationClicked = getStationClicked(hitResult, false);
+    if (!stationClicked) {
+        return
+    }
+
+    if (!connectionStationA) {
+        connectionStationA = stationClicked;
+        connectionStationA.select();
+        map.draw(drawSettings);
+    } else {
+        connectionStationB = stationClicked;
+        if (connectionStationA.id === connectionStationB.id) {
+            connectionStationB = null;
+            return;
+        }
+        console.log('create new connection', connectionStationA.id, connectionStationB.id);
+        map.createConnection(connectionStationA, connectionStationB);
+        connectionStationA.deselect();
+        map.draw(drawSettings);
+        MetroFlow.revision.createRevision(map);
+        connectionStationA = null;
+        connectionStationB = null;
+    }
+}
+
+var startPosition = null;
+
+function onMouseDown(event) {
+    startPosition = event.point;
+    if (event.event.which === 3) {  // right mouse
+        onRightClick(event);
+        return;
+    }
+
+    if (mode === modes.majorstation) {
+        onClickMajorStationMode(event);
+    } else if (mode === modes.minorstation) {
+        selectedStation = null;
+        onClickMinorStationMode(event);
+    } else if (mode === modes.select) {
+        onClickSelectMode(event);
+    } else if (mode === modes.createConnection) {
+        onClickCreateConnectionMode(event);
+    }
+}
+
+
+function onMouseUp(event) {
+    if (dragging) {
+        map.draw(drawSettings);
+        MetroFlow.revision.createRevision(map);
+        dragging = false;
+    }
+}
+
+
+function onMouseDrag(event) {
+    dragging = true;
+    console.log('onMouseDrag');
+//    if (mode == modes.select) {
+//        console.log('panning', event.delta);
+//        var offset = startPosition - event.point;
+//        paper.view.center = view.center.add(offset);
+//        return;
+//    }
+
+	if (selectedStation) {
+        var position = event.point;
+	    if (doSnap && selectedStation.doSnap) {
+	        position = MetroFlow.snap.snapPosition(currentTrack, selectedStation, event.point);
+        }
+        var segments = currentTrack.findSegmentsForStation(selectedStation);
+	    console.assert(segments[0]);
+        selectedStation.setPosition(position, segments[0]);
+        selectedStation.select();
+	    map.draw(drawSettingsDrag);
+	}
+}
+
+function initialiseToolbarActions() {
+    console.log('initialiseToolbarActions');
+
+    toolbar.setMajorStationButtonAction(majorStationButtonClicked);
+    toolbar.setMinorStationButtonAction(minorStationButtonClicked);
+    toolbar.setSelectButtonAction(selectButtonClicked);
+    toolbar.setNewTrackButtonAction(newTrackButtonClicked);
+    toolbar.setNewConnectionAction(newConnectionButtionClicked);
+    toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
+    toolbar.setToggleSnapAction(snapCheckboxClicked);
+    toolbar.setUndoAction(onUndoButtonClicked);
+    toolbar.setRedoAction(onRedoButtonClicked);
+    toolbar.setSaveMapAction(saveMapClicked);
+    toolbar.setLoadMapAction(loadMapClicked);
+
+    sidebar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
+    sidebar.setToggleDebugAction(debugCheckboxClicked);
+    sidebar.setExampleMapAction(loadExampleMapClicked);
+    sidebar.setTrackColorChangeAction(onTrackColorChanged);
+    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
+    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
+    sidebar.setStationStrokeWidthSliderChangeAction(onStationStrokeWidthChanged);
+    sidebar.setStationStrokeColorChangeAction(onStationStrokeColorChanged);
+    sidebar.setTrackChangeAction(onTrackChanged);
+
+    function onTrackChanged(track) {
+        map.draw(drawSettings);
+    }
+
+    function majorStationButtonClicked() {
+        console.log('major station drawing selected');
+        mode = modes.majorstation;
+    }
+
+    function minorStationButtonClicked() {
+        console.log('minor station drawing selected');
+        mode = modes.minorstation;
+    }
+
+    function selectButtonClicked() {
+        console.log('selection mode selected');
+        mode = modes.select;
+    }
+
+    function newTrackButtonClicked() {
+        console.log('new track button clicked');
+        selectedStation = null;
+        var newTrack = createTrack();
+        MetroFlow.revision.createRevision(map);
+        var segmentStyle = styles.createSegmentStyle();
+        segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
+        newTrack.segmentStyle = segmentStyle;
+        setCurrentTrack(newTrack);
+    }
+
+    function newConnectionButtionClicked() {
+        console.log('new connection button clicked');
+        connectionStationA = null;
+        connectionStationB = null;
+        mode = modes.createConnection;
+    }
+
+    function calcTextPositionButtonClicked() {
+        console.log('calc text position button clicked');
+        map.draw(drawSettingsFull);
+    }
+
+    function snapCheckboxClicked(event) {
+        console.log('snap clicked', event.target.checked);
+        doSnap = event.target.checked;
+        map.draw(drawSettingsFull);
+    }
+
+    function minorNamesCheckboxClicked(event) {
+        console.log('minor names clicked', event.target.checked);
+        drawSettings.minorStationText = event.target.checked;
+        drawSettingsFull.minorStationText = event.target.checked;
+        map.draw(drawSettingsFull);
+    }
+
+    function debugCheckboxClicked(event) {
+        console.log('debug clicked', event.target.checked);
+        MetroFlow.util.DisplaySettings.isDebug = event.target.checked;
+        map.draw(drawSettings);
+        if (MetroFlow.util.DisplaySettings.isDebug) {
+            $(".station").css('border-width', '1px');
+            $(".segment").css('border-width', '1px');
+        } else {
+            $(".station").css('border-width', '0px');
+            $(".segment").css('border-width', '0px');
+        }
+        map.draw(drawSettingsFull);
+    }
+
+    function saveMapClicked() {
+        console.log('save map button clicked');
+        var mapJSONString = MetroFlow.serialize.saveMap(map);
+        var data = "text/json;charset=utf-8," + encodeURIComponent(mapJSONString);
+        var a = document.createElement('a');
+        a.href = 'data:' + data;
+        a.download = 'data.json';
+        a.innerHTML = 'download JSON';
+
+        // var container = document.getElementById('toolbar');
+        // container.appendChild(a);
+        a.click();
+    }
+
+    function loadMapClicked(event) {
+        console.log('load map button clicked');
+        prepareLoadMap();
+
+        readSingleFile(event);
+
+        function readSingleFile(event) {
+            var file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var contents = event.target.result;
+                displayContents(contents);
+            };
+            reader.readAsText(file);
+        }
+
+        function displayContents(contents) {
+            loadMapJson(JSON.parse(contents));
+        }
+    }
+
+    function prepareLoadMap() {
+        console.log('create revision before clear');
+        MetroFlow.revision.createRevision(map);
+        project.clear();
+        resetState();
+    }
+
+    function finishLoadMap(newMap) {
+        newMap.draw(drawSettingsFull);
+        MetroFlow.revision.createRevision(newMap);
+        var mapElements = MetroFlow.interaction.createMapElements(newMap, onRemoveStation);
+        createContextMenusMapElements(mapElements);
+    }
+
+    function createContextMenusMapElements(mapElements) {
+        for (var i in mapElements) {
+            var track = mapElements[i].track;
+            var stationElements = mapElements[i].stationElements;
+            var segmentElements = mapElements[i].segmentElements;
+            for (var j in segmentElements) {
+                contextmenu.createSegmentContextMenu(segmentElements[j].attr('id'), track);
+            }
+            for (var j in stationElements) {
+                contextmenu.createStationContextMenu(stationElements[j].attr('id'), onRemoveStation);
+            }
+        }
+    }
+
+    function loadMapJson(json) {
+        var newMap = MetroFlow.serialize.loadMap(json);
+        setNewMap(newMap);
+        if (newMap.tracks.length > 0) {
+            setCurrentTrack(newMap.tracks[0]);
+        }
+        finishLoadMap(newMap);
+    }
+
+    function loadMapFile(filepath) {
+        console.log('loadMapFile');
+        $.getJSON(filepath, function(json) {
+            loadMapJson(json);
+        });
+    }
+
+    function loadExampleMapClicked(filename) {
+        prepareLoadMap();
+        loadMapFile("src/maps/" + filename);
+    }
+
+    function prepareUndoRedo() {
+        var currentTrackId = null;
+        if (currentTrack) {
+            currentTrackId = currentTrack.id;
+        }
+        project.clear();
+        resetState();
+        return currentTrackId;
+    }
+
+    function finaliseUndoRedo(currentTrackId) {
+        var track = null;
+        if (currentTrackId) {
+            track = map.findTrack(currentTrackId);
+        }
+        if (track && map.tracks) {
+            track = map.tracks[map.tracks.length-1];
+        } else {
+            track = createTrack();
+        }
+        setCurrentTrack(track);
+        map.draw(drawSettingsFull);
+        MetroFlow.interaction.createMapElements(map, onRemoveStation);
+        for (var i in map.tracks) {
+            sidebar.notifyTrackChanged(map.tracks[i]);
+        }
+    }
+
+    function onUndoButtonClicked() {
+        if (!MetroFlow.revision.hasUndo()) {
+            console.log('NO UNDO AVAILABLE');
+            return;
+        }
+        var currentTrackId = prepareUndoRedo();
+        setNewMap(MetroFlow.revision.undo(map));
+        finaliseUndoRedo(currentTrackId);
+    }
+
+
+    function onRedoButtonClicked() {
+        if (!MetroFlow.revision.hasRedo()) {
+            console.log('NO REDO AVAILABLE');
+            return;
+        }
+        var currentTrackId = prepareUndoRedo();
+        setNewMap(MetroFlow.revision.redo(map));
+        finaliseUndoRedo(currentTrackId);
+    }
+
+    function onTrackColorChanged(color) {
+        console.log('onTrackColorChanged');
+        var segmentStyle = currentTrack.segmentStyle;
+        segmentStyle.strokeColor = color;
+        currentTrack.setSegmentStyle(segmentStyle);
+        map.draw(drawSettings);
+    }
+
+    function onTrackWidthChanged(value) {
+        var segmentStyle = currentTrack.segmentStyle;
+        segmentStyle.strokeWidth = value;
+        currentTrack.setSegmentStyle(segmentStyle);
+        map.draw(drawSettings);
+    }
+
+    function onStationRadiusChanged(radius) {
+        console.log('onStationRadiusChanged', radius);
+        currentTrack.stationStyle.stationRadius = radius;
+        map.draw(drawSettings);
+    }
+
+    function onStationStrokeWidthChanged(strokeWidth) {
+        currentTrack.stationStyle.strokeWidth = strokeWidth;
+        map.draw(drawSettings);
+    }
+
+    function onStationStrokeColorChanged(color) {
+        currentTrack.stationStyle.strokeColor = color;
+        map.draw(drawSettings);
+    }
+}
+
+tool.onMouseDown = onMouseDown;
+tool.onMouseUp = onMouseUp;
+tool.onMouseDrag = onMouseDrag;
+tool.onKeyDown = onKeyDown;
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(1);
+__webpack_require__(9);
 
 var currentTrack = null;
 
@@ -1956,7 +2663,7 @@ function updateTableTrack(track) {
 
 
 function notifyTrackChanged(track) {
-    var trackObserver = new core.Observer(
+    var trackObserver = new util.Observer(
         updateTableTrack,
         function(track) {
             return;
@@ -1996,7 +2703,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 14 */
+/* 17 */
 /***/ (function(module, exports) {
 
 
@@ -2081,616 +2788,53 @@ module.exports = {
 };
 
 /***/ }),
-/* 15 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(1);
-var core = __webpack_require__(0);
-var metromap = __webpack_require__(7);
-var snap = __webpack_require__(10);
-var revision = __webpack_require__(11);
-var interaction = __webpack_require__(12);
-var sidebar = __webpack_require__(13);
-var toolbar = __webpack_require__(14);
-var serialize = __webpack_require__(8);
-
-$(initialise);
-
-// disable browser context menu
-$('body').on('contextmenu', '#paperCanvas', function(e){ return false; });
-
-var map = null;
-var currentTrack = null;
-var segmentClicked = null;
-var selectedStation = null;
-var connectionStationA = null;
-var connectionStationB = null;
-var drawSettings = null;
-var drawSettingsDrag = null;
-var drawSettingsFull = null;
-var dragging = false;
-var doSnap = true;
+__webpack_require__(9);
 
 
-function resetState() {
-    map = null;
-    currentTrack = null;
-    segmentClicked = null;
-    selectedStation = null;
-    connectionStationA = null;
-    connectionStationB = null;
-    dragging = false;
+function createStationContextMenu(stationElementId, onRemoveStation) {
+    console.assert(stationElementId);
+    $.contextMenu({
+        selector: '#' + stationElementId,
+        trigger: 'none',
+        callback: function(key, options) {
+            if (key === "delete") {
+                var stationId = $(options.selector).data('station-id');
+                onRemoveStation(stationId);
+            }
+        },
+        items: {
+            "delete": {name: "Delete", icon: "delete"},
+        }
+    });
 }
 
 
-var modes = {
-    majorstation: "majorstation",
-    minorstation: "minorstation",
-    select: "select",
-    createConnection: "createConnection"
+function createSegmentContextMenu(segmentElementId, onCreateStationMinor) {
+    $.contextMenu({
+        selector: '#' + segmentElementId,
+        trigger: 'none',
+        callback: function(key, options) {
+            var segmentId = $(options.selector).data('segment-id');
+            if (key === 'createMinorStation') {
+                var position = $(options.selector).data('position');
+                onCreateStationMinor(position, segmentId);
+            }
+        },
+        items: {
+            'createMinorStation': {name: "Add minor station", icon: "add"},
+        }
+    });
+}
+
+
+module.exports = {
+    createStationContextMenu: createStationContextMenu,
+    createSegmentContextMenu: createSegmentContextMenu,
 };
-
-
-var mode = modes.majorstation;
-
-
-var hitOptions = {
-    segments: true,
-    stroke: true,
-    fill: true,
-    tolerance: 3
-};
-
-function initialise() {
-    drawSettings = metromap.createDrawSettings();
-    drawSettings.minorStationText = true;
-    drawSettingsDrag = metromap.createDrawSettings();
-    drawSettingsDrag.text = false;
-    drawSettingsDrag.fast = true;
-    drawSettingsFull = metromap.createDrawSettings();
-    drawSettingsFull.text = true;
-    drawSettingsFull.fast = false;
-    drawSettingsFull.calcTextPositions = true;
-    drawSettingsFull.minorStationText = true;
-    initialiseToolbarActions();
-    var newMap = metromap.createMap();
-    setNewMap(newMap);
-    setCurrentTrack(createTrack());
-}
-
-
-function setNewMap(newMap) {
-    map = newMap;
-    interaction.setCurrentMap(newMap);
-}
-
-
-function onRemoveStation(stationId) {
-    map.removeStation(stationId);
-    map.draw(drawSettings);
-}
-
-
-function createTrack() {
-    var track = map.createTrack();
-    sidebar.notifyTrackChanged(track);
-    return track;
-}
-
-
-function setCurrentTrack(track) {
-    if (!track || (currentTrack && currentTrack.id === track.id)) {
-        return;
-    }
-    if (selectedStation) {
-        selectedStation.deselect();
-    }
-    currentTrack = track;
-    sidebar.setCurrentTrack(track);
-}
-
-
-function getStationClicked(hitResult, allowSwitchTrack) {
-    var path = hitResult.item;
-    var result = map.findStationByPathId(path.id);
-    var stationClicked = result.station;
-    if (allowSwitchTrack) {
-        setCurrentTrack(result.track);
-    }
-    return stationClicked;
-}
-
-
-function getSegmentClicked(hitResult) {
-    var path = hitResult.item;
-    var segments = path.segments;
-    if (!segments) {
-        return null;
-    }
-    var result = map.findSegmentByPathId(segments[0].path.id);
-    var segmentClicked = result.segment;
-    setCurrentTrack(result.track);
-    return segmentClicked;
-}
-
-
-function onRightClick(event) {
-    var hitResult = project.hitTest(event.point, hitOptions);
-    if (!hitResult) {
-        return;
-    }
-
-    var stationClicked = getStationClicked(hitResult);
-    if (stationClicked) {  // right mouse
-        interaction.showStationContextMenu(stationClicked.id);
-        // interaction.hideStationInfoAll();
-        // interaction.showStationInfo(stationClicked);
-        return;
-    }
-    var segmentClicked = getSegmentClicked(hitResult);
-    if (segmentClicked) {  // right mouse
-        interaction.showSegmentContextMenu(segmentClicked.id);
-        return;
-    }
-}
-
-
-function selectStation(stationClicked) {
-    if (selectedStation && stationClicked.id !== selectedStation.id) {
-        selectedStation.deselect();
-    }
-    stationClicked.toggleSelect();
-    selectedStation = stationClicked;
-    map.draw(drawSettings);
-}
-
-
-function onClickMajorStationMode(event) {
-    console.log('onClickMajorStation');
-    var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult) {
-        var stationClicked = getStationClicked(hitResult, false);
-        if (stationClicked && selectedStation) {
-            console.log('station clicked');
-            if (stationClicked.id !== selectedStation.id) {
-                currentTrack.createSegment(stationClicked, selectedStation);
-            }
-            map.draw(drawSettings);
-            revision.createRevision(map);
-            return;
-        }
-        var segmentClicked = getSegmentClicked(hitResult);
-        if (segmentClicked) {
-            var offsetFactor = segmentClicked.getOffsetOf(event.point) / segmentClicked.length();
-            var stationNew = currentTrack.createStationOnSegment(segmentClicked, offsetFactor);
-            map.draw(drawSettings);
-            revision.createRevision(map);
-            // TODO: create elements based on track/map observer in interaction
-            interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
-            return;
-        }
-    } else {
-        if (!selectedStation) {
-            selectedStation = currentTrack.lastAddedStation();
-        }
-        var stationNew = currentTrack.createStationFree(event.point, selectedStation);
-        if (doSnap) {
-            var position = snap.snapPosition(currentTrack, stationNew, event.point);
-            stationNew.setPosition(position);
-        }
-        selectStation(stationNew);
-        // TODO: create elements based on track/map observer in interaction
-        interaction.createStationElement(stationNew, currentTrack, onRemoveStation);
-        interaction.createSegmentElements(currentTrack);
-        revision.createRevision(map);
-        return;
-    }
-}
-
-
-function onClickMinorStationMode(event) {
-    console.log('onClickMinorStationMode');
-    var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult) {
-        var path = hitResult.item;
-        if (hitResult.type === "stroke" || path) {
-            console.log('stroke hit');
-            segmentClicked = getSegmentClicked(hitResult);
-            if (segmentClicked) {
-                currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
-                map.draw(drawSettings);
-                revision.createRevision(map);
-            } else {
-                console.log('warning: no segment clicked');
-            }
-        }
-    }
-}
-
-
-function onClickSelectMode(event) {
-    var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult) {
-        var stationClicked = getStationClicked(hitResult, true);
-        if (stationClicked) {
-            console.log('selectedStation', selectedStation);
-            selectStation(stationClicked);
-            return;
-        }
-        var segmentClicked = getSegmentClicked(hitResult);
-        if (segmentClicked) {
-            console.log('segment clicked');
-            segmentClicked.toggleSelect();
-            map.draw(drawSettings);
-            return;
-        }
-    }
-}
-
-
-function onClickCreateConnectionMode(event) {
-    console.log('onClickCreateConnectionMode');
-    var hitResult = project.hitTest(event.point, hitOptions);
-    if (!hitResult) {
-        return;
-    }
-    var stationClicked = getStationClicked(hitResult, false);
-    if (!stationClicked) {
-        return
-    }
-
-    if (!connectionStationA) {
-        connectionStationA = stationClicked;
-        connectionStationA.select();
-        map.draw(drawSettings);
-    } else {
-        connectionStationB = stationClicked;
-        if (connectionStationA.id === connectionStationB.id) {
-            connectionStationB = null;
-            return;
-        }
-        console.log('create new connection', connectionStationA.id, connectionStationB.id);
-        map.createConnection(connectionStationA, connectionStationB);
-        connectionStationA.deselect();
-        map.draw(drawSettings);
-        revision.createRevision(map);
-        connectionStationA = null;
-        connectionStationB = null;
-    }
-}
-
-
-function onMouseDown(event) {
-    if (event.event.which === 3) {  // right mouse
-        onRightClick(event);
-        return;
-    }
-
-    if (mode === modes.majorstation) {
-        onClickMajorStationMode(event);
-    } else if (mode === modes.minorstation) {
-        selectedStation = null;
-        onClickMinorStationMode(event);
-    } else if (mode === modes.select) {
-        onClickSelectMode(event);
-    } else if (mode === modes.createConnection) {
-        onClickCreateConnectionMode(event);
-    }
-}
-
-
-function onMouseUp(event) {
-    if (dragging) {
-        map.draw(drawSettings);
-        revision.createRevision(map);
-        dragging = false;
-    }
-}
-
-
-function onMouseDrag(event) {
-    dragging = true;
-	if (selectedStation) {
-        var position = event.point;
-	    if (doSnap && selectedStation.doSnap) {
-	        position = snap.snapPosition(currentTrack, selectedStation, event.point);
-        }
-        var segments = currentTrack.findSegmentsForStation(selectedStation);
-	    console.assert(segments[0]);
-        selectedStation.setPosition(position, segments[0]);
-        selectedStation.select();
-	    map.draw(drawSettingsDrag);
-	}
-}
-
-function initialiseToolbarActions() {
-    console.log('initialiseToolbarActions');
-
-    toolbar.setMajorStationButtonAction(majorStationButtonClicked);
-    toolbar.setMinorStationButtonAction(minorStationButtonClicked);
-    toolbar.setSelectButtonAction(selectButtonClicked);
-    toolbar.setNewTrackButtonAction(newTrackButtonClicked);
-    toolbar.setNewConnectionAction(newConnectionButtionClicked);
-    toolbar.setCalcTextPositionsAction(calcTextPositionButtonClicked);
-    toolbar.setToggleSnapAction(snapCheckboxClicked);
-    toolbar.setUndoAction(onUndoButtonClicked);
-    toolbar.setRedoAction(onRedoButtonClicked);
-    toolbar.setSaveMapAction(saveMapClicked);
-    toolbar.setLoadMapAction(loadMapClicked);
-
-    sidebar.setToggleMinorNamesAction(minorNamesCheckboxClicked);
-    sidebar.setToggleDebugAction(debugCheckboxClicked);
-    sidebar.setExampleMapAction(loadExampleMapClicked);
-    sidebar.setTrackColorChangeAction(onTrackColorChanged);
-    sidebar.setTrackWidthSliderChangeAction(onTrackWidthChanged);
-    sidebar.setStationRadiusSliderChangeAction(onStationRadiusChanged);
-    sidebar.setStationStrokeWidthSliderChangeAction(onStationStrokeWidthChanged);
-    sidebar.setStationStrokeColorChangeAction(onStationStrokeColorChanged);
-    sidebar.setTrackChangeAction(onTrackChanged);
-
-    function onTrackChanged(track) {
-        map.draw(drawSettings);
-    }
-
-    function majorStationButtonClicked() {
-        console.log('major station drawing selected');
-        mode = modes.majorstation;
-    }
-
-    function minorStationButtonClicked() {
-        console.log('minor station drawing selected');
-        mode = modes.minorstation;
-    }
-
-    function selectButtonClicked() {
-        console.log('selection mode selected');
-        mode = modes.select;
-    }
-
-    function newTrackButtonClicked() {
-        console.log('new track button clicked');
-        selectedStation = null;
-        var newTrack = createTrack();
-        revision.createRevision(map);
-        var segmentStyle = styles.createSegmentStyle();
-        segmentStyle.strokeColor = styles.rgbToHex(0, 0, 255);
-        newTrack.segmentStyle = segmentStyle;
-        setCurrentTrack(newTrack);
-    }
-
-    function newConnectionButtionClicked() {
-        console.log('new connection button clicked');
-        connectionStationA = null;
-        connectionStationB = null;
-        mode = modes.createConnection;
-    }
-
-    function calcTextPositionButtonClicked() {
-        console.log('calc text position button clicked');
-        map.draw(drawSettingsFull);
-    }
-
-    function snapCheckboxClicked(event) {
-        console.log('snap clicked', event.target.checked);
-        doSnap = event.target.checked;
-        map.draw(drawSettingsFull);
-    }
-
-    function minorNamesCheckboxClicked(event) {
-        console.log('minor names clicked', event.target.checked);
-        drawSettings.minorStationText = event.target.checked;
-        drawSettingsFull.minorStationText = event.target.checked;
-        map.draw(drawSettingsFull);
-    }
-
-    function debugCheckboxClicked(event) {
-        console.log('debug clicked', event.target.checked);
-        core.DisplaySettings.isDebug = event.target.checked;
-        map.draw(drawSettings);
-        if (core.DisplaySettings.isDebug) {
-            $(".station").css('border-width', '1px');
-            $(".segment").css('border-width', '1px');
-        } else {
-            $(".station").css('border-width', '0px');
-            $(".segment").css('border-width', '0px');
-        }
-        map.draw(drawSettingsFull);
-    }
-
-    function saveMapClicked() {
-        console.log('save map button clicked');
-        var mapJSONString = serialize.saveMap(map);
-        var data = "text/json;charset=utf-8," + encodeURIComponent(mapJSONString);
-        var a = document.createElement('a');
-        a.href = 'data:' + data;
-        a.download = 'data.json';
-        a.innerHTML = 'download JSON';
-
-        // var container = document.getElementById('toolbar');
-        // container.appendChild(a);
-        a.click();
-    }
-
-    function loadMapClicked(event) {
-        console.log('load map button clicked');
-        prepareLoadMap();
-
-        readSingleFile(event);
-
-        function readSingleFile(event) {
-            var file = event.target.files[0];
-            if (!file) {
-                return;
-            }
-            var reader = new FileReader();
-            reader.onload = function(event) {
-                var contents = event.target.result;
-                displayContents(contents);
-            };
-            reader.readAsText(file);
-        }
-
-        function displayContents(contents) {
-            loadMapJson(JSON.parse(contents));
-        }
-    }
-
-    function prepareLoadMap() {
-        console.log('create revision before clear');
-        revision.createRevision(map);
-        project.clear();
-        resetState();
-    }
-
-    function finishLoadMap(newMap) {
-        newMap.draw(drawSettingsFull);
-        revision.createRevision(newMap);
-        interaction.createMapElements(newMap, onRemoveStation);
-    }
-
-    function loadMapJson(json) {
-        var newMap = serialize.loadMap(json);
-        setNewMap(newMap);
-        if (newMap.tracks.length > 0) {
-            setCurrentTrack(newMap.tracks[0]);
-        }
-        finishLoadMap(newMap);
-    }
-
-    function loadMapFile(filepath) {
-        console.log('loadMapFile');
-        $.getJSON(filepath, function(json) {
-            loadMapJson(json);
-        });
-    }
-
-    function loadExampleMapClicked(filename) {
-        prepareLoadMap();
-        loadMapFile("src/maps/" + filename);
-    }
-
-    function prepareUndoRedo() {
-        var currentTrackId = null;
-        if (currentTrack) {
-            currentTrackId = currentTrack.id;
-        }
-        project.clear();
-        resetState();
-        return currentTrackId;
-    }
-
-    function finaliseUndoRedo(currentTrackId) {
-        var track = null;
-        if (currentTrackId) {
-            track = map.findTrack(currentTrackId);
-        }
-        if (track && map.tracks) {
-            track = map.tracks[map.tracks.length-1];
-        } else {
-            track = createTrack();
-        }
-        setCurrentTrack(track);
-        map.draw(drawSettingsFull);
-        interaction.createMapElements(map, onRemoveStation);
-        for (var i in map.tracks) {
-            sidebar.notifyTrackChanged(map.tracks[i]);
-        }
-    }
-
-    function onUndoButtonClicked() {
-        if (!revision.hasUndo()) {
-            console.log('NO UNDO AVAILABLE');
-            return;
-        }
-        var currentTrackId = prepareUndoRedo();
-        setNewMap(revision.undo(map));
-        finaliseUndoRedo(currentTrackId);
-    }
-
-
-    function onRedoButtonClicked() {
-        if (!revision.hasRedo()) {
-            console.log('NO REDO AVAILABLE');
-            return;
-        }
-        var currentTrackId = prepareUndoRedo();
-        setNewMap(revision.redo(map));
-        finaliseUndoRedo(currentTrackId);
-    }
-
-    function onTrackColorChanged(color) {
-        console.log('onTrackColorChanged');
-        var segmentStyle = currentTrack.segmentStyle;
-        segmentStyle.strokeColor = color;
-        currentTrack.setSegmentStyle(segmentStyle);
-        map.draw(drawSettings);
-    }
-
-    function onTrackWidthChanged(value) {
-        var segmentStyle = currentTrack.segmentStyle;
-        segmentStyle.strokeWidth = value;
-        currentTrack.setSegmentStyle(segmentStyle);
-        map.draw(drawSettings);
-    }
-
-    function onStationRadiusChanged(radius) {
-        console.log('onStationRadiusChanged', radius);
-        currentTrack.stationStyle.stationRadius = radius;
-        map.draw(drawSettings);
-    }
-
-    function onStationStrokeWidthChanged(strokeWidth) {
-        currentTrack.stationStyle.strokeWidth = strokeWidth;
-        map.draw(drawSettings);
-    }
-
-    function onStationStrokeColorChanged(color) {
-        currentTrack.stationStyle.strokeColor = color;
-        map.draw(drawSettings);
-    }
-}
-
-// TODO: update html elements on zoom
-// $("canvas").bind("wheel", function(event) {
-//     var point = new Point(event.clientX, event.clientY);
-//     zoom(-event.originalEvent.deltaY, point);
-//
-//     function allowedZoom(zoom) {
-//         console.log(zoom);
-//         if (zoom !== paper.view.zoom)
-//         {
-//             paper.view.zoom = zoom;
-//             return zoom;
-//         }
-//         return null;
-//     }
-//
-//     function zoom(delta, point) {
-//         if (!delta) return;
-//
-//         var oldZoom = paper.view.zoom;
-//         var oldCenter = paper.view.center;
-//         var viewPos = paper.view.viewToProject(point);
-//         var newZoom = delta > 0 ? oldZoom * 1.05 : oldZoom / 1.05;
-//
-//         if (!allowedZoom(newZoom)) {
-//             return;
-//         }
-//
-//         var zoomScale = oldZoom / newZoom;
-//         var centerAdjust = viewPos.subtract(oldCenter);
-//         var offset = viewPos.subtract(centerAdjust.multiply(zoomScale)).subtract(oldCenter);
-//
-//         paper.view.center = view.center.add(offset);
-//     }
-// });
-
-
-tool.onMouseDown = onMouseDown;
-tool.onMouseUp = onMouseUp;
-tool.onMouseDrag = onMouseDrag;
-tool.onKeyDown = onKeyDown;
-
 
 /***/ })
 /******/ ]);
+});

@@ -1,5 +1,14 @@
-var MetroFlow = MetroFlow || {}; MetroFlow["styles"] =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["MetroFlow"] = factory();
+	else
+		root["MetroFlow"] = factory();
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -61,101 +70,33 @@ var MetroFlow = MetroFlow || {}; MetroFlow["styles"] =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 24);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 2:
+/***/ 24:
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(25);
+module.exports = __webpack_require__(26);
+
+
+/***/ }),
+
+/***/ 25:
 /***/ (function(module, exports) {
 
+// removed by extract-text-webpack-plugin
 
-var fillColor = "white";
-var strokeWidth = 8;
-var stationRadius = 1*strokeWidth;
-var selectionColor = rgbToHex(0, 100, 0);
+/***/ }),
 
+/***/ 26:
+/***/ (function(module, exports) {
 
-function componentToHex(c) {
-    var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
-}
-
-
-function rgbToHex(r, g, b) {
-    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
-
-
-var MapStyle = {
-
-};
-
-
-var TrackStyle = {
-
-};
-
-
-var SegmentStyle = {
-    strokeColor: rgbToHex(255, 0, 0),
-    strokeWidth: strokeWidth,
-    selectionColor: selectionColor,
-    fullySelected: false
-};
-
-
-var StationStyle = {
-    strokeColor: rgbToHex(0, 0, 0),
-    strokeWidth: strokeWidth/2,
-    fillColor: fillColor,
-    stationRadius: stationRadius,
-    selectionColor: selectionColor,
-    fullySelected: false
-};
-
-
-var StationMinorStyle = {
-    strokeColor: SegmentStyle.strokeColor,
-    strokeWidth: SegmentStyle.strokeWidth,
-    selectionColor: selectionColor,
-    minorStationSize: SegmentStyle.strokeWidth * 2.0,
-    fullySelected: false
-};
-
-
-function createStationStyle() {
-    var newStyle = {};
-    Object.keys(StationStyle).forEach(function(key) {
-        newStyle[key] = StationStyle[key];
-    });
-    return newStyle;
-}
-
-function createStationMinorStyle() {
-    var newStyle = {};
-    Object.keys(StationMinorStyle).forEach(function(key) {
-        newStyle[key] = StationMinorStyle[key];
-    });
-    return newStyle;
-}
-
-function createSegmentStyle() {
-    var newStyle = {};
-    Object.keys(SegmentStyle).forEach(function(key) {
-        newStyle[key] = SegmentStyle[key];
-    });
-    return newStyle;
-}
-
-
-module.exports = {
-    createStationStyle: createStationStyle,
-    createSegmentStyle: createSegmentStyle,
-    createStationMinorStyle: createStationMinorStyle,
-    rgbToHex: rgbToHex,
-};
+// removed by extract-text-webpack-plugin
 
 /***/ })
 
 /******/ });
+});
