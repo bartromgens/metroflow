@@ -31,7 +31,7 @@ function createSegmentContextMenu(segmentElementId, onCreateStationMinor) {
             }
         },
         items: {
-            'createMinorStation': {name: "Add minor station", icon: "new"},
+            'createMinorStation': {name: "Add minor station", icon: "add"},
         }
     });
 }
