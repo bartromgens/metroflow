@@ -19,24 +19,20 @@ function createStationContextMenu(stationElementId, onRemoveStation) {
 }
 
 
-function createSegmentContextMenu(segmentElementId, track) {
+function createSegmentContextMenu(segmentElementId, onCreateStationMinor) {
     $.contextMenu({
         selector: '#' + segmentElementId,
         trigger: 'none',
         callback: function(key, options) {
+            console.log(options);
             var segmentId = $(options.selector).data('segment-id');
-            if (key === "create minor station") {
+            if (key === 'createMinorStation') {
                 var position = $(options.selector).data('position');
-                track.createStationMinorOnSegmentId(position, segmentId);
-            } else if (key === "switchdirection") {
-                var stationId = $(options.selector).data('station-id');
-                var segment = track.findSegment(segmentId);
-                segment.switchDirection();
+                onCreateStationMinor(position, segmentId);
             }
         },
         items: {
-            "create minor station": {name: "Add minor station", icon: "new"},
-            "switchdirection": {name: "Switch direction", icon: ""},
+            'createMinorStation': {name: "Add minor station", icon: "new"},
         }
     });
 }

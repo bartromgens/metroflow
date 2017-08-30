@@ -121,6 +121,16 @@ var Map = {
         }
         return {station: null, track: null};
     },
+    findSegment: function(id) {
+        for (var i in this.tracks) {
+            var track = this.tracks[i];
+            var segment = track.findSegment(id);
+            if (segment) {
+                return {segment: segment, track: track};
+            }
+        }
+        return {segment: null, track: null};
+    },
     findSegmentByPathId: function(id) {
         for (var i in this.tracks) {
             var track = this.tracks[i];

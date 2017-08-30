@@ -202,11 +202,19 @@ function onClickMajorStationMode(event) {
         var segmentElements = MetroFlow.interaction.createSegmentElements(currentTrack);
         for (var i in segmentElements) {
             var element = segmentElements[i];
-            contextmenu.createSegmentContextMenu(element.attr('id'), currentTrack);
+            contextmenu.createSegmentContextMenu(element.attr('id'), createStationMinorOnMap);
         }
         MetroFlow.revision.createRevision(map);
         return;
     }
+}
+
+
+function createStationMinorOnMap(position, segmentId) {
+    var segmentInfo = map.findSegment(segmentId);
+    segmentInfo.track.createStationMinorOnSegmentId(position, segmentId);
+    map.draw(drawSettings);
+    MetroFlow.revision.createRevision(map);
 }
 
 
@@ -219,9 +227,7 @@ function onClickMinorStationMode(event) {
             console.log('stroke hit');
             segmentClicked = getSegmentClicked(hitResult);
             if (segmentClicked) {
-                currentTrack.createStationMinorOnSegmentId(event.point, segmentClicked.id);
-                map.draw(drawSettings);
-                MetroFlow.revision.createRevision(map);
+                createStationMinorOnMap(event.point, segmentClicked.id);
             } else {
                 console.log('warning: no segment clicked');
             }

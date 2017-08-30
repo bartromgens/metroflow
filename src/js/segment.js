@@ -47,14 +47,6 @@ var Segment = {
         var position = this.path.getNearestPoint(position);
         return this.path.getOffsetOf(position);
     },
-    switchDirection: function() {
-        console.log('switchDirection');
-//        console.log(this.stationA.id, this.stationB.id);
-        var stationA = this.stationA;
-        this.stationA = this.stationB;
-        this.stationB = stationA;
-//        console.log(this.stationA.id, this.stationB.id);
-    },
     toggleSelect: function() {
         if (this.isSelected) {
             this.deselect();
