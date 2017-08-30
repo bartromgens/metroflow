@@ -82,6 +82,7 @@ function setNewMap(newMap) {
 
 
 function onRemoveStation(stationId) {
+    selectedStation = null;
     map.removeStation(stationId);
     map.draw(drawSettings);
 }
